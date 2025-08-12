@@ -4,7 +4,6 @@
       <div class="logo">💼 JobHub</div>
       <nav class="nav-links">
         <router-link to="/" exact-active-class="active-link">Home</router-link>
-        <JobsDropdown />
         <router-link to="/employers" exact-active-class="active-link">Employers</router-link>
       </nav>
     </header>
@@ -12,7 +11,7 @@
       <div class="hero-content">
         <h1>Privacy Policy</h1>
         <p class="subtitle">Your trust is important to us. Here’s how we protect your data.</p>
-        <p class="last-updated">Last Updated: August 5, 2025</p>
+        <p class="last-updated">Last Updated: August 12, 2025</p>
       </div>
     </section>
 
@@ -22,74 +21,54 @@
       </div>
 
       <div class="policy-content">
-        <h2>1. Introduction</h2>
-        <p>Welcome to JobHub. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services. We are committed to protecting your personal data and your right to privacy. If you have any questions or concerns about this policy, or our practices with regards to your personal information, please <router-link to="/contact">contact us</router-link>.</p>
-
-        <h2>2. Information We Collect</h2>
-        <p>We collect personal information that you voluntarily provide to us, as well as information that is automatically collected when you use our services.</p>
-        <h3>a. Information You Provide to Us</h3>
-        <ul>
-          <li><strong>For Job Seekers:</strong> We collect personal data such as your name, email address, phone number, work experience, educational background, skills, and resume/CV content when you create a profile or apply for a job.</li>
-          <li><strong>For Employers:</strong> We collect information such as company name, contact person's name and email, job posting details, and billing information.</li>
-        </ul>
-        <h3>b. Information We Collect Automatically</h3>
-        <ul>
-          <li><strong>Usage Data:</strong> We automatically collect information about how you interact with our services, such as your IP address, browser type, pages viewed, and time spent on pages.</li>
-          <li><strong>Cookies:</strong> We use cookies and similar tracking technologies to track activity on our service and hold certain information.</li>
-        </ul>
-
-        <h2>3. How We Use Your Information</h2>
-        <p>We use the information we collect for various purposes, including:</p>
-        <ul>
-          <li>To provide, operate, and maintain our services.</li>
-          <li>To manage your account and facilitate the job application process.</li>
-          <li>To enable communication between Job Seekers and Employers.</li>
-          <li>To personalize your experience by recommending relevant jobs or candidates.</li>
-          <li>To process transactions and send you related information, including purchase confirmations and invoices.</li>
-          <li>To detect and prevent fraudulent activity.</li>
-          <li>For compliance purposes, including enforcing our Terms of Service, or other legal rights.</li>
-        </ul>
-
-        <h2>4. How We Share Your Information</h2>
-        <p>We do not sell your personal data. We may share your information in the following situations:</p>
-        <ul>
-          <li><strong>With Employers:</strong> When you, as a Job Seeker, apply for a job, your profile and resume information will be shared with that specific Employer.</li>
-          <li><strong>With Service Providers:</strong> We may share your information with third-party vendors who perform services for us, such as payment processing, data analysis, and cloud hosting.</li>
-          <li><strong>For Legal Reasons:</strong> We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court or a government agency) in the jurisdiction of India.</li>
-        </ul>
-
-        <h2>5. Data Security and Retention</h2>
-        <p>We implement a variety of security measures to maintain the safety of your personal information. However, no electronic transmission or storage is 100% secure. We will retain your personal information only for as long as is necessary for the purposes set out in this Privacy Policy and to comply with our legal obligations.</p>
-
-        <h2>6. Your Data Protection Rights</h2>
-        <p>As a user based in India, you have rights under applicable data protection laws. These include the right to:</p>
-        <ul>
-          <li>Access, update, or delete the information we have on you.</li>
-          <li>Withdraw your consent at any time where JobHub relied on your consent to process your personal information.</li>
-          <li>Lodge a complaint with a data protection authority.</li>
-        </ul>
-        <p>You can manage your information from your account dashboard or by contacting us directly.</p>
-
-        <h2>7. Changes to This Privacy Policy</h2>
-        <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date. You are advised to review this Privacy Policy periodically for any changes.</p>
-
-        <h2>8. Contact Us</h2>
-        <p>If you have any questions about this Privacy Policy, please visit our <router-link to="/contact">Contact Page</router-link> or email us at privacy@jobhub.com.</p>
+        <div v-if="isLoading" class="text-center q-pa-xl">
+          <q-spinner-dots color="primary" size="40px" />
+          <p class="q-mt-md text-grey-7">Loading latest policy...</p>
+        </div>
+        <div v-else-if="error" class="text-center text-negative q-pa-xl">
+          <q-icon name="warning" size="40px" />
+          <p class="q-mt-md">{{ error }}</p>
+        </div>
+        <div v-else v-html="policyHtml"></div>
       </div>
     </div>
     <AppFooter />
   </div>
 </template>
 
-<script>
-import AppFooter from '../components/FooterPart.vue';
-export default {
-  name: 'PrivacyPolicy',
-    components: {
-    AppFooter
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { marked } from 'marked';
+import AppFooter from '../components/FooterPart.vue'; // Adjust path if needed
+
+const policyHtml = ref('');
+const isLoading = ref(true);
+const error = ref(null);
+
+// This function runs automatically when the page loads
+onMounted(() => {
+  fetchPolicyContent();
+});
+
+const fetchPolicyContent = async () => {
+  try {
+    // 1. Fetch the raw markdown content from the public folder
+    const response = await axios.get('/content/privacy-policy.md');
+    const markdownText = response.data;
+
+    // 2. Convert the markdown text into an HTML string
+    policyHtml.value = marked.parse(markdownText);
+
+  } catch (err) {
+    console.error("Failed to fetch privacy policy:", err);
+    error.value = "Could not load the privacy policy at this time. Please try again later.";
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -167,7 +146,7 @@ export default {
   border-radius: 8px;
   margin-bottom: 40px;
   display: flex;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
 }
 .disclaimer-box p {
@@ -184,7 +163,9 @@ export default {
   margin: 0 auto;
   line-height: 1.8;
 }
-.policy-content h2 {
+
+/* MODIFIED: Styling for the v-html rendered content */
+.policy-content :deep(h2) {
   font-size: 24px;
   font-weight: 600;
   margin-top: 40px;
@@ -192,33 +173,33 @@ export default {
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(0,0,0,0.1);
 }
-.policy-content h2:first-of-type {
+.policy-content :deep(h2:first-of-type) {
   margin-top: 0;
 }
-.policy-content h3 {
+.policy-content :deep(h3) {
   font-size: 18px;
   font-weight: 600;
   margin-top: 25px;
   margin-bottom: 10px;
   color: #333;
 }
-.policy-content p {
+.policy-content :deep(p) {
   margin-bottom: 15px;
 }
-.policy-content ul {
+.policy-content :deep(ul) {
   padding-left: 25px;
   margin-bottom: 15px;
 }
-.policy-content li {
+.policy-content :deep(li) {
   margin-bottom: 10px;
 }
-.policy-content a {
+.policy-content :deep(a) {
   color: #2d6cff;
   font-weight: 500;
   text-decoration: none;
   transition: text-decoration 0.2s;
 }
-.policy-content a:hover {
+.policy-content :deep(a:hover) {
   text-decoration: underline;
 }
 

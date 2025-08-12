@@ -1,0 +1,87 @@
+{
+  "story": {
+    "title": "Our Story",
+    "content": "Founded in 2023 in Pune, India, JobHub was born from a simple observation: hiring was broken. Companies spent months searching for the right candidates, while talented professionals struggled to find roles where they could truly thrive. We envisioned a smarter way—a platform powered by technology but centered on people. Today, JobHub leverages AI and a deep understanding of the job market to create perfect matches, transforming the future of work."
+  },
+  "mission": {
+    "title": "Our Mission",
+    "content": "To simplify the hiring process and empower every individual to achieve their career goals while helping companies build strong, talented teams."
+  },
+  "vision": {
+    "title": "Our Vision",
+    "content": "To be the most trusted and effective platform for job discovery and recruitment, creating a world where everyone can find a job they love."
+  },
+  "features": {
+    "title": "What Makes Us Different",
+    "subtitle": "The tools and philosophy that set us apart.",
+    "items": [
+      {
+        "icon": "✨",
+        "title": "AI-Powered Matching",
+        "text": "Our intelligent algorithms connect the right people to the right roles, saving time for everyone."
+      },
+      {
+        "icon": "🛡️",
+        "title": "Verified Listings",
+        "text": "We verify every employer to ensure all job postings are from trusted, legitimate companies."
+      },
+      {
+        "icon": "📈",
+        "title": "Seamless Tools",
+        "text": "From our easy-to-use resume builder to our intuitive applicant dashboard, we streamline the entire process."
+      }
+    ]
+  },
+  "audiences": {
+    "title": "Built For You",
+    "items": [
+      {
+        "title": "✔️ For Job Seekers",
+        "text": "Whether you're a recent graduate or a seasoned professional, JobHub provides the tools to build your resume, find verified jobs, and land your next great opportunity."
+      },
+      {
+        "title": "✔️ For Employers",
+        "text": "Reach a vast pool of pre-screened, qualified candidates. Our platform makes it effortless to post jobs, manage applicants, and hire the perfect fit for your team."
+      }
+
+    ]
+  },
+  "team": {
+    "title": "Meet Our Leadership",
+    "subtitle": "The minds behind our mission to revolutionize hiring.",
+    "members": [
+      {
+        "name": "Priya Sharma",
+        "title": "Founder & CEO",
+        "img": "https://randomuser.me/api/portraits/women/68.jpg"
+      },
+      {
+        "name": "Rohan Mehta",
+        "title": "Chief Technology Officer",
+        "img": "https://randomuser.me/api/portraits/men/75.jpg"
+      },
+      {
+        "name": "Aisha Khan",
+        "title": "Head of Product",
+        "img": "https://randomuser.me/api/portraits/women/79.jpg"
+      },
+      {
+        "name": "Vikram Singh",
+        "title": "VP of Sales & Marketing",
+        "img": "https://randomuser.me/api/portraits/men/81.jpg"
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Success Stories",
+    "subtitle": "See what our users have to say about their experience.",
+    "items": [
+      {
+        "quote": "JobHub's AI matching is phenomenal. We filled our Senior Developer role in just two weeks, a process that used to take months. The quality of candidates was outstanding.",
+        "name": "Sarah Chen",
+        "title": "CTO, Innovate Inc.",
+        "img": "https://randomuser.me/api/portraits/women/44.jpg"
+      }
+    ]
+  }
+}

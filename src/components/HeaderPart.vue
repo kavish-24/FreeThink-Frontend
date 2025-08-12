@@ -22,10 +22,10 @@
           </div>
 
           <div v-if="showDropdown" class="dropdown-menu">
-            <div v-if="user.role === 'job_seeker' || user.type === 'seeker'" class="dropdown-item" @click="$router.push('/dashboard')">
+            <div v-if="user.role === 'job_seeker'" class="dropdown-item" @click="$router.push('/dashboard')">
               Job Seeker Dashboard
             </div>
-            <div v-if="user.role === 'company' || user.type === 'employer'" class="dropdown-item" @click="$router.push('/employer-portal')">
+            <div v-if="user.role === 'company'" class="dropdown-item" @click="$router.push('/employer-portal')">
               Employer Dashboard
             </div>
             <q-separator class="q-my-xs" />
@@ -106,11 +106,10 @@ export default {
   padding: 20px 60px; 
   align-items: center; 
   border-bottom: 1px solid #dde2e7; /* A slightly more defined border */
-  font-family: 'Copperplate Gothic Light', sans-serif;
+  font-family: comic-sans, sans-serif;
   font-style: bold; 
   font-size: 20px;
 
-  /* --- Themed Background --- */
   background-color: #f8f9fa; /* A very light, professional grey base */
   background-image: 
     linear-gradient(45deg, #f1f3f5 25%, transparent 25%), 
@@ -168,6 +167,7 @@ export default {
   position: absolute;
   top: 100%;
   right: 0;
+  font-family:cursive;
   margin-top: 8px;
   background-color: white;
   border: 1px solid #eaecef;
