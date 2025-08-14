@@ -90,6 +90,12 @@ const routes = [
         name: "ApplicationStatus",
         component: () => import('../pages/ApplicationStatus.vue')
       },
+      {
+        path: '/application-details/:id',
+        name: 'ApplicationDetails',
+        component: () => import('../components/ApplicationDetailsPage.vue'),
+        props: true
+      },
        {path: '/resume-builder',
         component: () => import('../components/resume-builder.vue') }
     ]
