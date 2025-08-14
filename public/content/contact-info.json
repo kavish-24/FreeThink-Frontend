@@ -1,0 +1,37 @@
+{
+  "contactDetails": {
+    "address": "JobHub HQ, 5th Floor, WeWork Futura, Magarpatta Road, Hadapsar, Pune, Maharashtra 411028, India",
+    "email": "support@jobhub.com",
+    "phone": "+91 20 4856 7890"
+  },
+  "officeHours": {
+    "schedule": [
+      "Monday - Friday: 10:00 AM - 6:00 PM (IST)",
+      "Saturday & Sunday: Closed"
+    ],
+    "availabilityText": "We're available now"
+  },
+  "faqs": [
+    {
+      "question": "How do I post a job listing?",
+      "answer": "Employers can post a job by navigating to the \"Post a Job\" page after signing up for an employer account. Our easy-to-use form will guide you through the process in minutes.",
+      "open": false
+    },
+    {
+      "question": "What are the subscription costs?",
+      "answer": "We offer various plans, including a Basic free plan, a Pro plan with advanced features, and custom Enterprise solutions. You can view all details on our Employers page under the \"Pricing\" section.",
+      "open": false
+    },
+    {
+      "question": "How do I apply for a job?",
+      "answer": "To apply for a job, simply click on the job listing you are interested in and hit the \"Apply Now\" button. You will be prompted to submit your resume and a cover letter if required.",
+      "open": false
+    },
+    
+    {
+      "question": "Is my personal information secure?",
+      "answer": "Absolutely. We use industry-standard encryption and security protocols to protect all user data. Your privacy is our top priority. Please refer to our Privacy Policy for more details.",
+      "open": false
+    }
+  ]
+}

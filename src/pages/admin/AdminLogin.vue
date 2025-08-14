@@ -1,73 +1,59 @@
 <template>
-  <q-page class="flex flex-center q-pa-md bg-grey-1 dark:bg-dark">
-    <q-card
-      class="q-pa-xl q-mx-sm shadow-10"
-      style="width: 100%; max-width: 450px; border-radius: 16px;"
-    >
-      <!-- Back -->
-      <div
-        class="q-mb-lg row items-center text-grey-6 dark:text-grey-4 cursor-pointer"
-        @click="goBack"
-        style="font-size: 14px;"
-      >
+  <div class="login-bg-image flex flex-center">
+    <q-card class="glass-card q-pa-lg">
+      <div class="row items-center q-mb-lg cursor-pointer interactive-link" @click="goBack">
         <q-icon name="arrow_back" size="20px" class="q-mr-sm" />
         <span class="text-weight-medium">Back to Home</span>
       </div>
 
-      <!-- Logo -->
       <div class="q-mb-lg text-center">
-        <q-avatar size="72px" class="bg-blue-1 q-mb-sm">
-          <q-icon name="admin_panel_settings" size="38px" color="#1565c0" />
+        <q-avatar size="72px" class="bg-primary text-white q-mb-sm">
+          <q-icon name="admin_panel_settings" size="38px" />
         </q-avatar>
         <div class="text-h5 text-weight-bold text-dark dark:text-white">Admin Portal</div>
-        <div class="text-subtitle2 text-grey-6 dark:text-grey-5">Sign in to access the admin dashboard</div>
+        <div class="text-subtitle2 text-grey-8 dark:text-grey-3">Sign in to manage JobHub</div>
       </div>
 
-      <!-- Error Message -->
       <q-banner
         v-if="errorMessage"
+        inline-actions
         class="bg-red-1 text-red q-mb-md"
         rounded
       >
         {{ errorMessage }}
         <template v-slot:action>
-          <q-btn flat color="red" icon="close" @click="errorMessage = ''" />
+          <q-btn flat round color="red" icon="close" @click="errorMessage = ''" />
         </template>
       </q-banner>
 
-      <!-- Form -->
-      <q-form @submit.prevent="handleLogin" class="q-gutter-md">
-        <!-- Email Input -->
+      <q-form @submit.prevent="handleLogin" class="q-gutter-y-md">
         <q-input
           v-model="email"
-          label="Email"
+          label="Email Address"
           type="email"
           outlined
-          dense
+          :dark="$q.dark.isActive"
           :rules="[val => !!val || 'Email is required']"
           lazy-rules
           :disable="loading"
-          class="q-mb-sm"
         >
           <template v-slot:prepend>
-            <q-icon name="email" />
+            <q-icon name="alternate_email" />
           </template>
         </q-input>
 
-        <!-- Password Input -->
         <q-input
           v-model="password"
           label="Password"
           :type="showPassword ? 'text' : 'password'"
           outlined
-          dense
+          :dark="$q.dark.isActive"
           :rules="[val => !!val || 'Password is required']"
           lazy-rules
           :disable="loading"
-          class="q-mb-sm"
         >
           <template v-slot:prepend>
-            <q-icon name="lock" />
+            <q-icon name="lock_outline" />
           </template>
           <template v-slot:append>
             <q-icon
@@ -78,36 +64,42 @@
           </template>
         </q-input>
 
-        <!-- Remember Me & Forgot Password -->
-        <div class="row justify-between items-center q-mb-md">
+        <div class="row justify-between items-center q-mb-sm">
           <q-checkbox v-model="rememberMe" label="Remember me" dense />
           <q-btn
             flat
             label="Forgot Password?"
-            class="q-pa-none text-caption text-weight-medium"
-            style="color: #1565c0;"
+            class="q-pa-none text-caption text-weight-medium interactive-link"
+            no-caps
             :disable="loading"
             @click="onForgotPassword"
           />
         </div>
 
-        <!-- Submit Button -->
         <q-btn
           type="submit"
           color="primary"
           label="Sign In"
           class="full-width q-mt-md"
+          size="lg"
+          unelevated
+          rounded
+          glossy
           :loading="loading"
           :disable="!email || !password"
-          unelevated
-          no-caps
-        />
+        >
+           <template v-slot:loading>
+            <q-spinner-oval class="on-left" />
+            Authenticating...
+          </template>
+        </q-btn>
       </q-form>
     </q-card>
-  </q-page>
+  </div>
 </template>
 
 <script setup>
+// UNCHANGED: The script logic is solid and remains the same.
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
@@ -124,7 +116,6 @@ const loading = ref(false);
 const errorMessage = ref('');
 const rememberMe = ref(false);
 
-// Check for session expiration or other query parameters
 onMounted(() => {
   if (route.query.sessionExpired === 'true') {
     errorMessage.value = 'Your session has expired. Please log in again.';
@@ -144,16 +135,13 @@ const handleLogin = async () => {
     });
 
     if (result.success) {
-      // Store the token and redirect to admin dashboard
       localStorage.setItem('adminToken', result.data.token);
       if (rememberMe.value) {
-        // Set token to expire in 7 days if remember me is checked
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 7);
         localStorage.setItem('adminTokenExpiry', expiryDate.getTime().toString());
       }
 
-      // Redirect to the originally requested URL or dashboard
       const redirectPath = route.query.redirect || '/admin/dashboard';
       router.push(redirectPath);
     } else {
@@ -172,14 +160,13 @@ const goBack = () => {
 };
 
 const onForgotPassword = () => {
-  // TODO: Implement forgot password functionality
   $q.notify({
     type: 'info',
     message: 'Please contact the system administrator to reset your password.',
     position: 'top'
   });
 };
-// Expose the necessary variables and methods to the template
+
 defineExpose({
   email,
   password,
@@ -194,141 +181,48 @@ defineExpose({
 </script>
 
 <style scoped>
-/* Custom styles for the admin login page */
-:deep(.q-field--outlined .q-field__control:before) {
-  border-color: #e0e0e0;
-  transition: border-color 0.3s ease;
+/* MODIFIED: Updated background style with the new generated image */
+.login-bg-image {
+  min-height: 100vh;
+  padding: 48px 16px;
+  /* A semi-transparent overlay to ensure text is readable */
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.6)),
+    /* New admin-themed background image */
+    url('https://wallpaperaccess.com/full/1393237.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
-:deep(.q-field--outlined.q-field--highlighted .q-field__control:before) {
-  border-color: #1565c0;
-  border-width: 1px;
+.glass-card {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.27);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.21);
+  padding: 32px 40px;
 }
-
-:deep(.q-field--outlined.q-field--highlighted .q-field__control:after) {
-  border-color: #1565c0;
-  border-width: 1px;
-}
-
-:deep(.q-field--outlined .q-field__control:hover:before) {
-  border-color: #1565c0;
-}
-
-:deep(.q-field--outlined.q-field--error .q-field__control:before) {
-  border-color: #f44336;
-}
-
-:deep(.q-field--outlined.q-field--error .q-field__control:after) {
-  border-color: #f44336;
-}
-
-:deep(.q-field--outlined .q-field__control) {
-  border-radius: 8px;
+.body--dark .glass-card {
+  background-color: rgba(30, 30, 30, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 :deep(.q-field--outlined .q-field__control) {
-  padding: 0 8px;
+  border-radius: 12px !important;
 }
 
-:deep(.q-field__label) {
-  color: #757575;
-  font-size: 14px;
+.interactive-link {
+  color: #1565c0;
+  transition: all 0.2s ease-out;
 }
-
-:deep(.q-field--dense .q-field__control) {
-  height: 44px;
+.interactive-link:hover {
+  filter: brightness(1.2);
+  text-decoration: underline;
 }
-
-:deep(.q-field--dense .q-field__marginal) {
-  height: 44px;
-}
-
-:deep(.q-btn--unelevated) {
-  border-radius: 8px;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0.5px;
-  height: 44px;
-}
-
-:deep(.q-btn--actionable) {
-  transition: all 0.3s ease;
-}
-
-:deep(.q-btn--actionable:hover) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.2);
-}
-
-:deep(.q-btn--actionable:active) {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(21, 101, 192, 0.2);
-}
-
-:deep(.q-banner) {
-  border-radius: 8px;
-  padding: 12px 16px;
-}
-
-:deep(.q-banner--top-padding) {
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-:deep(.q-banner__avatar) {
-  min-width: 24px;
-}
-
-:deep(.q-banner__avatar > .q-icon) {
-  font-size: 20px;
-}
-
-:deep(.q-banner__message) {
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-:deep(.q-banner__actions) {
-  margin-top: 4px;
-}
-
-:deep(.q-banner--dense) {
-  min-height: 40px;
-}
-
-:deep(.q-banner--dense .q-banner__avatar) {
-  font-size: 20px;
-  min-width: 20px;
-}
-
-:deep(.q-banner--dense .q-banner__message) {
-  padding: 0;
-}
-
-:deep(.q-banner--dense .q-banner__actions) {
-  margin-top: 0;
-  margin-left: 12px;
-}
-
-:deep(.q-banner--dense .q-banner__actions .q-btn) {
-  min-height: 24px;
-  padding: 0 8px;
-}
-
-:deep(.q-banner--dense .q-banner__actions .q-btn .q-icon) {
-  font-size: 20px;
-}
-
-:deep(.q-banner--dense .q-banner__actions .q-btn .q-btn__content) {
-  padding: 0;
-}
-
-:deep(.q-banner--dense .q-banner__actions .q-btn .q-btn__content .block) {
-  font-size: 12px;
-  line-height: 1.2;
-}
-
-:deep(.q-banner--dense .q-banner__actions .q-btn .q-btn__content .block.text-weight-bold) {
-  font-weight: 500;
+.body--dark .interactive-link {
+  color: #64b5f6;
 }
 </style>

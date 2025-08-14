@@ -141,7 +141,7 @@
         <q-btn
           label="Create Account"
           type="submit"
-          color="primary"
+          color= "primary"
           class="full-width q-mt-lg"
           size="lg"
           no-caps

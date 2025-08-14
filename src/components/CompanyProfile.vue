@@ -142,10 +142,26 @@
             </q-step>
 
             <q-step :name="3" title="Branding" icon="palette">
-               <q-file v-model="form.logoFile" label="Upload Company Logo" outlined accept=".jpg, .jpeg, .png" max-file-size="2097152" @rejected="onRejected">
-                 <template v-slot:prepend> <q-icon name="attach_file" /> </template>
-                 <template v-slot:hint> Max 2MB (PNG, JPG) </template>
-               </q-file>
+<q-file
+  v-model="form.logoFile"
+  label="Upload Company Logo"
+  outlined
+  accept=".jpg, .jpeg, .png"
+  max-file-size="2097152"
+  @rejected="onRejected"
+  @update:model-value="onLogoSelected"
+>
+  <template v-slot:prepend> <q-icon name="attach_file" /> </template>
+  <template v-slot:hint> Max 2MB (PNG, JPG) </template>
+</q-file>
+
+<!-- Preview uploaded logo inside wizard -->
+<div v-if="form.logoPreview" class="q-mt-md text-center">
+  <q-avatar size="100px" class="shadow-3">
+    <img :src="form.logoPreview" alt="Logo Preview" />
+  </q-avatar>
+</div>
+
                <q-input v-model="form.about" label="About the Company" type="textarea" outlined class="q-mt-md" />
                <q-input v-model="form.socials.linkedin" label="LinkedIn Profile URL" outlined class="q-mt-md" />
                <q-input v-model="form.socials.twitter" label="Twitter Profile URL" outlined class="q-mt-md" />
@@ -178,10 +194,11 @@ const $q = useQuasar();
 const employer = ref({ name: 'Innovate Inc.', email: 'hr@innovate.com' });
 
 onMounted(() => {
-  const stored = localStorage.getItem('employerData');
-  if (stored) {
-    employer.value = JSON.parse(stored);
-  }
+const storedCompany = localStorage.getItem('companyData');
+if (storedCompany) {
+  company.value = JSON.parse(storedCompany);
+}
+
 });
 
 const selected = ref('Company Profile');
@@ -231,18 +248,42 @@ const openWizard = () => {
   showWizard.value = true;
 };
 
+const onLogoSelected = (file) => {
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      form.value.logoPreview = e.target.result; // base64 string
+    };
+    reader.readAsDataURL(file);
+  } else {
+    form.value.logoPreview = null;
+  }
+};
+
+
+
 const submitForm = () => {
   // If a new logo file was uploaded, create a URL for it
-  if (form.value.logoFile) {
-    company.value.logoUrl = URL.createObjectURL(form.value.logoFile);
-  }
+if (form.value.logoFile) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    company.value.logoUrl = e.target.result; // base64 string
+    localStorage.setItem('companyData', JSON.stringify(company.value));
+  };
+  reader.readAsDataURL(form.value.logoFile);
+} else {
+  localStorage.setItem('companyData', JSON.stringify(company.value));
+}
+
+
 
   // Update company data from the form
   // We don't copy logoFile to the main company object, so we disable the linter warning for this line.
   // eslint-disable-next-line no-unused-vars
   const { logoFile, ...restOfForm } = form.value;
   company.value = { ...company.value, ...restOfForm };
-
+  
+  
   showWizard.value = false;
   step.value = 1;
 

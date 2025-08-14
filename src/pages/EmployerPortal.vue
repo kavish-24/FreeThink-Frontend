@@ -2,7 +2,6 @@
   <div class="employer-portal">
     <AppHeader class="sticky-header" />
     <div class="page-wrapper row no-wrap">
-      <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
           <q-avatar icon="business_center" color="white" text-color="primary" />
@@ -17,29 +16,15 @@
         </div>
         <div class="sidebar-section q-pt-md q-pb-none">
           <q-list class="nav-list">
-            <q-item 
-              v-for="link in links" 
-              :key="link.label" 
-              :active="selected === link.label" 
-              active-class="active-link"
-              clickable 
-              v-ripple 
-              @click="navigate(link)"
-              class="nav-item"
-            >
+            <q-item v-for="link in links" :key="link.label" :active="selected === link.label"
+              active-class="active-link" clickable v-ripple @click="navigate(link)" class="nav-item">
               <q-item-section avatar>
                 <q-icon :name="link.icon" />
               </q-item-section>
               <q-item-section>
                 <div class="row items-center">
                   <span>{{ link.label }}</span>
-                  <q-badge 
-                    v-if="link.badge && link.badge.value" 
-                    color="red" 
-                    floating 
-                    transparent
-                    class="q-ml-sm"
-                  >
+                  <q-badge v-if="link.badge && link.badge.value" color="red" floating transparent class="q-ml-sm">
                     {{ link.badge.value }}
                   </q-badge>
                 </div>
@@ -52,9 +37,7 @@
         </div>
       </div>
 
-      <!-- Main Content -->
       <div class="content-area column q-pa-md q-pa-lg-lg">
-        <!-- Pending Approval Banner -->
         <q-banner v-if="employer.status === 'pending'" class="bg-warning text-dark q-mb-md">
           <template v-slot:avatar>
             <q-icon name="pending_actions" color="dark" size="2em" />
@@ -62,52 +45,47 @@
           <div class="text-weight-bold">Your company is under review</div>
           <div>You can post jobs, but they will be marked as pending until your company is approved by our team.</div>
         </q-banner>
-        
+
         <div class="row justify-between items-center q-mb-lg">
           <div>
             <div class="text-h5 text-weight-bold content-title">Welcome, {{ employer.name }}!</div>
-            <div class="text-subtitle1 subtitle-text">{{ employer.status === 'pending' ? 'Your account is under review. ' : '' }}Here's your overview for {{ todaysDate }}.</div>
+            <div class="text-subtitle1 subtitle-text">{{ employer.status === 'pending' ? 'Your account is under review. '
+              : '' }}Here's your overview for {{ todaysDate }}.</div>
           </div>
         </div>
 
-        <!-- Verification Status Banner -->
-        <q-banner 
-          v-if="verificationStatus === 'pending'" 
-          class="bg-blue-1 text-blue-9 q-mb-lg"
-          rounded
-        >
+        <q-banner v-if="verificationStatus === 'pending'" class="bg-blue-1 text-blue-9 q-mb-lg" rounded>
           <template v-slot:avatar>
             <q-icon name="pending" color="blue-7" size="2em" />
           </template>
           <div class="text-weight-medium">Your company is under review</div>
-          <div>Your company profile is currently being reviewed by our team. This process typically takes 1-2 business days. You can still post jobs, but they will be marked as pending until your company is verified.</div>
+          <div>Your company profile is currently being reviewed by our team. This process typically takes 1-2 business
+            days. You can still post jobs, but they will be marked as pending until your company is verified.</div>
         </q-banner>
 
-        <q-banner 
-          v-else-if="verificationStatus === 'rejected'" 
-          class="bg-red-1 text-red-9 q-mb-lg"
-          rounded
-        >
+        <q-banner v-else-if="verificationStatus === 'rejected'" class="bg-red-1 text-red-9 q-mb-lg" rounded>
           <template v-slot:avatar>
             <q-icon name="warning" color="red-7" size="2em" />
           </template>
           <div class="text-weight-medium">Company Verification Required</div>
-          <div>Your company verification was rejected. Reason: {{ rejectionReason || 'Not specified' }}. Please update your company information and submit for review again.</div>
+          <div>Your company verification was rejected. Reason: {{ rejectionReason || 'Not specified' }}. Please update
+            your company information and submit for review again.</div>
           <template v-slot:action>
             <q-btn flat color="red-8" label="Update Company Profile" to="/company-profile" />
           </template>
         </q-banner>
 
-        <!-- Broadcast Banner -->
         <q-banner v-if="activeBroadcast" inline-actions rounded class="q-mb-lg broadcast-banner">
-          <template v-slot:avatar> <q-icon name="campaign" color="white" /> </template>
+          <template v-slot:avatar>
+            <q-icon name="campaign" color="white" />
+          </template>
           <div class="text-weight-medium text-white">
             {{ activeBroadcast.text }}
-            <div class="text-caption q-mt-xs opacity-8">(Expires on {{ new Date(activeBroadcast.expiry).toLocaleString() }})</div>
+            <div class="text-caption q-mt-xs opacity-8">(Expires on {{ new
+              Date(activeBroadcast.expiry).toLocaleString() }})</div>
           </div>
         </q-banner>
 
-        <!-- Status Boxes -->
         <div class="row q-col-gutter-lg q-mb-lg">
           <div class="col-12 col-sm-6 col-md-3" v-for="stat in dashboardStats" :key="stat.label">
             <q-card class="stat-card full-height">
@@ -122,7 +100,6 @@
           </div>
         </div>
 
-        <!-- Application Trends -->
         <q-card flat bordered class="q-mb-lg">
           <q-card-section>
             <div class="text-h6 content-title">Application Trends (Last 7 Days)</div>
@@ -130,31 +107,35 @@
           </q-card-section>
         </q-card>
 
-        <!-- Action Required -->
         <q-card flat bordered class="q-mb-lg">
           <q-card-section>
             <div class="text-h6 content-title">Action Required</div>
           </q-card-section>
           <q-list separator>
             <q-item v-for="item in actionItems" :key="item.title" clickable v-ripple @click="router.push(item.to)">
-              <q-item-section avatar> <q-avatar :icon="item.icon" color="light-blue-1" text-color="primary" /> </q-item-section>
+              <q-item-section avatar>
+                <q-avatar :icon="item.icon" color="light-blue-1" text-color="primary" />
+              </q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-medium list-item-title">{{ item.title }}</q-item-label>
                 <q-item-label caption>{{ item.subtitle }}</q-item-label>
               </q-item-section>
-              <q-item-section side> <q-icon name="chevron_right" class="subtitle-text" /> </q-item-section>
+              <q-item-section side>
+                <q-icon name="chevron_right" class="subtitle-text" />
+              </q-item-section>
             </q-item>
           </q-list>
         </q-card>
 
-        <!-- Upcoming Interviews -->
         <q-card flat bordered class="q-mb-lg interview-card">
           <q-card-section>
             <div class="text-h6 content-title">Upcoming Interviews</div>
           </q-card-section>
           <q-list separator class="interview-list">
             <q-item v-for="interview in upcomingInterviews" :key="interview.id">
-              <q-item-section avatar><q-avatar color="cyan-1" text-color="cyan-8" icon="event" /></q-item-section>
+              <q-item-section avatar>
+                <q-avatar color="cyan-1" text-color="cyan-8" icon="event" />
+              </q-item-section>
               <q-item-section>
                 <q-item-label class="text-weight-medium list-item-title">{{ interview.candidateName }}</q-item-label>
                 <q-item-label caption>For: {{ interview.jobTitle }}</q-item-label>
@@ -184,7 +165,6 @@ const apexchart = VueApexCharts;
 const router = useRouter();
 const $q = useQuasar();
 
-// Stats for the dashboard cards
 const dashboardStats = ref([
   { value: 10, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-4' },
   { value: 4, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-5' },
@@ -192,13 +172,10 @@ const dashboardStats = ref([
   { value: 2, label: 'Pending Review', icon: 'pending_actions', iconColor: 'blue-7' }
 ]);
 
-// Stats for the navigation menu
 const navStats = ref({
-  pending_jobs: 2, // This will be updated from the API
-  // Add other navigation-related stats here
+  pending_jobs: 2,
 });
 
-// Fetch navigation stats when component mounts
 const fetchNavStats = async () => {
   try {
     const token = authHelpers.getToken();
@@ -206,7 +183,7 @@ const fetchNavStats = async () => {
       console.warn('No authentication token found');
       return;
     }
-    
+
     const response = await api.get('/jobs/stats', {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -214,7 +191,7 @@ const fetchNavStats = async () => {
         'Accept': 'application/json'
       }
     });
-    
+
     if (response.data && response.data.pending_jobs !== undefined) {
       navStats.value.pending_jobs = response.data.pending_jobs;
     }
@@ -223,10 +200,12 @@ const fetchNavStats = async () => {
   }
 };
 
+// MODIFIED: Added an item to prompt adding a screening test
 const actionItems = ref([
   { icon: 'person_add', title: '5 New Applicants', subtitle: 'For Senior Frontend Developer', to: '/candidates?jobId=1' },
   { icon: 'mark_email_unread', title: '3 Unread Messages', subtitle: 'From Priya, Vikram, and more', to: '/employer-messages' },
   { icon: 'pending', title: '2 Jobs Pending Review', subtitle: 'Awaiting admin approval', to: '/posted-jobs' },
+  { icon: 'quiz', title: 'Add Screening Test', subtitle: 'Improve filtering by adding a test to your posted jobs', to: '/screening-test' },
 ]);
 
 const upcomingInterviews = ref([
@@ -245,8 +224,8 @@ const chartOptions = computed(() => ({
   theme: { mode: $q.dark.isActive ? 'dark' : 'light' }
 }));
 
-const employer = ref({ 
-  name: 'Innovate Inc.', 
+const employer = ref({
+  name: 'Innovate Inc.',
   email: 'hr@innovate.com',
   status: 'pending',
   rejectionReason: ''
@@ -264,7 +243,7 @@ const fetchCompanyStatus = async () => {
     if (!token) {
       throw new Error('No authentication token found');
     }
-    
+
     const response = await api.get('/company/status', {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -272,12 +251,11 @@ const fetchCompanyStatus = async () => {
         'Accept': 'application/json'
       }
     });
-    
+
     if (response.data) {
       verificationStatus.value = response.data.status || '';
       rejectionReason.value = response.data.rejectionReason || '';
-      
-      // Update local storage with the latest status
+
       const storedEmployer = localStorage.getItem('employerData');
       if (storedEmployer) {
         const employerData = JSON.parse(storedEmployer);
@@ -289,7 +267,6 @@ const fetchCompanyStatus = async () => {
     }
   } catch (error) {
     console.error('Error fetching company status:', error);
-    // Fallback to localStorage if API fails
     const storedEmployer = localStorage.getItem('employerData');
     if (storedEmployer) {
       const employerData = JSON.parse(storedEmployer);
@@ -303,7 +280,6 @@ const fetchCompanyStatus = async () => {
 
 onMounted(async () => {
   try {
-    // Initialize employer data from localStorage
     const storedEmployer = localStorage.getItem('employerData');
     if (storedEmployer) {
       const employerData = JSON.parse(storedEmployer);
@@ -311,11 +287,9 @@ onMounted(async () => {
       verificationStatus.value = employerData.status || '';
       rejectionReason.value = employerData.rejectionReason || '';
     }
-    
-    // Fetch fresh status from server
+
     await fetchCompanyStatus();
-    
-    // Check for broadcast messages
+
     const storedBroadcast = localStorage.getItem('jobhubBroadcast');
     if (storedBroadcast) {
       const broadcast = JSON.parse(storedBroadcast);
@@ -325,55 +299,50 @@ onMounted(async () => {
         localStorage.removeItem('jobhubBroadcast');
       }
     }
-    
-    // Fetch navigation stats
+
     await fetchNavStats();
-    // TODO: Replace with actual API call to fetch dashboard stats
-    // const response = await fetchEmployerStats();
-    // dashboardStats.value = response.data;
   } catch (error) {
     console.error('Error fetching stats:', error);
   }
 });
 
-// Compute navigation links with reactive properties
 const links = computed(() => [
-  { 
-    label: 'Dashboard Overview', 
-    icon: 'dashboard', 
-    to: '/employer-portal' 
+  {
+    label: 'Dashboard Overview',
+    icon: 'dashboard',
+    to: '/employer-portal'
   },
-  { 
-    label: 'Posted Jobs', 
-    icon: 'work', 
+  {
+    label: 'Posted Jobs',
+    icon: 'work',
     to: '/posted-jobs',
     badge: navStats.value.pending_jobs > 0 ? navStats.value.pending_jobs.toString() : ''
   },
-  { 
-    label: 'Post New Job', 
-    icon: 'add_box', 
+  {
+    label: 'Post New Job',
+    icon: 'add_box',
     to: '/post-job',
     highlight: true
   },
-  { 
-    label: 'Candidates', 
-    icon: 'groups', 
-    to: '/candidates' 
+  {
+    label: 'Candidates',
+    icon: 'groups',
+    to: '/candidates'
   },
-  { 
-    label: 'Messages', 
-    icon: 'mail', 
-    to: '/employer-messages' 
+  {
+    label: 'Messages',
+    icon: 'mail',
+    to: '/employer-messages'
   },
-  { 
-    label: 'Company Profile', 
-    icon: 'domain', 
-    to: '/company-profile' 
+  {
+    label: 'Company Profile',
+    icon: 'domain',
+    to: '/company-profile'
   },
-  { 
-    label: 'Settings', 
-    icon: 'settings', 
-    to: '/employer-settings' 
+  {
+    label: 'Settings',
+    icon: 'settings',
+    to: '/employer-settings'
   }
 ]);
 
@@ -389,11 +358,13 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
 </script>
 
 <style scoped>
+/* Styles are unchanged */
 .portal-layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden; /* Important to prevent double scrollbars */
+  overflow: hidden;
+  /* Important to prevent double scrollbars */
 }
 
 .sticky-header {
@@ -404,12 +375,15 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
 }
 
 .page-wrapper {
-  flex-grow: 1; /* Takes up the remaining vertical space */
-  overflow: hidden; /* Important */
+  flex-grow: 1;
+  /* Takes up the remaining vertical space */
+  overflow: hidden;
+  /* Important */
 }
 
 /* Sidebar and Content Area take full height of the wrapper */
-.sidebar, .content-area {
+.sidebar,
+.content-area {
   height: 100%;
 }
 
@@ -423,6 +397,7 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
   height: 100vh;
   background-color: #F0F7FF;
 }
+
 .sidebar {
   width: 260px;
   background-color: #1565c0;
@@ -430,22 +405,65 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
   display: flex;
   flex-direction: column;
 }
-.sidebar-section { border-bottom: 1px solid #243B55; }
-.nav-list .q-item { padding: 12px; border-radius: 8px; margin: 4px 12px; color: #BCCCDC; }
-.nav-list .q-item:hover { background-color: #243B55; color: #ffffff; }
-.active-link { background-color: #00529b !important; color: #ffffff !important; font-weight: 600; }
-.logout-btn { color: #FFB5B5; margin: 16px; border-radius: 8px; }
-.logout-btn:hover { background-color: #d32f2f; color: #ffffff; }
+
+.sidebar-section {
+  border-bottom: 1px solid #243B55;
+}
+
+.nav-list .q-item {
+  padding: 12px;
+  border-radius: 8px;
+  margin: 4px 12px;
+  color: #BCCCDC;
+}
+
+.nav-list .q-item:hover {
+  background-color: #243B55;
+  color: #ffffff;
+}
+
+.active-link {
+  background-color: #00529b !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.logout-btn {
+  color: #FFB5B5;
+  margin: 16px;
+  border-radius: 8px;
+}
+
+.logout-btn:hover {
+  background-color: #d32f2f;
+  color: #ffffff;
+}
 
 .content-area {
   flex: 1;
   overflow-y: auto;
 }
-.content-title { color: #0D1B2A; }
-.subtitle-text { color: #5A7184; }
-.list-item-title { color: #0D1B2A; }
-.broadcast-banner { background-color: #1D3557 !important; border: 1px solid #457B9D; }
-.opacity-8 { opacity: 0.8; }
+
+.content-title {
+  color: #0D1B2A;
+}
+
+.subtitle-text {
+  color: #5A7184;
+}
+
+.list-item-title {
+  color: #0D1B2A;
+}
+
+.broadcast-banner {
+  background-color: #1D3557 !important;
+  border: 1px solid #457B9D;
+}
+
+.opacity-8 {
+  opacity: 0.8;
+}
 
 .stat-card {
   background: linear-gradient(145deg, #dfefff, #ffffff);
@@ -455,20 +473,34 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
   border: 1px solid #cde3f7;
   height: 100%;
 }
+
 .stat-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 20px rgba(0, 82, 155, 0.1);
 }
-.stat-value { color: #0D1B2A; }
-.stat-label { color: #5A7184; }
+
+.stat-value {
+  color: #0D1B2A;
+}
+
+.stat-label {
+  color: #5A7184;
+}
 
 .interview-card {
   background-color: #E0F7FA;
   border-color: #B2EBF2;
 }
-.interview-list .q-item { border-top: 1px solid #B2EBF2; }
-.interview-list .q-item:first-child { border-top: none; }
-.q-list--separator > .q-item-type + .q-item-type {
+
+.interview-list .q-item {
+  border-top: 1px solid #B2EBF2;
+}
+
+.interview-list .q-item:first-child {
+  border-top: none;
+}
+
+.q-list--separator>.q-item-type+.q-item-type {
   border-top: 1px solid #EDF2F7;
 }
 </style>

@@ -4,164 +4,159 @@
       <div class="logo">💼 JobHub</div>
       <nav class="nav-links">
         <router-link to="/" exact-active-class="active-link">Home</router-link>
-        <JobsDropdown />
         <router-link to="/employers" exact-active-class="active-link">Employers</router-link>
       </nav>
-
     </header>
 
-    <section class="about-hero">
-      <div class="hero-content">
-        <h1>About <span class="brand-name">JobHub</span></h1>
-        <p class="subtitle">We're on a mission to bridge the gap between exceptional talent and outstanding opportunities, making hiring a simple, fast, and human experience.</p>
-      </div>
-    </section>
+    <div v-if="isLoading" class="flex flex-center" style="height: 80vh;">
+      <q-spinner-cube color="primary" size="5.5em" />
+    </div>
+    <div v-else-if="error" class="flex flex-center" style="height: 80vh;">
+       <q-banner rounded class="bg-negative text-white">
+        <template v-slot:avatar><q-icon name="warning" /></template>
+        {{ error }}
+       </q-banner>
+    </div>
 
-    <section class="our-story glass-section">
-      <h2>Our Story</h2>
-      <p>Founded in 2023 in Pune, India, JobHub was born from a simple observation: hiring was broken. Companies spent months searching for the right candidates, while talented professionals struggled to find roles where they could truly thrive. We envisioned a smarter way—a platform powered by technology but centered on people. Today, JobHub leverages AI and a deep understanding of the job market to create perfect matches, transforming the future of work.</p>
-    </section>
-
-    <section class="mission-vision glass-section">
-      <div class="mission-vision-grid">
-        <div class="mission-card">
-          <div class="card-icon">🎯</div>
-          <h3>Our Mission</h3>
-          <p>To simplify the hiring process and empower every individual to achieve their career goals while helping companies build strong, talented teams.</p>
+    <div v-else-if="pageData">
+      <section class="about-hero">
+        <div class="hero-content">
+          <h1>About <span class="brand-name">JobHub</span></h1>
+          <p class="subtitle">We're on a mission to bridge the gap between exceptional talent and outstanding opportunities, making hiring a simple, fast, and human experience.</p>
         </div>
-        <div class="mission-card">
-          <div class="card-icon">🔭</div>
-          <h3>Our Vision</h3>
-          <p>To be the most trusted and effective platform for job discovery and recruitment, creating a world where everyone can find a job they love.</p>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="features-section glass-section">
-        <h2>What Makes Us Different</h2>
-        <p>The tools and philosophy that set us apart.</p>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">✨</div>
-                <h4>AI-Powered Matching</h4>
-                <p>Our intelligent algorithms connect the right people to the right roles, saving time for everyone.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h4>Verified Listings</h4>
-                <p>We verify every employer to ensure all job postings are from trusted, legitimate companies.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📈</div>
-                <h4>Seamless Tools</h4>
-                <p>From our easy-to-use resume builder to our intuitive applicant dashboard, we streamline the entire process.</p>
-            </div>
-        </div>
-    </section>
+      <section class="our-story glass-section">
+        <h2>{{ pageData.story.title }}</h2>
+        <div class="story-content" v-html="pageData.story.content"></div>
+      </section>
 
-    <section class="audience-section glass-section">
-      <h2>Built For You</h2>
-      <div class="audience-grid">
-        <div class="audience-card">
-          <h3>✔️ For Job Seekers</h3>
-          <p>Whether you're a recent graduate or a seasoned professional, JobHub provides the tools to build your resume, find verified jobs, and land your next great opportunity.</p>
+      <section class="mission-vision glass-section">
+        <div class="mission-vision-grid">
+          <div class="mission-card">
+            <div class="card-icon">🎯</div>
+            <h3>{{ pageData.mission.title }}</h3>
+            <div v-html="pageData.mission.content"></div>
+          </div>
+          <div class="mission-card">
+            <div class="card-icon">🔭</div>
+            <h3>{{ pageData.vision.title }}</h3>
+            <div v-html="pageData.vision.content"></div>
+          </div>
         </div>
-        <div class="audience-card">
-          <h3>✔️ For Employers</h3>
-          <p>Reach a vast pool of pre-screened, qualified candidates. Our platform makes it effortless to post jobs, manage applicants, and hire the perfect fit for your team.</p>
+      </section>
+
+      <section class="features-section glass-section">
+          <h2>{{ pageData.features.title }}</h2>
+          <p>{{ pageData.features.subtitle }}</p>
+          <div class="features-grid">
+              <div class="feature-card" v-for="feature in pageData.features.items" :key="feature.title">
+                  <div class="feature-icon">{{ feature.icon }}</div>
+                  <h4>{{ feature.title }}</h4>
+                  <div v-html="feature.text"></div>
+              </div>
+          </div>
+      </section>
+
+      <section class="audience-section glass-section">
+        <h2>{{ pageData.audiences.title }}</h2>
+        <div class="audience-grid">
+          <div class="audience-card" v-for="audience in pageData.audiences.items" :key="audience.title">
+            <h3>{{ audience.title }}</h3>
+            <div v-html="audience.text"></div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="meet-the-team glass-section">
-      <h2>Meet Our Leadership</h2>
-      <p>The minds behind our mission to revolutionize hiring.</p>
-      <div class="team-grid">
-        <div class="team-card" v-for="member in teamMembers" :key="member.name">
-          <img :src="member.img" :alt="member.name" class="team-photo">
-          <h4>{{ member.name }}</h4>
-          <p class="title">{{ member.title }}</p>
+      <section class="meet-the-team glass-section">
+        <h2>{{ pageData.team.title }}</h2>
+        <p>{{ pageData.team.subtitle }}</p>
+        <div class="team-grid">
+          <div class="team-card" v-for="member in pageData.team.members" :key="member.name">
+            <img :src="member.img" :alt="member.name" class="team-photo">
+            <h4>{{ member.name }}</h4>
+            <p class="title">{{ member.title }}</p>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="testimonials glass-section">
-        <h2>Success Stories</h2>
-        <p>See what our users have to say about their experience.</p>
-        <div class="testimonial-card">
-            <img :src="testimonials[0].img" :alt="testimonials[0].name" class="client-photo">
-            <p class="quote">"{{ testimonials[0].quote }}"</p>
-            <p class="author"><strong>{{ testimonials[0].name }}</strong>, {{ testimonials[0].title }}</p>
+      <section class="testimonials glass-section">
+          <h2>{{ pageData.testimonials.title }}</h2>
+          <p>{{ pageData.testimonials.subtitle }}</p>
+          <div class="testimonial-card" v-for="testimonial in pageData.testimonials.items" :key="testimonial.name">
+              <img :src="testimonial.img" :alt="testimonial.name" class="client-photo">
+              <p class="quote">"{{ testimonial.quote }}"</p>
+              <p class="author"><strong>{{ testimonial.name }}</strong>, {{ testimonial.title }}</p>
+          </div>
+      </section>
+
+      <section class="final-cta glass-section">
+        <h2>Ready to Get Started?</h2>
+        <p>Your next career move or star employee is just a click away.</p>
+        <div class="cta-buttons">
+          <button class="btn primary" @click="goToJobs">Explore Jobs</button>
+          <button class="btn outline" @click="goToPostJob">Post a Job</button>
         </div>
-    </section>
-
-
-    <section class="final-cta glass-section">
-      <h2>Ready to Get Started?</h2>
-      <p>Your next career move or star employee is just a click away.</p>
-      <div class="cta-buttons">
-        <button class="btn primary" @click="goToJobs">Explore Jobs</button>
-        <button class="btn outline" @click="goToPostJob">Post a Job</button>
-      </div>
-    </section>
-    <AppFooter />
+      </section>
+      <AppFooter />
+    </div>
 
   </div>
 </template>
 
-<script>
-import AppFooter from '../components/FooterPart.vue';
-export default {
-  name: 'AboutUs',
-    components: {
-    AppFooter
-  },
-  data() {
-    return {
-      teamMembers: [
-        {
-          name: 'Priya Sharma',
-          title: 'Founder & CEO',
-          img: 'https://randomuser.me/api/portraits/women/68.jpg',
-        },
-        {
-          name: 'Rohan Mehta',
-          title: 'Chief Technology Officer',
-          img: 'https://randomuser.me/api/portraits/men/75.jpg',
-        },
-        {
-          name: 'Aisha Khan',
-          title: 'Head of Product',
-          img: 'https://randomuser.me/api/portraits/women/79.jpg',
-        },
-        {
-          name: 'Vikram Singh',
-          title: 'VP of Sales & Marketing',
-          img: 'https://randomuser.me/api/portraits/men/81.jpg',
-        },
-      ],
-      // Added Testimonials data
-      testimonials: [
-        {
-          quote: "JobHub's AI matching is phenomenal. We filled our Senior Developer role in just two weeks, a process that used to take months. The quality of candidates was outstanding.",
-          name: 'Sarah Chen',
-          title: 'CTO, Innovate Inc.',
-          img: 'https://randomuser.me/api/portraits/women/44.jpg'
-        }
-      ]
-    };
-  },
-  methods: {
-    // Updated CTA methods
-    goToJobs() {
-      this.$router.push('/'); // Or your specific jobs listing page
-    },
-    goToPostJob() {
-      this.$router.push('/employers'); // Or your employer portal
-    }
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+import { marked } from 'marked';
+import AppFooter from '../components/FooterPart.vue'; // Adjust path if needed
+
+const router = useRouter();
+
+const pageData = ref(null);
+const isLoading = ref(true);
+const error = ref(null);
+
+onMounted(() => {
+  fetchAboutContent();
+});
+
+const fetchAboutContent = async () => {
+  try {
+    // 1. Fetch the JSON file from the public folder
+    const response = await axios.get('/content/about-us.json');
+    const data = response.data;
+
+    // 2. Convert markdown fields to HTML
+    data.story.content = marked.parse(data.story.content);
+    data.mission.content = marked.parse(data.mission.content);
+    data.vision.content = marked.parse(data.vision.content);
+    data.features.items.forEach(item => {
+      item.text = marked.parse(item.text);
+    });
+    data.audiences.items.forEach(item => {
+      item.text = marked.parse(item.text);
+    });
+
+    // 3. Set the final data
+    pageData.value = data;
+
+  } catch (err) {
+    console.error("Failed to fetch About Us content:", err);
+    error.value = "Could not load page content. Please try again later.";
+  } finally {
+    isLoading.value = false;
   }
 };
+
+const goToJobs = () => {
+  router.push('/');
+};
+const goToPostJob = () => {
+  router.push('/employers');
+};
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -249,6 +244,17 @@ export default {
   line-height: 1.7;
 }
 
+/* Story section needs deep selectors for v-html */
+.story-content {
+  color: #555;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.7;
+}
+.story-content :deep(p) { margin: 0; }
+
+
 /* NEW Section Styles */
 .mission-vision-grid, .features-grid, .audience-grid {
   display: grid;
@@ -281,8 +287,17 @@ export default {
 .mission-card p, .feature-card p, .audience-card p {
   color: #555;
   line-height: 1.6;
+  margin: 0;
 }
 .audience-card { text-align: center; }
+
+/* Styles for v-html content */
+.mission-card :deep(p), .feature-card :deep(p), .audience-card :deep(p) {
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+}
+
 
 /* Team Section */
 .team-grid {
