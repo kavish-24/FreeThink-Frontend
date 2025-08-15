@@ -1,154 +1,156 @@
 <template>
-  <AppHeader class="sticky-header" />
-  <div class="page-wrapper row no-wrap">
-    <div class="sidebar">
-      <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
-        <q-avatar icon="business_center" color="white" text-color="primary" />
-        <div>
-          <div class="text-h6 text-white">JobHub</div>
-          <div class="text-caption text-blue-grey-3">Employer Portal</div>
+  <div>
+    <AppHeader class="sticky-header" />
+    <div class="page-wrapper row no-wrap">
+      <div class="sidebar">
+        <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
+          <q-avatar icon="business_center" color="white" text-color="primary" />
+          <div>
+            <div class="text-h6 text-white">JobHub</div>
+            <div class="text-caption text-blue-grey-3">Employer Portal</div>
+          </div>
+        </div>
+
+        <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
+          <div class="text-subtitle1 text-weight-medium text-white">{{ employer.name }}</div>
+          <div class="text-caption text-blue-grey-4">{{ employer.email }}</div>
+        </div>
+
+        <div class="sidebar-section q-pt-md q-pb-none">
+          <q-list class="nav-list">
+            <q-item v-for="link in links" :key="link.label" :active="selected === link.label"
+              active-class="active-link" clickable v-ripple @click="navigate(link)">
+              <q-item-section avatar>
+                <q-icon :name="link.icon" />
+              </q-item-section>
+              <q-item-section>
+                {{ link.label }}
+              </q-item-section>
+            </q-item>
+          </q-list>
         </div>
       </div>
 
-      <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-        <div class="text-subtitle1 text-weight-medium text-white">{{ employer.name }}</div>
-        <div class="text-caption text-blue-grey-4">{{ employer.email }}</div>
-      </div>
-
-      <div class="sidebar-section q-pt-md q-pb-none">
-        <q-list class="nav-list">
-          <q-item v-for="link in links" :key="link.label" :active="selected === link.label"
-            active-class="active-link" clickable v-ripple @click="navigate(link)">
-            <q-item-section avatar>
-              <q-icon :name="link.icon" />
-            </q-item-section>
-            <q-item-section>
-              {{ link.label }}
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </div>
-    </div>
-
-    <div class="content-area column q-pa-lg">
-      <div class="row justify-between items-center q-mb-lg">
-        <div>
-          <div class="text-h5 text-weight-bold content-title">Company Profile</div>
-          <div class="text-subtitle1 text-grey-7">Manage your company details and branding.</div>
+      <div class="content-area column q-pa-lg">
+        <div class="row justify-between items-center q-mb-lg">
+          <div>
+            <div class="text-h5 text-weight-bold content-title">Company Profile</div>
+            <div class="text-subtitle1 text-grey-7">Manage your company details and branding.</div>
+          </div>
+          <q-btn color="primary" label="Update Profile" @click="openWizard" />
         </div>
-        <q-btn color="primary" label="Update Profile" @click="openWizard" />
-      </div>
 
-      <div class="row q-col-gutter-lg">
-        <div class="col-12 col-md-4">
-          <q-card class="full-height">
-            <q-card-section class="text-center">
-              <q-avatar size="120px" class="q-mb-md shadow-3">
-                <img v-if="company.logo" :src="company.logo" alt="Company Logo" />
-                <q-icon v-else name="business" size="xl" color="grey-5" />
-              </q-avatar>
-              <div class="text-h6 text-weight-bold">{{ company.companyName }}</div>
-              <div class="text-subtitle2 text-grey-8">{{ company.industry }}</div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section>
-              <div class="text-subtitle1 text-bold q-mb-sm">About</div>
-              <p class="text-body2 text-grey-7">{{ company.description }}</p>
-            </q-card-section>
+        <div class="row q-col-gutter-lg">
+          <div class="col-12 col-md-4">
+            <q-card class="full-height">
+              <q-card-section class="text-center">
+                <q-avatar size="120px" class="q-mb-md shadow-3">
+                  <img v-if="company.logo" :src="company.logo" alt="Company Logo" />
+                  <q-icon v-else name="business" size="xl" color="grey-5" />
+                </q-avatar>
+                <div class="text-h6 text-weight-bold">{{ company.companyName }}</div>
+                <div class="text-subtitle2 text-grey-8">{{ company.industry }}</div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section>
+                <div class="text-subtitle1 text-bold q-mb-sm">About</div>
+                <p class="text-body2 text-grey-7">{{ company.description }}</p>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-8">
+            <q-card class="q-mb-lg">
+              <q-card-section>
+                <div class="text-subtitle1 text-bold">Company Information</div>
+              </q-card-section>
+              <q-list separator>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Company Size</q-item-label>
+                    <q-item-label>{{ company.numberOfEmployees }} employees</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Positions Available</q-item-label>
+                    <q-item-label>{{ company.positionsAvailable.join(', ') }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Website</q-item-label>
+                    <q-item-label><a :href="company.website" target="_blank">{{ company.website }}</a></q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card>
+
+            <q-card>
+              <q-card-section>
+                <div class="text-subtitle1 text-bold">Contact Details</div>
+              </q-card-section>
+              <q-list separator>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Email Address</q-item-label>
+                    <q-item-label>{{ company.user.email }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Phone Number</q-item-label>
+                    <q-item-label>{{ company.contactNumber }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Address</q-item-label>
+                    <q-item-label class="text-wrap">{{ company.location }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card>
+          </div>
+        </div>
+
+        <q-dialog v-model="showWizard" persistent>
+          <q-card style="min-width: 600px">
+            <q-stepper v-model="step" ref="stepper" color="primary" animated header-nav>
+              <q-step :name="1" title="Core Info" icon="foundation" :done="step > 1">
+                <q-input v-model="form.companyName" label="Company Name" outlined class="q-mb-md" />
+                <q-input v-model="form.industry" label="Industry (e.g., Electronics)" outlined class="q-mb-md" />
+                <q-input v-model="form.numberOfEmployees" label="Number of Employees" type="number" outlined class="q-mb-md" />
+                <q-input v-model="form.positionsAvailable" label="Positions Available (comma-separated)" outlined />
+              </q-step>
+
+              <q-step :name="2" title="Contact" icon="contacts" :done="step > 2">
+                <q-input v-model="form.user.email" label="Public Email" outlined class="q-mb-md" />
+                <q-input v-model="form.contactNumber" label="Phone Number" outlined class="q-mb-md" />
+                <q-input v-model="form.website" label="Website URL" outlined class="q-mb-md" />
+                <q-input v-model="form.location" label="Company Address" type="textarea" outlined />
+              </q-step>
+
+              <q-step :name="3" title="Branding" icon="palette">
+                <q-file v-model="form.logoFile" label="Upload Company Logo" outlined accept=".jpg, .jpeg, .png" max-file-size="2097152" @rejected="onRejected">
+                  <template v-slot:prepend> <q-icon name="attach_file" /> </template>
+                  <template v-slot:hint> Max 2MB (PNG, JPG) </template>
+                </q-file>
+                <q-input v-model="form.description" label="About the Company" type="textarea" outlined class="q-mt-md" />
+              </q-step>
+
+              <template v-slot:navigation>
+                <q-stepper-navigation class="q-pt-md">
+                  <q-btn v-if="step < 3" color="primary" @click="$refs.stepper.next()" label="Next" />
+                  <q-btn v-if="step === 3" color="primary" @click="submitForm" label="Submit" />
+                  <q-btn v-if="step > 1" flat color="primary" @click="$refs.stepper.previous()" label="Back" class="q-ml-sm" />
+                  <q-btn v-close-popup flat color="grey-8" label="Cancel" class="q-ml-auto" />
+                </q-stepper-navigation>
+              </template>
+            </q-stepper>
           </q-card>
-        </div>
-
-        <div class="col-12 col-md-8">
-          <q-card class="q-mb-lg">
-            <q-card-section>
-              <div class="text-subtitle1 text-bold">Company Information</div>
-            </q-card-section>
-            <q-list separator>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Company Size</q-item-label>
-                  <q-item-label>{{ company.numberOfEmployees }} employees</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Positions Available</q-item-label>
-                  <q-item-label>{{ company.positionsAvailable.join(', ') }}</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Website</q-item-label>
-                  <q-item-label><a :href="company.website" target="_blank">{{ company.website }}</a></q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card>
-
-          <q-card>
-            <q-card-section>
-              <div class="text-subtitle1 text-bold">Contact Details</div>
-            </q-card-section>
-            <q-list separator>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Email Address</q-item-label>
-                  <q-item-label>{{ company.user.email }}</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Phone Number</q-item-label>
-                  <q-item-label>{{ company.contactNumber }}</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Address</q-item-label>
-                  <q-item-label class="text-wrap">{{ company.location }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card>
-        </div>
+        </q-dialog>
       </div>
-
-      <q-dialog v-model="showWizard" persistent>
-        <q-card style="min-width: 600px">
-          <q-stepper v-model="step" ref="stepper" color="primary" animated header-nav>
-            <q-step :name="1" title="Core Info" icon="foundation" :done="step > 1">
-              <q-input v-model="form.companyName" label="Company Name" outlined class="q-mb-md" />
-              <q-input v-model="form.industry" label="Industry (e.g., Electronics)" outlined class="q-mb-md" />
-              <q-input v-model="form.numberOfEmployees" label="Number of Employees" type="number" outlined class="q-mb-md" />
-              <q-input v-model="form.positionsAvailable" label="Positions Available (comma-separated)" outlined />
-            </q-step>
-
-            <q-step :name="2" title="Contact" icon="contacts" :done="step > 2">
-              <q-input v-model="form.user.email" label="Public Email" outlined class="q-mb-md" />
-              <q-input v-model="form.contactNumber" label="Phone Number" outlined class="q-mb-md" />
-              <q-input v-model="form.website" label="Website URL" outlined class="q-mb-md" />
-              <q-input v-model="form.location" label="Company Address" type="textarea" outlined />
-            </q-step>
-
-            <q-step :name="3" title="Branding" icon="palette">
-              <q-file v-model="form.logoFile" label="Upload Company Logo" outlined accept=".jpg, .jpeg, .png" max-file-size="2097152" @rejected="onRejected">
-                <template v-slot:prepend> <q-icon name="attach_file" /> </template>
-                <template v-slot:hint> Max 2MB (PNG, JPG) </template>
-              </q-file>
-              <q-input v-model="form.description" label="About the Company" type="textarea" outlined class="q-mt-md" />
-            </q-step>
-
-            <template v-slot:navigation>
-              <q-stepper-navigation class="q-pt-md">
-                <q-btn v-if="step < 3" color="primary" @click="$refs.stepper.next()" label="Next" />
-                <q-btn v-if="step === 3" color="primary" @click="submitForm" label="Submit" />
-                <q-btn v-if="step > 1" flat color="primary" @click="$refs.stepper.previous()" label="Back" class="q-ml-sm" />
-                <q-btn v-close-popup flat color="grey-8" label="Cancel" class="q-ml-auto" />
-              </q-stepper-navigation>
-            </template>
-          </q-stepper>
-        </q-card>
-      </q-dialog>
     </div>
   </div>
 </template>
@@ -160,7 +162,7 @@ import { useQuasar } from 'quasar';
 import AppHeader from 'src/components/HeaderPart.vue';
 import { authHelpers } from 'src/services/auth.service'
 import api from 'src/services/auth.service';
-import axios from 'axios';
+
 
 const router = useRouter();
 const $q = useQuasar();
