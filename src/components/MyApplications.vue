@@ -14,6 +14,7 @@
       class="q-mb-md q-pa-md application-card"
       flat
       bordered
+      @click="viewApplication(app.id)"
     >
       <div class="row justify-between items-start">
         <div class="col-10">
@@ -48,6 +49,7 @@
             size="sm"
             label="View"
             class="q-pa-xs"
+            @click.stop="viewApplication(app.id)"
           />
         </div>
       </div>
@@ -56,8 +58,13 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
 const applications = [
   {
+    id: 'app-001', // Unique ID for each application
     position: 'Senior Frontend Developer',
     company: 'TechCorp Inc.',
     location: 'San Francisco, CA',
@@ -66,6 +73,7 @@ const applications = [
     status: 'Under Review'
   },
   {
+    id: 'app-002', // Unique ID for each application
     position: 'Product Manager',
     company: 'StartupXYZ',
     location: 'Remote',
@@ -74,6 +82,7 @@ const applications = [
     status: 'Interview Scheduled'
   },
   {
+    id: 'app-003', // Unique ID for each application
     position: 'UX Designer',
     company: 'DesignStudio',
     location: 'New York, NY',
@@ -95,6 +104,10 @@ const getStatusColor = (status) => {
       return 'grey';
   }
 };
+
+const viewApplication = (id) => {
+  router.push({ name: 'ApplicationDetails', params: { applicationId: id } });
+};
 </script>
 
 <style scoped>
@@ -112,6 +125,6 @@ const getStatusColor = (status) => {
 .application-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  border-color: #409eff; /* Light blue border on hover */
+  border-color: #409eff;
 }
 </style>

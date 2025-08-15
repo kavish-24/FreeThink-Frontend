@@ -171,7 +171,6 @@
 </template>
 
 <script setup>
-// UNCHANGED: The script logic remains exactly as you provided it.
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
@@ -197,8 +196,7 @@ const showConfirmPassword = ref(false);
 const handleSubmit = async () => {
   try {
     const result = await authStore.register({
-      firstName: formData.value.firstName,
-      lastName: formData.value.lastName,
+      name: `${formData.value.firstName} ${formData.value.lastName}`, // Combine first and last name
       email: formData.value.email,
       phone: formData.value.phone.replace(/\D/g, ''),
       password: formData.value.password,
@@ -207,30 +205,16 @@ const handleSubmit = async () => {
     if (result.success) {
       $q.notify({
         type: 'positive',
-        message: 'Account created successfully! Logging in...',
+        message: 'OTP sent to your email. Please verify.',
         position: 'top',
         timeout: 2000,
       });
 
-      const loginResult = await authStore.login({
-        email: formData.value.email,
-        password: formData.value.password,
+      // Assume OTP verification redirects to a separate page or modal
+      router.push({
+        path: '/verify-otp',
+        query: { email: formData.value.email },
       });
-
-      if (loginResult.success) {
-        setTimeout(() => {
-          if (authStore.isJobSeeker) {
-            router.push('/');
-          } else if (authStore.isEmployer) {
-            router.push('/employer-portal');
-          }
-        }, 2000);
-      } else {
-        router.push({
-          path: '/login',
-          query: { registered: 'true', email: formData.value.email },
-        });
-      }
     }
   } catch (error) {
     console.error('Registration error:', error);

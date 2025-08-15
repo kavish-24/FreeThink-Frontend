@@ -91,39 +91,34 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { useAuthStore } from 'src/stores/auth.store';
+import { useQuasar } from 'quasar';
 
-// Base URL for API (adjust based on your setup)
-const API_BASE_URL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:3000/api';
-
+const $q = useQuasar();
+const authStore = useAuthStore();
 const welcomeMessage = ref('Welcome!');
-const userName = ref('User');
 
 onMounted(async () => {
   try {
-    // Check for token in localStorage
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Fetch user data from /api/auth/me
-      const response = await axios.get(`${API_BASE_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const { user } = response.data;
-      if (user && user.name) {
-        userName.value = user.name;
-        localStorage.setItem('loggedInUser', JSON.stringify(user)); // Update localStorage
-        welcomeMessage.value = `Welcome ${userName.value}!`; // Update message immediately
-      } else {
-        welcomeMessage.value = 'Welcome!'; // Fallback if name is missing
-      }
+    // Check for token and fetch user data if not already loaded
+    if (authStore.token && !authStore.user) {
+      await authStore.fetchCurrentUser();
+    }
+    if (authStore.user && authStore.user.name) {
+      welcomeMessage.value = authStore.user.isNewUser
+        ? `Welcome ${authStore.user.name}!`
+        : `Welcome back ${authStore.user.name}!`;
     } else {
-      welcomeMessage.value = 'Welcome!'; // Fallback if no token
+      welcomeMessage.value = 'Welcome!';
     }
   } catch (error) {
-    console.error('Error fetching user data:', error.response ? error.response.data : error.message);
-    welcomeMessage.value = 'Welcome!'; // Fallback on error
-    // Optionally, notify user or redirect to login
-    // $q.notify({ type: 'negative', message: 'Please log in to see your welcome message.' });
+    console.error('Error fetching user data:', error);
+    welcomeMessage.value = 'Welcome!';
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to load user data. Please try logging in again.',
+      position: 'top',
+    });
   }
 });
 </script>

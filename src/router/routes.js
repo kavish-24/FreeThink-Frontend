@@ -16,6 +16,7 @@ const routes = [
       { path: 'job/:id', name: 'JobDescription', component: () => import('pages/JobDescriptionPage.vue'), props: true },
       { path: 'jobs/:category', name: 'JobListing', component: () => import('pages/JobListing.vue'), props: true },
       { path: 'apply/:jobId', name: 'ApplicationForm', component: () => import('pages/ApplicationForm.vue'), props: true },
+      { path: 'application/:applicationId', name: 'ApplicationDetails', component: () => import('../components/ApplicationDetailsPage.vue'), props: true },
       { path: '/resume-builder', component: () => import('../components/resume-builder.vue') },
       { path: '/dashboard', name: 'JobSeekerDashboard', component: () => import('pages/JobSeekerDashboard.vue'), meta: { requiresAuth: true, role: 'job_seeker' } },
       

@@ -24,7 +24,7 @@
         <!-- Scrollable Content Area -->
         <div class="main-content">
           <template v-if="selectedSection === 'applications'">
-            <MyApplications />
+            <MyApplications @view-application="viewApplication" />
           </template>
           <template v-else-if="selectedSection === 'bookmarks'">
             <BookmarkedJobs :jobs="bookmarkedJobs" @remove="handleRemove" />
@@ -72,8 +72,10 @@ const userId = authHelpers.getCurrentUser()?.id
 
 const goToResume = () => router.push('/resume-builder');
 
+const viewApplication = (applicationId) => {
+  router.push(`/application/${applicationId}`);
+};
 
- 
 const fetchBookmarks = async () => {
   try {
     if (!userId) return;
@@ -86,7 +88,6 @@ const fetchBookmarks = async () => {
       salary: b.salary,
       skills: Array.isArray(b.skills) ? b.skills : JSON.parse(b.skills),
       posted: b.posted,
-    
       type: b.type
     }));
   } catch (error) {
@@ -107,9 +108,6 @@ const handleRemove = async (jobId) => {
     bookmarkedJobs.value = original; // rollback
   }
 };
-
-
-
 
 onMounted(() => {
   fetchBookmarks();

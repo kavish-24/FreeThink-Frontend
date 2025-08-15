@@ -178,9 +178,9 @@ onMounted(() => {
 
 const redirectBasedOnRole = () => {
   if (authStore.isJobSeeker) {
-    router.push(authStore.returnUrl || '/');
+    router.push(authStore.returnUrl || '/dashboard'); // Changed to /dashboard for job seekers
   } else if (authStore.isEmployer) {
-    router.push(authStore.returnUrl || '/employers');
+    router.push(authStore.returnUrl || '/employer-portal');
   }
   authStore.setReturnUrl(null);
 };
@@ -201,7 +201,7 @@ const handleLogin = async () => {
     if (response.success) {
       $q.notify({
         type: 'positive',
-        message: 'Login successful!',
+        message: authStore.user.isNewUser ? `Welcome ${authStore.user.name}!` : `Welcome back ${authStore.user.name}!`,
         position: 'top',
         timeout: 1500,
       });
