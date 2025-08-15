@@ -1,5 +1,5 @@
 <template>
-<AppHeader class="sticky-header" />
+  <AppHeader class="sticky-header" />
   <div class="page-wrapper row no-wrap">
     <div class="sidebar">
       <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
@@ -44,127 +44,98 @@
           <q-card class="full-height">
             <q-card-section class="text-center">
               <q-avatar size="120px" class="q-mb-md shadow-3">
-                <img v-if="company.logoUrl" :src="company.logoUrl" alt="Company Logo" />
+                <img v-if="company.logo" :src="company.logo" alt="Company Logo" />
                 <q-icon v-else name="business" size="xl" color="grey-5" />
               </q-avatar>
-              <div class="text-h6 text-weight-bold">{{ company.name }}</div>
+              <div class="text-h6 text-weight-bold">{{ company.companyName }}</div>
               <div class="text-subtitle2 text-grey-8">{{ company.industry }}</div>
             </q-card-section>
             <q-separator />
             <q-card-section>
               <div class="text-subtitle1 text-bold q-mb-sm">About</div>
-              <p class="text-body2 text-grey-7">{{ company.about }}</p>
+              <p class="text-body2 text-grey-7">{{ company.description }}</p>
             </q-card-section>
           </q-card>
         </div>
 
         <div class="col-12 col-md-8">
           <q-card class="q-mb-lg">
-             <q-card-section>
-                <div class="text-subtitle1 text-bold">Company Information</div>
-              </q-card-section>
-              <q-list separator>
-                <q-item>
-                  <q-item-section>
-                    <q-item-label caption>Company Size</q-item-label>
-                    <q-item-label>{{ company.companySize }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-item-label caption>Year Founded</q-item-label>
-                    <q-item-label>{{ company.foundedYear }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                 <q-item>
-                  <q-item-section>
-                    <q-item-label caption>Website</q-item-label>
-                    <q-item-label><a :href="company.website" target="_blank">{{ company.website }}</a></q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
+            <q-card-section>
+              <div class="text-subtitle1 text-bold">Company Information</div>
+            </q-card-section>
+            <q-list separator>
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Company Size</q-item-label>
+                  <q-item-label>{{ company.numberOfEmployees }} employees</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Positions Available</q-item-label>
+                  <q-item-label>{{ company.positionsAvailable.join(', ') }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Website</q-item-label>
+                  <q-item-label><a :href="company.website" target="_blank">{{ company.website }}</a></q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
           </q-card>
-          
+
           <q-card>
-             <q-card-section>
-                <div class="text-subtitle1 text-bold">Contact Details</div>
-              </q-card-section>
-              <q-list separator>
-                <q-item>
-                  <q-item-section>
-                    <q-item-label caption>Email Address</q-item-label>
-                    <q-item-label>{{ company.email }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-item-label caption>Phone Number</q-item-label>
-                    <q-item-label>{{ company.phone }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                 <q-item>
-                  <q-item-section>
-                    <q-item-label caption>Address</q-item-label>
-                    <q-item-label class="text-wrap">{{ company.address }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                 <q-item>
-                  <q-item-section>
-                    <q-item-label caption>Socials</q-item-label>
-                    <q-item-label>
-                      <q-btn flat dense round icon="fab fa-linkedin" type="a" :href="company.socials.linkedin" target="_blank" />
-                      <q-btn flat dense round icon="fab fa-twitter" type="a" :href="company.socials.twitter" target="_blank" />
-                    </q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
+            <q-card-section>
+              <div class="text-subtitle1 text-bold">Contact Details</div>
+            </q-card-section>
+            <q-list separator>
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Email Address</q-item-label>
+                  <q-item-label>{{ company.user.email }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Phone Number</q-item-label>
+                  <q-item-label>{{ company.contactNumber }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item>
+                <q-item-section>
+                  <q-item-label caption>Address</q-item-label>
+                  <q-item-label class="text-wrap">{{ company.location }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
           </q-card>
         </div>
       </div>
 
-
       <q-dialog v-model="showWizard" persistent>
         <q-card style="min-width: 600px">
           <q-stepper v-model="step" ref="stepper" color="primary" animated header-nav>
-            
             <q-step :name="1" title="Core Info" icon="foundation" :done="step > 1">
-              <q-input v-model="form.name" label="Company Name" outlined class="q-mb-md" />
-              <q-input v-model="form.industry" label="Industry (e.g., Technology)" outlined class="q-mb-md" />
-              <q-select v-model="form.companySize" :options="['1-10 employees', '11-50 employees', '51-200 employees', '201-500 employees', '501+ employees']" label="Company Size" outlined class="q-mb-md" />
-              <q-input v-model="form.foundedYear" label="Year Founded" type="number" outlined />
+              <q-input v-model="form.companyName" label="Company Name" outlined class="q-mb-md" />
+              <q-input v-model="form.industry" label="Industry (e.g., Electronics)" outlined class="q-mb-md" />
+              <q-input v-model="form.numberOfEmployees" label="Number of Employees" type="number" outlined class="q-mb-md" />
+              <q-input v-model="form.positionsAvailable" label="Positions Available (comma-separated)" outlined />
             </q-step>
 
             <q-step :name="2" title="Contact" icon="contacts" :done="step > 2">
-              <q-input v-model="form.email" label="Public Email" outlined class="q-mb-md" />
-              <q-input v-model="form.phone" label="Phone Number" outlined class="q-mb-md" />
+              <q-input v-model="form.user.email" label="Public Email" outlined class="q-mb-md" />
+              <q-input v-model="form.contactNumber" label="Phone Number" outlined class="q-mb-md" />
               <q-input v-model="form.website" label="Website URL" outlined class="q-mb-md" />
-              <q-input v-model="form.address" label="Company Address" type="textarea" outlined />
+              <q-input v-model="form.location" label="Company Address" type="textarea" outlined />
             </q-step>
 
             <q-step :name="3" title="Branding" icon="palette">
-<q-file
-  v-model="form.logoFile"
-  label="Upload Company Logo"
-  outlined
-  accept=".jpg, .jpeg, .png"
-  max-file-size="2097152"
-  @rejected="onRejected"
-  @update:model-value="onLogoSelected"
->
-  <template v-slot:prepend> <q-icon name="attach_file" /> </template>
-  <template v-slot:hint> Max 2MB (PNG, JPG) </template>
-</q-file>
-
-<!-- Preview uploaded logo inside wizard -->
-<div v-if="form.logoPreview" class="q-mt-md text-center">
-  <q-avatar size="100px" class="shadow-3">
-    <img :src="form.logoPreview" alt="Logo Preview" />
-  </q-avatar>
-</div>
-
-               <q-input v-model="form.about" label="About the Company" type="textarea" outlined class="q-mt-md" />
-               <q-input v-model="form.socials.linkedin" label="LinkedIn Profile URL" outlined class="q-mt-md" />
-               <q-input v-model="form.socials.twitter" label="Twitter Profile URL" outlined class="q-mt-md" />
+              <q-file v-model="form.logoFile" label="Upload Company Logo" outlined accept=".jpg, .jpeg, .png" max-file-size="2097152" @rejected="onRejected">
+                <template v-slot:prepend> <q-icon name="attach_file" /> </template>
+                <template v-slot:hint> Max 2MB (PNG, JPG) </template>
+              </q-file>
+              <q-input v-model="form.description" label="About the Company" type="textarea" outlined class="q-mt-md" />
             </q-step>
 
             <template v-slot:navigation>
@@ -187,18 +158,28 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import AppHeader from 'src/components/HeaderPart.vue';
+import { authHelpers } from 'src/services/auth.service'
+import api from 'src/services/auth.service';
+import axios from 'axios';
 
 const router = useRouter();
 const $q = useQuasar();
 
-const employer = ref({ name: 'Innovate Inc.', email: 'hr@innovate.com' });
+const employer = ref({  });
+const loading = ref(false);
+const companyId = ref(authHelpers.getCurrentUser()?.id);
 
-onMounted(() => {
-const storedCompany = localStorage.getItem('companyData');
-if (storedCompany) {
-  company.value = JSON.parse(storedCompany);
-}
 
+
+onMounted(async () => {
+  const stored = localStorage.getItem('employerData');
+  if (stored) {
+    employer.value = JSON.parse(stored);
+    if (employer.value.id) {
+      companyId.value = employer.value.id;
+    }
+  }
+  await loadCompanyData();
 });
 
 const selected = ref('Company Profile');
@@ -206,100 +187,175 @@ const showWizard = ref(false);
 const step = ref(1);
 
 const company = ref({
-  name: 'Innovate Inc.',
-  email: 'public@innovate.com',
-  website: 'https://innovate.com',
-  address: '123 Innovation Park, Tech City, 12345',
-  about: 'Innovate Inc. is a leading tech company focusing on smart AI solutions for a better future. We thrive on creativity and collaboration.',
-  logoUrl: null, // This will hold the URL for the displayed logo
-  industry: 'Artificial Intelligence',
-  companySize: '51-200 employees',
-  foundedYear: '2015',
-  phone: '+1 (555) 123-4567',
-  socials: {
-    linkedin: 'https://linkedin.com/company/innovate-inc',
-    twitter: 'https://twitter.com/innovateinc'
-  }
+  companyName: '',
+  contactNumber: '',
+  logo: null,
+  website: '',
+  description: '',
+  industry: '',
+  location: '',
+  positionsAvailable: [],
+  numberOfEmployees: '',
+  user: { id: null, name: '', email: '', role: '', status: '' }
 });
 
-// Form state should be separate to avoid updating the UI before submission
 const form = ref({
-  name: '',
-  email: '',
+  companyName: '',
+  contactNumber: '',
+  logo: null,
+  logoFile: null,
   website: '',
-  address: '',
-  about: '',
-  logoFile: null, // This will hold the File object
+  description: '',
   industry: '',
-  companySize: '',
-  foundedYear: '',
-  phone: '',
-  socials: {
-    linkedin: '',
-    twitter: ''
-  }
+  location: '',
+  positionsAvailable: '',
+  numberOfEmployees: '',
+  user: { id: null, name: '', email: '', role: '', status: '' }
 });
+
+const loadCompanyData = async () => {
+  try {
+    loading.value = true;
+    const res = await api.get(`/company/${companyId.value}`);
+    if (res.data) {
+      company.value = {
+        companyName: res.data.companyName || '',
+        contactNumber: res.data.contactNumber || '',
+        logo: res.data.logo || null,
+        website: res.data.website || '',
+        description: res.data.description || '',
+        industry: res.data.industry || '',
+        location: res.data.location || '',
+        positionsAvailable: res.data.positionsAvailable || [],
+        numberOfEmployees: res.data.numberOfEmployees || '',
+        user: {
+          id: res.data.user?.id || null,
+          name: res.data.user?.name || '',
+          email: res.data.user?.email || '',
+          role: res.data.user?.role || '',
+          status: res.data.user?.status || ''
+        }
+      };
+      form.value = {
+        ...company.value,
+        logoFile: null,
+        positionsAvailable: company.value.positionsAvailable.join(', ')
+      };
+    }
+  } catch (err) {
+    console.error('Error loading company data:', err);
+    $q.notify({
+      color: 'negative',
+      icon: 'error',
+      message: 'Failed to load company data'
+    });
+  } finally {
+    loading.value = false;
+  }
+};
 
 const openWizard = () => {
-  // Pre-fill form with current company data for editing
-  form.value = JSON.parse(JSON.stringify(company.value));
-  form.value.logoFile = null; // Reset file input
+  form.value = {
+    ...company.value,
+    logoFile: null,
+    positionsAvailable: company.value.positionsAvailable.join(', ')
+  };
   step.value = 1;
   showWizard.value = true;
 };
 
-const onLogoSelected = (file) => {
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      form.value.logoPreview = e.target.result; // base64 string
+const submitForm = async () => {
+  try {
+    loading.value = true;
+
+    // Prepare payload with cleaned data
+    const payload = {
+      companyName: form.value.companyName?.trim(),
+      contactNumber: form.value.contactNumber?.trim(),
+      website: form.value.website?.trim(),
+      description: form.value.description?.trim(),
+      industry: form.value.industry?.trim(),
+      location: form.value.location?.trim(),
+      numberOfEmployees: form.value.numberOfEmployees
+        ? parseInt(form.value.numberOfEmployees, 10)
+        : null,
+      positionsAvailable: form.value.positionsAvailable
+        ? form.value.positionsAvailable.split(",").map(pos => pos.trim()).filter(Boolean)
+        : []
     };
-    reader.readAsDataURL(file);
-  } else {
-    form.value.logoPreview = null;
+
+    // If no file uploaded AND no new logo url, don't send logo field
+    if (form.value.logoFile) {
+      // Only include in FormData below
+    } else if (form.value.logo) {
+      // If you want to keep current URL-based logo
+      payload.logo = form.value.logo;
+    }
+
+    let res;
+
+    if (form.value.logoFile) {
+      // --- Multipart upload ---
+      const formData = new FormData();
+      Object.keys(payload).forEach(key => {
+        if (Array.isArray(payload[key])) {
+          payload[key].forEach((item, index) => {
+            formData.append(`${key}[${index}]`, item);
+          });
+        } else if (payload[key] !== null && payload[key] !== undefined) {
+          formData.append(key, payload[key]);
+        }
+      });
+      formData.append("logo", form.value.logoFile);
+
+      res = await api.put(
+        `/companies/${companyId.value}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+    } else {
+      // --- JSON update ---
+      res = await api.put(
+        `/companies/${companyId.value}`,
+        payload
+      );
+    }
+
+    if (res.data.success) {
+      await loadCompanyData();
+      showWizard.value = false;
+      $q.notify({
+        color: "positive",
+        icon: "check_circle",
+        message: "Profile updated successfully!"
+      });
+      form.value.logoFile = null; // reset file input
+    } else {
+      $q.notify({
+        color: "negative",
+        icon: "error",
+        message: res.data.message || "Update failed"
+      });
+    }
+  } catch (err) {
+    console.error("Error updating company profile:", err);
+    $q.notify({
+      color: "negative",
+      icon: "error",
+      message: err.response?.data?.message || "Error updating company"
+    });
+  } finally {
+    loading.value = false;
   }
 };
 
-
-
-const submitForm = () => {
-  // If a new logo file was uploaded, create a URL for it
-if (form.value.logoFile) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    company.value.logoUrl = e.target.result; // base64 string
-    localStorage.setItem('companyData', JSON.stringify(company.value));
-  };
-  reader.readAsDataURL(form.value.logoFile);
-} else {
-  localStorage.setItem('companyData', JSON.stringify(company.value));
-}
-
-
-
-  // Update company data from the form
-  // We don't copy logoFile to the main company object, so we disable the linter warning for this line.
-  // eslint-disable-next-line no-unused-vars
-  const { logoFile, ...restOfForm } = form.value;
-  company.value = { ...company.value, ...restOfForm };
-  
-  
-  showWizard.value = false;
-  step.value = 1;
-
+const onRejected = (rejectedEntries) => {
   $q.notify({
-    color: 'positive',
-    icon: 'check_circle',
-    message: 'Profile updated successfully!'
+    type: 'negative',
+    message: `${rejectedEntries.length} file(s) did not pass validation constraints.`
   });
 };
-
-const onRejected = (rejectedEntries) => {
-    $q.notify({
-        type: 'negative',
-        message: `${rejectedEntries.length} file(s) did not pass validation constraints (e.g., size).`
-    })
-}
 
 const links = [
   { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' },
@@ -318,37 +374,14 @@ const navigate = (link) => {
   }
 };
 
+defineExpose({
+  loading,
+  loadCompanyData,
+  submitForm
+});
 </script>
 
 <style scoped>
-.portal-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden; /* Important to prevent double scrollbars */
-}
-
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  /* The header component has its own background and shadow */
-}
-
-.page-wrapper {
-  flex-grow: 1; /* Takes up the remaining vertical space */
-  overflow: hidden; /* Important */
-}
-
-/* Sidebar and Content Area take full height of the wrapper */
-.sidebar, .content-area {
-  height: 100%;
-}
-
-.content-area {
-  flex: 1;
-  overflow-y: auto;
-}
 .page-wrapper {
   height: 100vh;
   background-color: #f4f8fa;
@@ -380,15 +413,6 @@ const navigate = (link) => {
   background-color: #00529b !important;
   color: #ffffff !important;
   font-weight: 600;
-}
-.logout-btn {
-  color: #FFB5B5;
-  border-radius: 8px;
-  margin: 16px;
-}
-.logout-btn:hover {
-  background-color: #d32f2f;
-  color: #ffffff;
 }
 .content-area {
   flex: 1;

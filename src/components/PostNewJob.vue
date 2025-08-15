@@ -145,10 +145,10 @@
           <p>Specify the desired qualifications. These fields are optional but recommended.</p>
         </q-card-section>
         <q-card-section class="q-gutter-y-lg">
-          <q-input v-model="form.experience" label="Experience Range" filled stack-label hint="e.g. 2-5 years" />
-          <q-input v-model="form.skills" label="Key Skills" filled stack-label hint="Enter skills separated by commas" />
-          <q-select v-model="form.education" label="Education Level" :options="educationOptions" filled stack-label
-            emit-value map-options hint="Select highest education level" />
+            <q-input v-model.number="form.experience" type="number" label="Minimum Experience (years)" filled stack-label hint="Empty will be considered as 0" />
+           <q-input v-model="form.skills" label="Key Skills" filled stack-label hint="Enter skills separated by commas" />
+          <q-select  v-model="form.education" label="Education Level"  :options="educationOptions"  filled  stack-label  emit-value  map-options  hint="Select highest education level"/>
+
         </q-card-section>
         <q-card-actions align="right" class="q-pa-md">
           <q-btn flat label="Back" color="black" @click="step--" />
@@ -156,25 +156,31 @@
         </q-card-actions>
       </q-card>
 
-      <q-card v-if="step === 3" class="step-card">
-        <q-card-section class="q-pt-lg">
-          <div class="text-h6">Application Preferences</div>
-          <p>Set how you want to receive and manage applications.</p>
-        </q-card-section>
-        <q-form @submit.prevent="nextStep">
-          <q-card-section class="q-gutter-y-xl">
-            <q-option-group v-model="form.communication"
-              :options="[{ label: 'Email', value: 'email' }, { label: 'Mobile', value: 'mobile' }, { label: 'WhatsApp', value: 'whatsapp' }]"
-              type="checkbox" label="Preferred Communication Methods" inline />
-            <q-input v-model="form.deadline" label="Application Deadline" type="date" filled stack-label required />
-            <q-toggle v-model="form.resumeRequired" label="Resume submission is required" left-label />
-          </q-card-section>
-          <q-card-actions align="right" class="q-pa-md">
-            <q-btn flat label="Back" color="black" @click="step--" />
-            <q-btn glossy color="primary" label="next" type="submit" padding="xs lg" />
-          </q-card-actions>
-        </q-form>
-      </q-card>
+       <q-card v-if="step === 3" class="step-card">
+         <q-card-section class="q-pt-lg">
+           <div class="text-h6">Application Preferences</div>
+           <p>Set how you want to receive and manage applications.</p>
+         </q-card-section>
+         <q-form @submit.prevent="nextStep">
+           <q-card-section class="q-gutter-y-xl">
+             <q-option-group v-model="form.communication" :options="[{ label: 'Email', value: 'email' }, { label: 'website', value: 'website' }]" type="checkbox" label="Preferred Communication Methods" inline />
+             <q-input
+  v-model="form.deadline"
+  label="Application Deadline"
+  type="date"
+  filled
+  stack-label
+  :min="today"
+  required
+/>
+             <q-toggle v-model="form.resumeRequired" label="Resume submission is required" left-label />
+           </q-card-section>
+           <q-card-actions align="right" class="q-pa-md">
+             <q-btn flat label="Back" color="black" @click="step--" />
+             <q-btn glossy color="primary" label="next" type="submit" padding="xs lg" />
+           </q-card-actions>
+         </q-form>
+       </q-card>
 
       <q-card v-if="step === 4" class="step-card">
         <q-card-section class="q-pt-lg">
@@ -302,7 +308,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useQuasar } from 'quasar';
+import { useQuasar, date  } from 'quasar';
 import { useRouter } from 'vue-router';
 import jobService from '../services/jobpost.service';
 import { api } from 'boot/axios';
@@ -330,7 +336,7 @@ const employer = ref({
 const selected = ref('Post New Job');
 const verificationStatus = ref('');
 const rejectionReason = ref('');
-
+const today = date.formatDate(new Date(), 'YYYY-MM-DD');
 // Education options for the form
 const educationOptions = [
   { label: '10th (SSC)', value: '10th' },

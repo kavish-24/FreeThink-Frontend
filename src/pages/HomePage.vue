@@ -25,7 +25,9 @@
     <section v-if="isLoggedIn">
       <JobListingPage :searchQuery="searchInput" />
     </section>
-
+<section v-if="isLoggedIn && !isEmployer">
+  <SuggestedSkills />
+</section>
     <div v-else class="login-prompt">
       <p>
         <q-icon name="lock" size="1.2em" class="q-mr-sm" />
@@ -152,13 +154,14 @@ import { useRouter } from 'vue-router';
 import { ref, onMounted, computed } from 'vue'; // Added computed here
 import { useAuthStore } from '../stores/auth.store';
 import { storeToRefs } from 'pinia';
-
+import SuggestedSkills from '../components/SuggestedSkills.vue';
 export default {
   name: 'HomePage',
   components: {
     AppHeader,
     AppFooter,
-    JobListingPage
+    JobListingPage,
+    SuggestedSkills
   },
   setup() {
     const router = useRouter();
@@ -248,7 +251,12 @@ export default {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Satisfy&display=swap');
-
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  /* The header component has its own background and shadow */
+}
 @keyframes breathe {
   0%   { background-color: #e1f5fe; } /* Light Sky Blue */
   20%  { background-color: #e0f2f1; } /* Light Cyan/Green */
@@ -511,7 +519,6 @@ export default {
   transition: transform 0.2s ease;
   text-align: center;
   font-style:bold;
-  text-effect: glow;
   min-width: 260px;
   max-width: 300px;
   min-height: 330px;

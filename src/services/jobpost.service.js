@@ -43,7 +43,7 @@ const postJob = async (jobData) => {
     });
 
     console.log('Sending job data:', formattedJobData);
-    const response = await api.post('/jobs', formattedJobData, {
+    const response = await api.post('/jobs/jobs', formattedJobData, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'

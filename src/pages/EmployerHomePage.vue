@@ -20,7 +20,7 @@
         <img src="../assets/employee.jpg" alt="Employer happy direct hire" class="hero-image-glow">
       </div>
     </section>
-
+<JobseekerSuggestions />
     <section class="why-choose glass-section">
       <h2>Why Choose JobHub for Hiring?</h2>
       <p>Join thousands of companies that have transformed their hiring process with our platform.</p>
@@ -178,11 +178,12 @@
 
 <script>
 import AppHeader from '../components/HeaderPart.vue';
-
+import JobseekerSuggestions from './JobseekerSuggestions.vue'
 export default {
   name: 'EmployerHomePage',
   components: {
-    AppHeader
+    AppHeader,
+    JobseekerSuggestions
   },
   data() {
     return {

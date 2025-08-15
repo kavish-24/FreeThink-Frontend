@@ -25,5 +25,15 @@ export const jobSeekerProfileService = {
         error: err.response?.data?.message || 'Failed to update profile',
       }
     }
+  },
+  async updateStatus(userId, status) {
+  try {
+    const res = await api.put(`/profile/${userId}/status`, { status });
+    return { success: true, data: res.data };
+  } catch (error) {
+    console.error('Error updating profile status:', error);
+    return { success: false, error: error.response?.data || error.message };
   }
+}
+
 }

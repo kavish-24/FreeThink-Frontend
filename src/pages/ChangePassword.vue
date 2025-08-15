@@ -61,14 +61,14 @@
 
       <div v-if="step === 2">
         <div class="row justify-between items-center q-mb-lg">
-           <div
+          <div
             class="row items-center text-black-6 dark:text-grey-4 cursor-pointer interactive-link"
             @click="step = 1"
           >
             <q-icon name="arrow_back" size="20px" class="q-mr-sm" />
             <span class="text-weight-medium">Back</span>
           </div>
-           <div
+          <div
             class="row items-center text-black-6 dark:text-grey-4 cursor-pointer interactive-link"
             @click="goToLogin"
           >
@@ -93,9 +93,15 @@
             v-model="newPassword"
             :type="showNewPassword ? 'text' : 'password'"
             :dark="$q.dark.isActive"
-            :rules="[ val => !!val || 'Password is required' ]"
+            :rules="[
+              val => !!val || 'Password is required',
+              val => val.length >= 8 || 'Minimum 8 characters',
+              val => /[A-Z]/.test(val) || 'At least 1 uppercase letter required',
+              val => /[^A-Za-z0-9]/.test(val) || 'At least 1 special character required'
+            ]"
+            lazy-rules
           >
-             <template #append>
+            <template #append>
               <q-icon
                 :name="showNewPassword ? 'visibility_off' : 'visibility'"
                 class="cursor-pointer"
@@ -111,9 +117,13 @@
             v-model="confirmPassword"
             :type="showConfirmPassword ? 'text' : 'password'"
             :dark="$q.dark.isActive"
-            :rules="[ val => !!val || 'Please confirm your password' ]"
+            :rules="[
+              val => !!val || 'Please confirm your password',
+              val => val === newPassword || 'Passwords must match'
+            ]"
+            lazy-rules
           >
-             <template #append>
+            <template #append>
               <q-icon
                 :name="showConfirmPassword ? 'visibility_off' : 'visibility'"
                 class="cursor-pointer"
@@ -133,7 +143,6 @@
           />
         </q-form>
       </div>
-
     </q-card>
   </q-page>
 </template>
@@ -142,76 +151,77 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
+import { passwordService } from '../services/password.service';
 
 const router = useRouter();
 const $q = useQuasar();
 
-const step = ref(1); // 1 for OTP, 2 for new password
-
+const step = ref(1);
 const email = ref('');
 const otp = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
-
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 
-const sendOtp = () => {
-  // TODO: Implement API call to send OTP to the email
-  console.log(`Sending OTP to ${email.value}`);
-  $q.notify({
-    type: 'positive',
-    message: `An OTP has been sent to ${email.value}`,
-    position: 'top',
-    icon: 'email'
-  });
-};
+const sendOtp = async () => {
+  if (!email.value) {
+    $q.notify({ type: 'negative', message: 'Please enter your email' });
+    return;
+  }
 
-const verifyOtp = () => {
-  // TODO: Implement API call to verify OTP
-  if (otp.value) {
-    console.log(`Verifying OTP ${otp.value}`);
-    $q.notify({
-      type: 'positive',
-      message: 'OTP Verified Successfully!',
-      position: 'top',
-      icon: 'verified'
-    });
-    step.value = 2; // Move to the next step
-  } else {
+  try {
+    const res = await passwordService.sendOtp(email.value);
+    $q.notify({ type: 'positive', message: res.data.message || 'OTP sent to your email', position: 'top', icon: 'email' });
+  } catch (error) {
     $q.notify({
       type: 'negative',
-      message: 'Please enter the OTP.',
+      message: error.response?.data?.message || 'Failed to send OTP',
       position: 'top'
     });
   }
 };
 
-const updatePassword = () => {
-  if (!newPassword.value || !confirmPassword.value) {
-     $q.notify({ type: 'negative', message: 'Please fill both password fields.' });
-     return;
-  }
-
-  if (newPassword.value !== confirmPassword.value) {
-    $q.notify({
-      type: 'negative',
-      message: 'Passwords do not match. Please try again.',
-      position: 'top',
-    });
+const verifyOtp = async () => {
+  if (!otp.value) {
+    $q.notify({ type: 'negative', message: 'Please enter the OTP' });
     return;
   }
 
-  // TODO: Implement API call to update password in the backend
-  console.log('Password updated successfully');
-  $q.notify({
-    type: 'positive',
-    message: 'Your password has been updated successfully!',
-    position: 'top',
-  });
+  try {
+    const res = await passwordService.verifyOtp(email.value, otp.value);
+    $q.notify({ type: 'positive', message: res.data.message || 'OTP Verified Successfully', position: 'top', icon: 'verified' });
+    step.value = 2;
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'OTP verification failed',
+      position: 'top'
+    });
+  }
+};
 
-  // Redirect to login page after successful password update
-  router.push('/login');
+const updatePassword = async () => {
+  if (!newPassword.value || !confirmPassword.value) {
+    $q.notify({ type: 'negative', message: 'Please fill both password fields.' });
+    return;
+  }
+  if (newPassword.value !== confirmPassword.value) {
+    $q.notify({ type: 'negative', message: 'Passwords do not match.' });
+    return;
+  }
+
+  try {
+    const res = await passwordService.updatePassword(email.value, newPassword.value, confirmPassword.value);
+    $q.notify({ type: 'positive', message: res.data.message || 'Password updated successfully', position: 'top' });
+    router.push('/login');
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'Failed to update password',
+      position: 'top'
+    });
+  }
 };
 
 const goToLogin = () => {
@@ -219,8 +229,8 @@ const goToLogin = () => {
 };
 </script>
 
+
 <style scoped>
-/* Copied from LoginPage.vue for consistent styling */
 .login-page-bg {
   background-image:
     linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),

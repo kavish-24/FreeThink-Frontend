@@ -64,7 +64,7 @@
           <div v-else><span class="label">Email:</span> {{ profile.email }}</div>
 
           <q-input v-if="editMode" v-model="profile.streetAddress" label="Street Address" outlined dense />
-          <div v-else><span class="label">Street Address:</span> {{ profile.streetAddress }}</div>
+          <div v-else><span class="label">Address:</span> {{ profile.streetAddress }}</div>
         </div>
 
         <div class="col-12 col-md-6">
@@ -99,7 +99,36 @@
           <div class="text-grey-7">{{ profile.summary }}</div>
         </div>
       </div>
-
+ <div class="q-mb-md">
+        <q-input
+          v-if="editMode"
+          v-model="profile.title"
+          type="textarea"
+          label="Professional title"
+          outlined
+          dense
+          autogrow
+        />
+        <div v-else>
+          <div class="label">Title</div>
+          <div class="text-grey-7">{{ profile.title  }}</div>
+        </div>
+      </div>
+       <div class="q-mb-md">
+        <q-input
+          v-if="editMode"
+          v-model="profile.experienceYears"
+          type="textarea"
+          label="Professional title"
+          outlined
+          dense
+          autogrow
+        />
+        <div v-else>
+          <div class="label">Experience</div>
+          <div class="text-grey-7">{{ profile.experienceYears  }}</div>
+        </div>
+      </div>
     <div class="row q-col-gutter-md">
 <div class="col-12 col-md-6">
   <div class="label row items-center justify-between">
@@ -108,7 +137,7 @@
       v-if="editMode"
       icon="add"
       dense flat
-      @click="addEducation"
+      @click="profile.education.push({ school: '', degree: '', field: '', start_date: '', end_date: '' })  "
       size="sm"
       color="primary"
     />
@@ -126,7 +155,22 @@
 
     <div v-else class="q-gutter-sm">
       <q-input v-model="edu.school" label="School" dense outlined />
-      <q-input v-model="edu.degree" label="Degree" dense outlined />
+      <q-select
+  v-model="edu.degree"
+  :options="[
+    { label: 'SSC', value: 'SSC' },
+    { label: 'HSSC', value: 'HSSC' },
+    { label: 'Bachelor', value: 'Bachelor' },
+    { label: 'Master', value: 'Master' },
+    { label: 'PhD', value: 'PhD' }
+  ]"
+  label="Degree"
+  dense
+  outlined
+  emit-value
+  map-options
+/>
+
       <q-input v-model="edu.field" label="Field" dense outlined />
       <q-input v-model="edu.start_date" type="date" label="Start Date" dense outlined />
       <q-input v-model="edu.end_date" type="date" label="End Date" dense outlined />
@@ -134,7 +178,7 @@
         icon="delete"
         color="negative"
         flat dense
-        @click="removeEducation(index)"
+         @click="profile.education.splice(index, 1)"
         size="sm"
       />
       <q-separator spaced />
@@ -145,11 +189,12 @@
   <div class="col-12 col-md-6">
   <div class="label row items-center justify-between">
     <span>Work Experience</span>
+   
     <q-btn
       v-if="editMode"
       icon="add"
       dense flat
-      @click="addExperience"
+      @click="profile.experience.push({ title: '', company: '', description: '', start_date: '', end_date: '' })  "
       size="sm"
       color="primary"
     />
@@ -175,12 +220,13 @@
         icon="delete"
         color="negative"
         flat dense
-        @click="removeExperience(index)"
+       @click="profile.experience.splice(index, 1)"
         size="sm"
       />
       <q-separator spaced />
     </div>
   </div>
+  
 </div>
 
 </div>
@@ -281,7 +327,7 @@ const $q = useQuasar()
 const userId = authHelpers.getCurrentUser()?.id
 
 const profile = ref({
-  firstName: '', lastName: '', email: '', phoneNumber: '',
+  firstName: '', lastName: '', email: '', phoneNumber: '',title: '',
   streetAddress: '', zipcode: '', summary: '',
   photo: null, resume: '', resumeType: 'pdf',
   experienceYears: 0, skills: [], education: [], experience: []
