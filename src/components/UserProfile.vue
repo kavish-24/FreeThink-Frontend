@@ -1,5 +1,9 @@
 <template>
   <div class="q-pa-md bg-grey-1 full-height">
+    <!-- Loading overlay -->
+    <q-inner-loading :showing="loading">
+      <q-spinner-gears size="50px" color="primary" />
+    </q-inner-loading>
     <!-- Header -->
     <q-card class="q-pa-md header-card q-mb-lg">
       <div class="row justify-between items-center">
@@ -9,7 +13,7 @@
           icon="edit"
           :label="editMode ? 'Cancel' : 'Edit Profile'"
           class="edit-btn"
-          @click="editMode = !editMode"
+          @click="toggleEditMode"
         />
       </div>
     </q-card>
@@ -40,14 +44,14 @@
         <div class="q-mt-md full-width">
           <div class="text-caption text-grey-6">Profile Completeness</div>
           <q-linear-progress
-            :value="0.85"
+            :value="profileCompleteness"
             color="primary"
             track-color="grey-3"
             size="10px"
             rounded
             class="q-mt-xs"
           />
-          <div class="text-right text-caption q-mt-xs">85%</div>
+          <div class="text-right text-caption q-mt-xs">{{ Math.round(profileCompleteness * 100) }}%</div>
         </div>
       </q-card>
     </div>
@@ -57,25 +61,67 @@
       <div class="section-title">Profile Information</div>
       <div class="row q-col-gutter-md">
         <div class="col-12 col-md-6">
-          <q-input v-if="editMode" v-model="profile.firstName" label="First Name" outlined dense />
-          <div v-else><span class="label">First Name:</span> {{ profile.firstName }}</div>
+          <q-input 
+            v-if="editMode" 
+            v-model="profile.firstName" 
+            label="First Name" 
+            outlined 
+            dense 
+            class="q-mb-md"
+          />
+          <div v-else class="q-mb-md"><span class="label">First Name:</span> {{ profile.firstName }}</div>
 
-          <q-input v-if="editMode" v-model="profile.email" label="Email" outlined dense />
-          <div v-else><span class="label">Email:</span> {{ profile.email }}</div>
+          <q-input 
+            v-if="editMode" 
+            v-model="profile.email" 
+            label="Email" 
+            outlined 
+            dense 
+            class="q-mb-md"
+          />
+          <div v-else class="q-mb-md"><span class="label">Email:</span> {{ profile.email }}</div>
 
-          <q-input v-if="editMode" v-model="profile.streetAddress" label="Street Address" outlined dense />
-          <div v-else><span class="label">Address:</span> {{ profile.streetAddress }}</div>
+          <q-input 
+            v-if="editMode" 
+            v-model="profile.streetAddress" 
+            label="Street Address" 
+            outlined 
+            dense 
+            class="q-mb-md"
+          />
+          <div v-else class="q-mb-md"><span class="label">Address:</span> {{ profile.streetAddress }}</div>
         </div>
 
         <div class="col-12 col-md-6">
-          <q-input v-if="editMode" v-model="profile.lastName" label="Last Name" outlined dense />
-          <div v-else><span class="label">Last Name:</span> {{ profile.lastName }}</div>
+          <q-input 
+            v-if="editMode" 
+            v-model="profile.lastName" 
+            label="Last Name" 
+            outlined 
+            dense 
+            class="q-mb-md"
+          />
+          <div v-else class="q-mb-md"><span class="label">Last Name:</span> {{ profile.lastName }}</div>
 
-          <q-input v-if="editMode" v-model="profile.phoneNumber" label="Phone Number" outlined dense />
-          <div v-else><span class="label">Phone Number:</span> {{ profile.phoneNumber }}</div>
+          <q-input 
+            v-if="editMode" 
+            v-model="profile.phoneNumber" 
+            label="Phone Number" 
+            outlined 
+            dense 
+            class="q-mb-md"
+          />
+          <div v-else class="q-mb-md"><span class="label">Phone Number:</span> {{ profile.phoneNumber }}</div>
 
-          <q-input v-if="editMode" v-model="profile.zipcode" label="Zip Code" outlined dense />
-          <div v-else><span class="label">Zip Code:</span> {{ profile.zipcode }}</div>
+          <q-input 
+            v-if="editMode" 
+            v-model="profile.zipcode" 
+            label="Zip Code" 
+            outlined 
+            dense 
+            class="q-mb-md"
+          />
+          <div v-else class="q-mb-md"><span class="label">Zip Code:</span> {{ profile.zipcode }}</div>
         </div>
       </div>
     </q-card>
@@ -96,141 +142,134 @@
         />
         <div v-else>
           <div class="label">Professional Summary</div>
-          <div class="text-grey-7">{{ profile.summary }}</div>
+          <div class="text-grey-7">{{ profile.summary || 'Not provided' }}</div>
         </div>
       </div>
- <div class="q-mb-md">
+
+      <div class="q-mb-md">
         <q-input
           v-if="editMode"
           v-model="profile.title"
-          type="textarea"
-          label="Professional title"
+          label="Professional Title"
           outlined
           dense
-          autogrow
         />
         <div v-else>
           <div class="label">Title</div>
-          <div class="text-grey-7">{{ profile.title  }}</div>
+          <div class="text-grey-7">{{ profile.title || 'Not provided' }}</div>
         </div>
       </div>
-       <div class="q-mb-md">
+
+      <div class="q-mb-md">
         <q-input
           v-if="editMode"
-          v-model="profile.experienceYears"
-          type="textarea"
-          label="Professional title"
+          v-model.number="profile.experienceYears"
+          type="number"
+          label="Years of Experience"
           outlined
           dense
-          autogrow
         />
         <div v-else>
           <div class="label">Experience</div>
-          <div class="text-grey-7">{{ profile.experienceYears  }}</div>
+          <div class="text-grey-7">{{ profile.experienceYears }} years</div>
         </div>
       </div>
-    <div class="row q-col-gutter-md">
-<div class="col-12 col-md-6">
-  <div class="label row items-center justify-between">
-    <span>Education</span>
-    <q-btn
-      v-if="editMode"
-      icon="add"
-      dense flat
-      @click="profile.education.push({ school: '', degree: '', field: '', start_date: '', end_date: '' })  "
-      size="sm"
-      color="primary"
-    />
-  </div>
 
-  <div v-for="(edu, index) in profile.education" :key="index" class="q-mb-md">
-  <div v-if="!editMode" class="text-grey-7">
-  {{ edu.degree }} – {{ edu.school }}<br />
-  <span class="text-caption">{{ edu.field }}</span><br />
-  <span class="text-caption text-grey">
-    {{ formatMonthYear(edu.start_date) }} to {{ formatMonthYear(edu.end_date) }}
-  </span>
-</div>
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-6">
+          <div class="label row items-center justify-between">
+            <span>Education</span>
+            <q-btn
+              v-if="editMode"
+              icon="add"
+              dense flat
+              @click="addEducation"
+              size="sm"
+              color="primary"
+            />
+          </div>
 
+          <div v-for="(edu, index) in profile.education" :key="index" class="q-mb-md">
+            <div v-if="!editMode" class="text-grey-7">
+              {{ edu.degree }} – {{ edu.school }}<br />
+              <span class="text-caption">{{ edu.field }}</span><br />
+              <span class="text-caption text-grey">
+                {{ formatDateForDisplay(edu.start_date) }} to {{ formatDateForDisplay(edu.end_date) }}
+              </span>
+            </div>
 
-    <div v-else class="q-gutter-sm">
-      <q-input v-model="edu.school" label="School" dense outlined />
-      <q-select
-  v-model="edu.degree"
-  :options="[
-    { label: 'SSC', value: 'SSC' },
-    { label: 'HSSC', value: 'HSSC' },
-    { label: 'Bachelor', value: 'Bachelor' },
-    { label: 'Master', value: 'Master' },
-    { label: 'PhD', value: 'PhD' }
-  ]"
-  label="Degree"
-  dense
-  outlined
-  emit-value
-  map-options
-/>
+            <div v-else class="q-gutter-sm">
+              <q-input v-model="edu.school" label="School" dense outlined />
+              <q-select
+                v-model="edu.degree"
+                :options="[
+                  { label: 'SSC', value: 'SSC' },
+                  { label: 'HSSC', value: 'HSSC' },
+                  { label: 'Bachelor', value: 'Bachelor' },
+                  { label: 'Master', value: 'Master' },
+                  { label: 'PhD', value: 'PhD' }
+                ]"
+                label="Degree"
+                dense
+                outlined
+                emit-value
+                map-options
+              />
+              <q-input v-model="edu.field" label="Field" dense outlined />
+              <q-input v-model="edu.start_date" type="date" label="Start Date" dense outlined />
+              <q-input v-model="edu.end_date" type="date" label="End Date" dense outlined />
+              <q-btn
+                icon="delete"
+                color="negative"
+                flat dense
+                @click="removeEducation(index)"
+                size="sm"
+              />
+              <q-separator spaced />
+            </div>
+          </div>
+        </div>
 
-      <q-input v-model="edu.field" label="Field" dense outlined />
-      <q-input v-model="edu.start_date" type="date" label="Start Date" dense outlined />
-      <q-input v-model="edu.end_date" type="date" label="End Date" dense outlined />
-      <q-btn
-        icon="delete"
-        color="negative"
-        flat dense
-         @click="profile.education.splice(index, 1)"
-        size="sm"
-      />
-      <q-separator spaced />
-    </div>
-  </div>
-</div>
+        <div class="col-12 col-md-6">
+          <div class="label row items-center justify-between">
+            <span>Work Experience</span>
+            <q-btn
+              v-if="editMode"
+              icon="add"
+              dense flat
+              @click="addExperience"
+              size="sm"
+              color="primary"
+            />
+          </div>
 
-  <div class="col-12 col-md-6">
-  <div class="label row items-center justify-between">
-    <span>Work Experience</span>
-   
-    <q-btn
-      v-if="editMode"
-      icon="add"
-      dense flat
-      @click="profile.experience.push({ title: '', company: '', description: '', start_date: '', end_date: '' })  "
-      size="sm"
-      color="primary"
-    />
-  </div>
+          <div v-for="(exp, index) in profile.experience" :key="index" class="q-mb-md">
+            <div v-if="!editMode" class="text-grey-7">
+              {{ exp.title }} at {{ exp.company }}<br />
+              <div class="text-caption text-grey">{{ exp.description }}</div>
+              <span class="text-caption text-grey">
+                {{ formatDateForDisplay(exp.start_date) }} to {{ formatDateForDisplay(exp.end_date) }}
+              </span>
+            </div>
 
-  <div v-for="(exp, index) in profile.experience" :key="index" class="q-mb-md">
-   <div v-if="!editMode" class="text-grey-7">
-  {{ exp.title }} at {{ exp.company }}<br />
-  <div class="text-caption text-grey">{{ exp.description }}</div>
-  <span class="text-caption text-grey">
-    {{ formatMonthYear(exp.start_date) }} to {{ formatMonthYear(exp.end_date) }}
-  </span>
-</div>
-
-
-    <div v-else class="q-gutter-sm">
-      <q-input v-model="exp.title" label="Job Title" dense outlined />
-      <q-input v-model="exp.company" label="Company" dense outlined />
-      <q-input v-model="exp.description" label="Description" type="textarea" dense outlined />
-      <q-input v-model="exp.start_date" type="date" label="Start Date" dense outlined />
-      <q-input v-model="exp.end_date" type="date" label="End Date" dense outlined />
-      <q-btn
-        icon="delete"
-        color="negative"
-        flat dense
-       @click="profile.experience.splice(index, 1)"
-        size="sm"
-      />
-      <q-separator spaced />
-    </div>
-  </div>
-  
-</div>
-
-</div>
-
+            <div v-else class="q-gutter-sm">
+              <q-input v-model="exp.title" label="Job Title" dense outlined />
+              <q-input v-model="exp.company" label="Company" dense outlined />
+              <q-input v-model="exp.description" label="Description" type="textarea" dense outlined />
+              <q-input v-model="exp.start_date" type="date" label="Start Date" dense outlined />
+              <q-input v-model="exp.end_date" type="date" label="End Date" dense outlined />
+              <q-btn
+                icon="delete"
+                color="negative"
+                flat dense
+                @click="removeExperience(index)"
+                size="sm"
+              />
+              <q-separator spaced />
+            </div>
+          </div>
+        </div>
+      </div>
     </q-card>
 
     <!-- Skills & Resume -->
@@ -250,59 +289,72 @@
             >
               {{ skill }}
             </q-chip>
+            <div v-if="!profile.skills || profile.skills.length === 0" class="text-grey-7">
+              No skills added yet
+            </div>
           </div>
           <div v-else>
-            <q-input
-              v-for="(skill, index) in profile.skills"
-              :key="index"
-              v-model="profile.skills[index]"
-              outlined dense class="q-mb-sm"
-              :label="`Skill ${index + 1}`"
-            />
-            <q-btn flat icon="add" label="Add Skill" @click="profile.skills.push('')" />
+            <div v-for="(skill, index) in profile.skills" :key="index" class="row q-gutter-sm items-center q-mb-sm">
+              <q-input
+                v-model="profile.skills[index]"
+                outlined dense
+                :label="`Skill ${index + 1}`"
+                style="flex: 1;"
+              />
+              <q-btn 
+                icon="delete" 
+                flat dense 
+                color="negative" 
+                @click="removeSkill(index)"
+                size="sm"
+              />
+            </div>
+            <q-btn flat icon="add" label="Add Skill" @click="addSkill" />
           </div>
         </div>
 
-       <div class="col-12 col-md-6">
-  <div class="label q-mb-sm">Resume</div>
+        <div class="col-12 col-md-6">
+          <div class="label q-mb-sm">Resume</div>
 
-  <!-- View mode preview -->
-  <q-img
-    v-if="!editMode && profile.resumeType === 'image'"
-    :src="profile.resume"
-    contain
-    style="max-height: 200px; border-radius: 8px;"
-  />
-  <div v-else-if="!editMode" class="resume-link row items-center">
-    <q-icon name="picture_as_pdf" color="red" size="40px" />
-    <a :href="profile.resume" target="_blank" class="text-primary q-ml-sm">
-      View Resume (PDF)
-    </a>
-  </div>
+          <!-- View mode preview -->
+          <div v-if="!editMode">
+            <q-img
+              v-if="profile.resumeType === 'image' && profile.resume"
+              :src="profile.resume"
+              contain
+              style="max-height: 200px; border-radius: 8px;"
+            />
+            <div v-else-if="profile.resume" class="resume-link row items-center">
+              <q-icon name="picture_as_pdf" color="red" size="40px" />
+              <a :href="profile.resume" target="_blank" class="text-primary q-ml-sm">
+                View Resume (PDF)
+              </a>
+            </div>
+            <div v-else class="text-grey-7">No resume uploaded</div>
+          </div>
 
-  <!-- Edit mode upload button -->
-  <div v-if="editMode">
-    <q-btn
-      label="Upload Resume"
-      icon="cloud_upload"
-      flat
-      color="primary"
-      @click="triggerResumeUpload"
-      class="q-mb-sm"
-    />
-    <input
-      ref="resumeInput"
-      type="file"
-      accept=".pdf,image/*"
-      hidden
-      @change="handleResumeUpload"
-    />
-    <div class="text-caption text-grey">
-      Accepted: PDF or image formats (UI only, no upload yet)
-    </div>
-  </div>
-</div>
-
+          <!-- Edit mode upload button -->
+          <div v-if="editMode">
+            <q-btn
+              label="Upload Resume"
+              icon="cloud_upload"
+              flat
+              color="primary"
+              @click="triggerResumeUpload"
+              class="q-mb-sm"
+            />
+            <input
+              ref="resumeInput"
+              type="file"
+              accept=".pdf,image/*"
+              hidden
+              @change="handleResumeUpload"
+            />
+            <div class="text-caption text-grey">
+              Accepted: PDF or image formats
+            </div>
+          </div>
+        </div>
       </div>
     </q-card>
 
@@ -313,6 +365,7 @@
       class="q-mt-md"
       icon="save"
       @click="saveProfile"
+      :loading="saving"
     />
   </div>
 </template>
@@ -327,133 +380,308 @@ const $q = useQuasar()
 const userId = authHelpers.getCurrentUser()?.id
 
 const profile = ref({
-  firstName: '', lastName: '', email: '', phoneNumber: '',title: '',
-  streetAddress: '', zipcode: '', summary: '',
-  photo: null, resume: '', resumeType: 'pdf',
-  experienceYears: 0, skills: [], education: [], experience: []
+  firstName: '',
+  lastName: '',
+  email: '',
+  phoneNumber: '',
+  title: '',
+  streetAddress: '',
+  zipcode: '',
+  summary: '',
+  photo: null,
+  resume: '',
+  resumeType: 'pdf',
+  experienceYears: 0,
+  skills: [],
+  education: [],
+  experience: []
 })
 
 const editMode = ref(false)
+const saving = ref(false)
+const loading = ref(false)
 const fileInput = ref(null)
+const resumeInput = ref(null)
+const originalProfile = ref(null) // Store original data for cancel functionality
 
 const fullName = computed(() => `${profile.value.firstName} ${profile.value.lastName}`)
-const initials = computed(() => profile.value.firstName?.charAt(0) + profile.value.lastName?.charAt(0))
+const initials = computed(() => 
+  (profile.value.firstName?.charAt(0) || '') + (profile.value.lastName?.charAt(0) || '')
+)
 
-onMounted(async () => {
-  const res = await jobSeekerProfileService.getProfile(userId)
-
-  if (!res.success) {
-    $q.notify({ type: 'negative', message: res.error })
-    return
-  }
-
-  const data = res.data
-
-  // Format date fields
-  if (Array.isArray(data.education)) {
-    data.education = data.education.map(e => ({
-      ...e,
-      start_date: formatMonthYear(e.start_date),
-      end_date: formatMonthYear(e.end_date)
-    }))
-  }
-
-  if (Array.isArray(data.experience)) {
-    data.experience = data.experience.map(e => ({
-      ...e,
-      start_date: formatMonthYear(e.start_date),
-      end_date: formatMonthYear(e.end_date)
-    }))
-  }
-
-  profile.value = data
+// Calculate profile completeness
+const profileCompleteness = computed(() => {
+  const fields = [
+    'firstName', 'lastName', 'email', 'phoneNumber', 'title', 
+    'streetAddress', 'zipcode', 'summary', 'photo'
+  ]
+  
+  let completed = 0
+  fields.forEach(field => {
+    if (profile.value[field]) completed++
+  })
+  
+  if (profile.value.skills?.length > 0) completed++
+  if (profile.value.education?.length > 0) completed++
+  if (profile.value.experience?.length > 0) completed++
+  if (profile.value.resume) completed++
+  
+  return completed / (fields.length + 4)
 })
 
-const saveProfile = async () => {
-  const res = await jobSeekerProfileService.updateProfile(userId, profile.value)
+onMounted(async () => {
+  await loadProfile()
+})
 
+const loadProfile = async () => {
+  loading.value = true
+  
+  try {
+    const res = await jobSeekerProfileService.getProfile(userId)
+
+    if (!res.success) {
+      $q.notify({ type: 'negative', message: res.error })
+      return
+    }
+
+    const data = res.data
+
+    // Ensure arrays exist and handle backend structure
+    data.education = Array.isArray(data.education) ? data.education : []
+    data.experience = Array.isArray(data.experience) ? data.experience : []
+    data.skills = Array.isArray(data.skills) ? data.skills : []
+
+    // Convert date formats for display - handle both date formats
+    data.education = data.education.map(e => ({
+      ...e,
+      school: e.school || e.institution || '',
+      degree: e.degree || e.degree_type || '',
+      field: e.field || e.field_of_study || '',
+      start_date: e.start_date ? formatDateForInput(e.start_date) : '',
+      end_date: e.end_date ? formatDateForInput(e.end_date) : ''
+    }))
+
+    data.experience = data.experience.map(e => ({
+      ...e,
+      title: e.title || e.job_title || '',
+      company: e.company || e.company_name || '',
+      description: e.description || '',
+      start_date: e.start_date ? formatDateForInput(e.start_date) : '',
+      end_date: e.end_date ? formatDateForInput(e.end_date) : ''
+    }))
+
+    // Ensure resume type is properly set
+    if (data.resume && !data.resumeType) {
+      data.resumeType = data.resume.endsWith('.pdf') ? 'pdf' : 'image'
+    }
+
+    profile.value = data
+    originalProfile.value = JSON.parse(JSON.stringify(data)) // Deep copy for cancel
+  } catch (error) {
+    console.error('Error loading profile:', error)
+    $q.notify({ type: 'negative', message: 'Failed to load profile' })
+  } finally {
+    loading.value = false
+  }
+}
+
+const toggleEditMode = () => {
+  if (editMode.value) {
+    // Cancel - restore original data
+    profile.value = JSON.parse(JSON.stringify(originalProfile.value))
+  }
+  editMode.value = !editMode.value
+}
+
+const saveProfile = async () => {
+  saving.value = true
+  
+  try {
+    // Prepare data for backend - ensure proper structure
+    const profileData = {
+      ...profile.value,
+      // Map education fields to match backend expectations
+      education: profile.value.education.map(e => ({
+        school: e.school,
+        degree: e.degree,
+        field: e.field,
+        start_date: e.start_date,
+        end_date: e.end_date
+      })),
+      // Map experience fields to match backend expectations
+      experience: profile.value.experience.map(e => ({
+        title: e.title,
+        company: e.company,
+        description: e.description,
+        start_date: e.start_date,
+        end_date: e.end_date
+      })),
+      // Filter out empty skills
+      skills: profile.value.skills.filter(skill => skill.trim() !== '')
+    }
+
+    const res = await jobSeekerProfileService.updateProfile(userId, profileData)
+
+    if (!res.success) {
+      $q.notify({ type: 'negative', message: res.error })
+      return
+    }
+
+    $q.notify({ type: 'positive', message: 'Profile saved successfully' })
+    editMode.value = false
+    originalProfile.value = JSON.parse(JSON.stringify(profile.value)) // Update original
+  } catch (error) {
+    console.error('Error saving profile:', error)
+    $q.notify({ type: 'negative', message: 'Failed to save profile' })
+  } finally {
+    saving.value = false
+  }
+}
+
+const triggerFileUpload = () => {
+  if (editMode.value) {
+    fileInput.value?.click()
+  }
+}
+
+const handlePhotoUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file || !file.type.startsWith('image/')) {
+    $q.notify({ type: 'negative', message: 'Please select a valid image file' })
+    return
+  }
+
+  // Check file size (limit to 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    $q.notify({ type: 'negative', message: 'File size must be less than 5MB' })
+    return
+  }
+
+  const res = await jobSeekerProfileService.uploadPhoto(userId, file)
   if (!res.success) {
     $q.notify({ type: 'negative', message: res.error })
     return
   }
 
-  $q.notify({ type: 'positive', message: 'Profile saved successfully' })
-  editMode.value = false
+  profile.value.photo = res.url
+  $q.notify({ type: 'positive', message: 'Photo uploaded successfully' })
+  
+  // Clear the input
+  event.target.value = ''
 }
 
-const triggerFileUpload = () => fileInput.value?.click()
+const triggerResumeUpload = () => resumeInput.value?.click()
 
-const handlePhotoUpload = (event) => {
+const handleResumeUpload = async (event) => {
   const file = event.target.files[0]
-  if (file && file.type.startsWith('image/')) {
-    const reader = new FileReader()
-    reader.onload = () => {
-      profile.value.photo = reader.result
-    }
-    reader.readAsDataURL(file)
+  if (!file) return
+
+  // Validate file type
+  const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+  if (!validTypes.includes(file.type)) {
+    $q.notify({ type: 'negative', message: 'Please upload a PDF or image file' })
+    return
   }
+
+  // Check file size (limit to 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    $q.notify({ type: 'negative', message: 'File size must be less than 10MB' })
+    return
+  }
+
+  const res = await jobSeekerProfileService.uploadResume(userId, file)
+  if (!res.success) {
+    $q.notify({ type: 'negative', message: res.error })
+    return
+  }
+
+  profile.value.resume = res.url
+  profile.value.resumeType = file.type.includes('pdf') ? 'pdf' : 'image'
+  $q.notify({ type: 'positive', message: 'Resume uploaded successfully' })
+  
+  // Clear the input
+  event.target.value = ''
 }
 
-const formatMonthYear = (date) => {
+// Helper functions for array management
+const addEducation = () => {
+  profile.value.education.push({
+    school: '',
+    degree: '',
+    field: '',
+    start_date: '',
+    end_date: ''
+  })
+}
+
+const removeEducation = (index) => {
+  profile.value.education.splice(index, 1)
+}
+
+const addExperience = () => {
+  profile.value.experience.push({
+    title: '',
+    company: '',
+    description: '',
+    start_date: '',
+    end_date: ''
+  })
+}
+
+const removeExperience = (index) => {
+  profile.value.experience.splice(index, 1)
+}
+
+const addSkill = () => {
+  profile.value.skills.push('')
+}
+
+const removeSkill = (index) => {
+  profile.value.skills.splice(index, 1)
+}
+
+// Date formatting functions
+const formatDateForInput = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  return d.toISOString().split('T')[0] // YYYY-MM-DD format for input[type="date"]
+}
+
+const formatDateForDisplay = (date) => {
   if (!date) return ''
   const d = new Date(date)
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
 }
 </script>
 
-
 <style scoped>
-.full-height {
-  min-height: 100vh;
-  padding-bottom: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+.header-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-card, .info-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 16px;
 }
 
 .label {
   font-weight: 600;
-  color: #1976d2;
-  margin-bottom: 8px;
-  font-size: 14px;
+  color: #424242;
+  margin-bottom: 4px;
 }
 
-.edit-btn {
-  border: 1px solid #1976d2;
-  color: #1976d2;
-  font-weight: 500;
-  padding: 6px 20px;
-  border-radius: 4px;
-  background-color: white;
-  transition: all 0.3s ease;
-}
-
-.edit-btn:hover {
-  background-color: #e3f2fd;
-  transform: translateY(-2px);
-}
-
-.section-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #171b1f;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #e3f2fd;
-  padding-bottom: 8px;
-}
-
-.avatar-card,
-.info-card,
-.header-card {
+.resume-link {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  background-color: #ffffff;
-  transition: transform 0.3s ease;
-}
-
-.avatar-card:hover,
-.info-card:hover,
-.header-card:hover {
-  transform: translateY(-4px);
+  background-color: #fafafa;
 }
 </style>
