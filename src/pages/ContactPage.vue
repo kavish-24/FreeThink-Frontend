@@ -118,6 +118,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import AppFooter from '../components/FooterPart.vue';
+
 // Assuming JobsDropdown is a globally registered component or imported elsewhere
 // If not, you would import it here: import JobsDropdown from '../components/JobsDropdown.vue';
 
@@ -132,6 +133,7 @@ const formData = ref({
 // Fetched page content state
 const pageData = ref(null);
 const loading = ref(true);
+
 
 // Fetch dynamic content when the component is mounted
 onMounted(async () => {

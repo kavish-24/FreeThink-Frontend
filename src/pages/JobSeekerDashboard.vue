@@ -35,6 +35,7 @@
           <template v-else-if="selectedSection === 'notifications'">
             <NotificationComponent />
           </template>
+
           <template v-else-if="selectedSection === 'settings'">
             <SettingsComponent />
           </template>
@@ -56,6 +57,7 @@ import MyApplications from 'components/MyApplications.vue';
 import UserProfile from 'src/components/UserProfile.vue';
 import NotificationComponent from 'src/components/NotificationsPage.vue';
 import SettingsComponent from 'src/components/SettingsPage.vue';
+
 
 import { useRouter } from 'vue-router';
 

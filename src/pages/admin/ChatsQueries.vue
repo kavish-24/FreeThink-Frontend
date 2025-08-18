@@ -78,6 +78,8 @@
               <q-card-section class="text-body1" style="white-space: pre-wrap;">
                 {{ selectedQuery.message }}
               </q-card-section>
+              
+
               <q-separator />
               <q-card-actions align="right">
                 <q-btn unelevated color="primary" icon="reply" label="Reply" @click="openReplyDialog" />
@@ -112,6 +114,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useQuasar, date } from 'quasar';
 
+
 const $q = useQuasar();
 const allQueries = ref([]);
 const selectedQuery = ref(null);
@@ -120,6 +123,7 @@ const splitterModel = ref(30);
 const searchQuery = ref('');
 const showReplyDialog = ref(false);
 const replyMessage = ref('');
+
 
 const filteredQueries = computed(() => {
   return allQueries.value.filter(q => {

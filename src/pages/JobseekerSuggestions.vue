@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-lg bg-white">
+  <q-page class="q-pa-lg breathing-background">
     <div class="row q-gutter-md items-center q-mb-xl">
       <q-input
         standout
@@ -40,7 +40,6 @@
       />
     </div>
 
-    <!-- Filters Section -->
     <q-slide-transition>
       <div v-show="showFilters" class="q-mb-lg">
         <q-card flat bordered class="q-pa-md bg-blue-1">
@@ -49,7 +48,6 @@
           </div>
           
           <div class="row q-gutter-md">
-            <!-- Skills Filter -->
             <div class="col-12 col-md-4">
               <q-select
                 v-model="filters.skills"
@@ -74,7 +72,6 @@
               </q-select>
             </div>
 
-            <!-- Experience Years Filter -->
             <div class="col-12 col-md-3">
               <q-select
                 v-model="filters.experienceRange"
@@ -89,7 +86,6 @@
               />
             </div>
 
-            <!-- Job Title Filter -->
             <div class="col-12 col-md-3">
               <q-select
                 v-model="filters.jobTitles"
@@ -114,7 +110,6 @@
               </q-select>
             </div>
 
-            <!-- Clear Filters Button -->
             <div class="col-12 col-md-2 flex items-end">
               <q-btn
                 flat
@@ -129,7 +124,6 @@
             </div>
           </div>
 
-          <!-- Active Filters Display -->
           <div v-if="hasActiveFilters" class="q-mt-md">
             <div class="text-subtitle2 text-weight-bold q-mb-xs">Active Filters:</div>
             <div class="row q-gutter-xs">
@@ -284,7 +278,7 @@
 
         <div v-else-if="selectedUser" class="q-pa-md">
           <div style="max-width: 1300px; max-height: 800px; overflow: auto;">
-          <q-card elevated class="q-pa-md">
+          <q-card elevated class="q-pa-md bg-yellow-1">
             <div class="row items-center q-mb-lg">
               <q-avatar
                 size="80px"
@@ -307,13 +301,13 @@
               </div>
             </div>
 
-            <q-separator spaced color="grey-3" />
+            <q-separator spaced color="grey-5" />
             <div class="q-mb-lg">
               <div class="text-subtitle1 text-weight-bold q-mb-xs">
                 <q-icon name="work" size="18px" class="q-mr-xs" color="blue-6" /> Experience
               </div>
               <div class="text-body2 text-grey-8">{{ selectedUser.experienceYears || 'Not specified' }} years</div>
-               </div>
+              </div>
             <div class="q-mb-lg">
               <div class="text-subtitle1 text-weight-bold q-mb-xs">
                 <q-icon name="description" size="18px" class="q-mr-xs" color="blue-6" /> Summary
@@ -321,7 +315,6 @@
               <div class="text-body2 text-grey-8">{{ selectedUser.summary || 'No summary available' }}</div>
             </div>
 
-            <q-separator spaced color="grey-3" />
             <div class="q-mb-lg">
               <div class="text-subtitle1 text-weight-bold q-mb-xs">
                 <q-icon name="star" color="green-7" size="18px" class="q-mr-xs" /> Skills
@@ -341,7 +334,7 @@
               </div>
             </div>
 
-            <q-separator spaced color="grey-3" />
+            <q-separator spaced color="grey-4" style="width: 80%;" class="q-mx-auto"/>
             <div class="q-mb-lg">
               <div class="text-subtitle1 text-weight-bold q-mb-xs">
                 <q-icon name="work" color="blue-6" size="18px" class="q-mr-xs" /> Experience
@@ -362,7 +355,7 @@
               <span v-else class="text-grey-6">None listed</span>
             </div>
 
-            <q-separator spaced color="grey-3" />
+            <q-separator spaced color="grey-4" style="width: 80%;" class="q-mx-auto" />
             <div>
               <div class="text-subtitle1 text-weight-bold q-mb-xs">
                 <q-icon name="school" color="blue-6" size="18px" class="q-mr-xs" /> Education
@@ -488,7 +481,7 @@ const filteredResults = computed(() => {
   if (filters.value.experienceRange) {
     filtered = filtered.filter(user => {
       const experience = parseFloat(user.totalExperienceYears) || 
-                        parseFloat(user.jobSeekerProfile?.experienceYears) || 0;
+                         parseFloat(user.jobSeekerProfile?.experienceYears) || 0;
       
       switch (filters.value.experienceRange) {
         case '0-2':
@@ -645,13 +638,30 @@ onMounted(loadCompanySuggestions);
 </script>
 
 <style scoped>
+/* Add this keyframe animation */
+@keyframes breathingBackground {
+  0% {
+    background-color: #dfeffc; /* A very light blue */
+  }
+  50% {
+    background-color: #d3e7fe; /* A slightly deeper light blue */
+  }
+  100% {
+    background-color: #bfe1ff; /* Return to the start color */
+  }
+}
+
+.breathing-background {
+  animation: breathingBackground 10s ease-in-out infinite;
+}
+
 .hover-card {
   transition: all 0.3s ease;
-  background-color: #ffffff;
+  background-color: #9edfdf8b;
 }
 .hover-card:hover {
   transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(81, 46, 46, 0.999);
 }
 .q-chip {
   margin: 2px;

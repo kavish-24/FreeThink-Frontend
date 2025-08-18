@@ -5,10 +5,25 @@ import routes from './routes.js'
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior() {
-    // Always scroll to top when navigating
-    return { left: 0, top: 0 }
-  }
+
+  // --- REPLACE the old scrollBehavior with this new one ---
+  scrollBehavior(to, from, savedPosition) {
+    // If the new route has a hash, scroll to that element
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth',
+      }
+    }
+
+    // If there's a saved position (from browser back/forward), use it
+    if (savedPosition) {
+      return savedPosition
+    }
+
+    // Otherwise, scroll to the top of the page
+    return { top: 0 }
+  },
 })
 
 // Helper function to verify admin token

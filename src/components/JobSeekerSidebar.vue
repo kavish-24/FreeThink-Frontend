@@ -94,6 +94,7 @@ const sidebarItems = [
     badge: '5',
     badgeColor: 'orange'
   },
+
   { 
     key: 'settings', 
     label: 'Settings', 
