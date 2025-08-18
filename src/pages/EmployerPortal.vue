@@ -1,7 +1,7 @@
 <template>
   <div class="employer-portal">
     <AppHeader class="sticky-header" />
-    <div class="page-wrapper row no-wrap">
+    <div class="page-wrapper row">
       <div class="sidebar">
         <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
           <q-avatar icon="business_center" color="white" text-color="primary" />
@@ -38,22 +38,6 @@
       </div>
 
       <div class="content-area column q-pa-md q-pa-lg-lg">
-        <q-banner v-if="employer.status === 'pending'" class="bg-warning text-dark q-mb-md">
-          <template v-slot:avatar>
-            <q-icon name="pending_actions" color="dark" size="2em" />
-          </template>
-          <div class="text-weight-bold">Your company is under review</div>
-          <div>You can post jobs, but they will be marked as pending until your company is approved by our team.</div>
-        </q-banner>
-
-        <div class="row justify-between items-center q-mb-lg">
-          <div>
-            <div class="text-h5 text-weight-bold content-title">Welcome, {{ employer.name }}!</div>
-            <div class="text-subtitle1 subtitle-text">{{ employer.status === 'pending' ? 'Your account is under review. '
-              : '' }}Here's your overview for {{ todaysDate }}.</div>
-          </div>
-        </div>
-
         <q-banner v-if="verificationStatus === 'pending'" class="bg-blue-1 text-blue-9 q-mb-lg" rounded>
           <template v-slot:avatar>
             <q-icon name="pending" color="blue-7" size="2em" />
@@ -86,13 +70,20 @@
           </div>
         </q-banner>
 
+        <div class="row justify-between items-center q-mb-lg">
+          <div>
+            <div class="text-h5 text-weight-bold content-title">Welcome, {{ employer.name }}!</div>
+            <div class="text-subtitle1 subtitle-text">Here's your overview for {{ todaysDate }}.</div>
+          </div>
+        </div>
+
         <div class="row q-col-gutter-lg q-mb-lg">
           <div class="col-12 col-sm-6 col-md-3" v-for="stat in dashboardStats" :key="stat.label">
-            <q-card class="stat-card full-height">
+            <q-card class="stat-card full-height" flat bordered>
               <q-card-section class="flex items-center q-pa-md">
-                <q-icon :name="stat.icon" :color="stat.iconColor" size="2.5em" class="q-mr-md" />
+                <q-icon :name="stat.icon" :color="stat.iconColor" size="2.8em" class="q-mr-md" />
                 <div>
-                  <div class="text-h5 text-weight-bolder stat-value">{{ stat.value }}</div>
+                  <div class="text-h4 text-weight-bolder stat-value">{{ stat.value }}</div>
                   <div class="text-subtitle2 stat-label">{{ stat.label }}</div>
                 </div>
               </q-card-section>
@@ -100,55 +91,63 @@
           </div>
         </div>
 
-        <q-card flat bordered class="q-mb-lg">
-          <q-card-section>
-            <div class="text-h6 content-title">Application Trends (Last 7 Days)</div>
-            <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries"></apexchart>
-          </q-card-section>
-        </q-card>
+        <div class="row q-col-gutter-lg">
+          <div class="col-12 col-lg-7">
+            <q-card flat bordered class="q-mb-lg">
+              <q-card-section>
+                <div class="text-h6 content-title">Application Trends (Last 7 Days)</div>
+              </q-card-section>
+              <q-card-section>
+                <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries"></apexchart>
+              </q-card-section>
+            </q-card>
+          </div>
 
-        <q-card flat bordered class="q-mb-lg">
-          <q-card-section>
-            <div class="text-h6 content-title">Action Required</div>
-          </q-card-section>
-          <q-list separator>
-            <q-item v-for="item in actionItems" :key="item.title" clickable v-ripple @click="router.push(item.to)">
-              <q-item-section avatar>
-                <q-avatar :icon="item.icon" color="light-blue-1" text-color="primary" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-medium list-item-title">{{ item.title }}</q-item-label>
-                <q-item-label caption>{{ item.subtitle }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-icon name="chevron_right" class="subtitle-text" />
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card>
+          <div class="col-12 col-lg-5">
+            <q-card flat bordered class="q-mb-lg">
+              <q-card-section>
+                <div class="text-h6 content-title">Action Required</div>
+              </q-card-section>
+              <q-list separator>
+                <q-item v-for="item in actionItems" :key="item.title" clickable v-ripple @click="router.push(item.to)">
+                  <q-item-section avatar>
+                    <q-avatar :icon="item.icon" color="light-blue-1" text-color="primary" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-medium list-item-title">{{ item.title }}</q-item-label>
+                    <q-item-label caption lines="1">{{ item.subtitle }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-icon name="chevron_right" class="subtitle-text" />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card>
 
-        <q-card flat bordered class="q-mb-lg interview-card">
-          <q-card-section>
-            <div class="text-h6 content-title">Upcoming Interviews</div>
-          </q-card-section>
-          <q-list separator class="interview-list">
-            <q-item v-for="interview in upcomingInterviews" :key="interview.id">
-              <q-item-section avatar>
-                <q-avatar color="cyan-1" text-color="cyan-8" icon="event" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-medium list-item-title">{{ interview.candidateName }}</q-item-label>
-                <q-item-label caption>For: {{ interview.jobTitle }}</q-item-label>
-              </q-item-section>
-              <q-item-section side class="text-right">
-                <q-item-label class="text-weight-medium text-cyan-9">{{ interview.date }}</q-item-label>
-                <q-item-label caption>{{ interview.time }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card>
+            <q-card flat bordered class="q-mb-lg interview-card">
+              <q-card-section>
+                <div class="text-h6 content-title">Upcoming Interviews</div>
+              </q-card-section>
+              <q-list separator class="interview-list">
+                <q-item v-for="interview in upcomingInterviews" :key="interview.id">
+                  <q-item-section avatar>
+                    <q-avatar color="cyan-1" text-color="cyan-8" icon="event" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-medium list-item-title">{{ interview.candidateName }}</q-item-label>
+                    <q-item-label caption>For: {{ interview.jobTitle }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side class="text-right">
+                    <q-item-label class="text-weight-medium text-cyan-9">{{ interview.date }}</q-item-label>
+                    <q-item-label caption>{{ interview.time }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card>
+          </div>
+        </div>
       </div>
-    </div>
+      </div>
   </div>
 </template>
 
@@ -166,10 +165,10 @@ const router = useRouter();
 const $q = useQuasar();
 
 const dashboardStats = ref([
-  { value: 10, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-4' },
-  { value: 4, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-5' },
-  { value: 87, label: 'Total Applicants', icon: 'groups', iconColor: 'blue-6' },
-  { value: 2, label: 'Pending Review', icon: 'pending_actions', iconColor: 'blue-7' }
+  { value: 10, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-5' },
+  { value: 4, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-6' },
+  { value: 87, label: 'Total Applicants', icon: 'groups', iconColor: 'blue-7' },
+  { value: 2, label: 'Pending Review', icon: 'pending_actions', iconColor: 'blue-8' }
 ]);
 
 const navStats = ref({
@@ -183,7 +182,6 @@ const fetchNavStats = async () => {
       console.warn('No authentication token found');
       return;
     }
-
     const response = await api.get('/jobs/stats', {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -191,7 +189,6 @@ const fetchNavStats = async () => {
         'Accept': 'application/json'
       }
     });
-
     if (response.data && response.data.pending_jobs !== undefined) {
       navStats.value.pending_jobs = response.data.pending_jobs;
     }
@@ -200,7 +197,6 @@ const fetchNavStats = async () => {
   }
 };
 
-// MODIFIED: Added an item to prompt adding a screening test
 const actionItems = ref([
   { icon: 'person_add', title: '5 New Applicants', subtitle: 'For Senior Frontend Developer', to: '/candidates?jobId=1' },
   { icon: 'mark_email_unread', title: '3 Unread Messages', subtitle: 'From Priya, Vikram, and more', to: '/employer-messages' },
@@ -217,10 +213,10 @@ const upcomingInterviews = ref([
 const chartSeries = ref([{ name: 'New Applications', data: [8, 12, 5, 15, 9, 22, 18] }]);
 const chartOptions = computed(() => ({
   chart: { type: 'bar', height: 350, toolbar: { show: false } },
-  plotOptions: { bar: { borderRadius: 4, horizontal: false } },
+  plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '60%' } },
   dataLabels: { enabled: false },
   xaxis: { categories: ['Jul 26', 'Jul 27', 'Jul 28', 'Jul 29', 'Jul 30', 'Jul 31', 'Aug 01'] },
-  colors: ['#00529b'],
+  colors: ['#1565c0'], // Main blue theme color
   theme: { mode: $q.dark.isActive ? 'dark' : 'light' }
 }));
 
@@ -243,7 +239,6 @@ const fetchCompanyStatus = async () => {
     if (!token) {
       throw new Error('No authentication token found');
     }
-
     const response = await api.get('/company/status', {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -251,11 +246,9 @@ const fetchCompanyStatus = async () => {
         'Accept': 'application/json'
       }
     });
-
     if (response.data) {
       verificationStatus.value = response.data.status || '';
       rejectionReason.value = response.data.rejectionReason || '';
-
       const storedEmployer = localStorage.getItem('employerData');
       if (storedEmployer) {
         const employerData = JSON.parse(storedEmployer);
@@ -287,9 +280,7 @@ onMounted(async () => {
       verificationStatus.value = employerData.status || '';
       rejectionReason.value = employerData.rejectionReason || '';
     }
-
     await fetchCompanyStatus();
-
     const storedBroadcast = localStorage.getItem('jobhubBroadcast');
     if (storedBroadcast) {
       const broadcast = JSON.parse(storedBroadcast);
@@ -299,7 +290,6 @@ onMounted(async () => {
         localStorage.removeItem('jobhubBroadcast');
       }
     }
-
     await fetchNavStats();
   } catch (error) {
     console.error('Error fetching stats:', error);
@@ -307,43 +297,13 @@ onMounted(async () => {
 });
 
 const links = computed(() => [
-  {
-    label: 'Dashboard Overview',
-    icon: 'dashboard',
-    to: '/employer-portal'
-  },
-  {
-    label: 'Posted Jobs',
-    icon: 'work',
-    to: '/posted-jobs',
-    badge: navStats.value.pending_jobs > 0 ? navStats.value.pending_jobs.toString() : ''
-  },
-  {
-    label: 'Post New Job',
-    icon: 'add_box',
-    to: '/post-job',
-    highlight: true
-  },
-  {
-    label: 'Candidates',
-    icon: 'groups',
-    to: '/candidates'
-  },
-  {
-    label: 'Messages',
-    icon: 'mail',
-    to: '/employer-messages'
-  },
-  {
-    label: 'Company Profile',
-    icon: 'domain',
-    to: '/company-profile'
-  },
-  {
-    label: 'Settings',
-    icon: 'settings',
-    to: '/employer-settings'
-  }
+  { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' },
+  { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs', badge: navStats.value.pending_jobs > 0 ? { value: navStats.value.pending_jobs } : null },
+  { label: 'Post New Job', icon: 'add_box', to: '/post-job', highlight: true },
+  { label: 'Candidates', icon: 'groups', to: '/candidates' },
+  { label: 'Messages', icon: 'mail', to: '/employer-messages' },
+  { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
+  { label: 'Settings', icon: 'settings', to: '/employer-settings' }
 ]);
 
 const navigate = (link) => {
@@ -351,97 +311,56 @@ const navigate = (link) => {
   if (link.to) router.push(link.to);
 };
 
-const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-IN', {
+// MODIFIED: Date is now dynamic and shows the current date.
+const todaysDate = new Date().toLocaleDateString('en-IN', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
 });
-
 </script>
 
 <style scoped>
-/* Styles are unchanged */
-.portal-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-  /* Important to prevent double scrollbars */
-}
-
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  /* The header component has its own background and shadow */
-}
-
-.page-wrapper {
-  flex-grow: 1;
-  /* Takes up the remaining vertical space */
-  overflow: hidden;
-  /* Important */
-}
-
-/* Sidebar and Content Area take full height of the wrapper */
-.sidebar,
-.content-area {
-  height: 100%;
-}
-
-.content-area {
-  flex: 1;
-  overflow-y: auto;
-}
-
-
-.page-wrapper {
-  height: 100vh;
-  background-color: #F0F7FF;
-}
-
+/* Unchanged styles are kept */
+.portal-layout { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.sticky-header { position: sticky; top: 0; z-index: 1000; }
+.page-wrapper { flex-grow: 1; display:flex; min-height: 100vh; overflow: hidden; }
+.sidebar, .content-area { height: 100%; }
+.content-area { flex: 1; overflow-y: auto; }
+.page-wrapper { background-color: #F0F7FF; }
 .sidebar {
   width: 260px;
   background-color: #1565c0;
   color: #f0f4f8;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  height: auto;       /* change */
+  min-height: 100%;   /* ensures full fill */
 }
 
-.sidebar-section {
-  border-bottom: 1px solid #243B55;
-}
+.sidebar-section { border-bottom: 1px solid #243B55; }
+.nav-list .q-item { padding: 12px; border-radius: 8px; margin: 4px 12px; color: #BCCCDC; }
+.nav-list .q-item:hover { background-color: #243B55; color: #ffffff; }
+.active-link { background-color: #00529b !important; color: #ffffff !important; font-weight: 600; }
+.broadcast-banner { background-color: #1D3557 !important; border: 1px solid #457B9D; }
+.opacity-8 { opacity: 0.8; }
+.interview-card { background-color: #E0F7FA; border-color: #B2EBF2; }
+.interview-list .q-item { border-top: 1px solid #B2EBF2; }
+.interview-list .q-item:first-child { border-top: none; }
+.q-list--separator>.q-item-type+.q-item-type { border-top: 1px solid #EDF2F7; }
 
-.nav-list .q-item {
-  padding: 12px;
-  border-radius: 8px;
-  margin: 4px 12px;
-  color: #BCCCDC;
-}
+/* #################### MODIFIED & NEW STYLES FOR CONTENT AREA #################### */
 
-.nav-list .q-item:hover {
-  background-color: #243B55;
-  color: #ffffff;
-}
-
-.active-link {
-  background-color: #00529b !important;
-  color: #ffffff !important;
-  font-weight: 600;
-}
-
-.logout-btn {
-  color: #FFB5B5;
-  margin: 16px;
-  border-radius: 8px;
-}
-
-.logout-btn:hover {
-  background-color: #d32f2f;
-  color: #ffffff;
-}
-
-.content-area {
-  flex: 1;
-  overflow-y: auto;
+/* Responsive wrapper for mobile */
+@media (max-width: 1023px) {
+  .page-wrapper {
+    flex-wrap: wrap;
+    height: auto;
+    overflow-y: auto;
+  }
+  .content-area {
+    width: 100%;
+    height: auto;
+    overflow-y: visible;
+  }
 }
 
 .content-title {
@@ -455,7 +374,6 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
 .list-item-title {
   color: #0D1B2A;
 }
-
 .broadcast-banner {
   background-color: #1D3557 !important;
   border: 1px solid #457B9D;
@@ -464,11 +382,11 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
 .opacity-8 {
   opacity: 0.8;
 }
-
+/* Redesigned Stat Cards */
 .stat-card {
   background: linear-gradient(145deg, #dfefff, #ffffff);
   border-radius: 16px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(29, 135, 255, 0.293) !important;
   transition: all 0.3s ease;
   border: 1px solid #cde3f7;
   height: 100%;
@@ -476,7 +394,7 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0, 82, 155, 0.1);
+  box-shadow: 0 12px 30px rgba(29, 135, 255, 0.85) !important;
 }
 
 .stat-value {
@@ -486,7 +404,6 @@ const todaysDate = new Date('2025-08-01T08:10:47+05:30').toLocaleDateString('en-
 .stat-label {
   color: #5A7184;
 }
-
 .interview-card {
   background-color: #E0F7FA;
   border-color: #B2EBF2;
