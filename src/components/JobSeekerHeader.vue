@@ -66,17 +66,6 @@
           <q-btn 
             flat 
             round 
-            icon="notifications" 
-            size="md" 
-            class="quick-action-btn"
-          >
-            <q-badge floating color="orange" rounded>5</q-badge>
-            <q-tooltip>Notifications</q-tooltip>
-          </q-btn>
-          
-          <q-btn 
-            flat 
-            round 
             icon="help_outline" 
             size="md" 
             class="quick-action-btn"
@@ -244,40 +233,12 @@ onMounted(async () => {
   font-family: 'Satisfy', cursive;
 }
 
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #059669;
-}
-
 .subtext {
   color: #64748b;
   font-size: 1rem;
   line-height: 1.5;
   margin: 0 0 1rem 0;
   font-weight: 400;
-}
-
-.quick-stats {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #475569;
-  font-weight: 500;
 }
 
 /* Action Section */
@@ -350,6 +311,7 @@ onMounted(async () => {
 /* Quick Actions */
 .quick-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 0.5rem;
 }
 
@@ -400,6 +362,10 @@ onMounted(async () => {
     align-items: center;
   }
   
+  .quick-actions {
+    justify-content: center;
+  }
+  
   .welcome-text {
     font-size: 1.5rem;
   }
@@ -434,10 +400,6 @@ onMounted(async () => {
     font-size: 1.375rem;
   }
   
-  .quick-stats {
-    justify-content: center;
-  }
-  
   .action-section {
     flex-direction: column;
     width: 100%;
@@ -466,12 +428,6 @@ onMounted(async () => {
   
   .professional-btn {
     width: 100%;
-  }
-  
-  .quick-stats {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
   }
 }
 

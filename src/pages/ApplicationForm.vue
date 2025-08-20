@@ -392,6 +392,23 @@
             </q-card-section>
           </q-card>
 
+          <!-- Agreement Checkbox -->
+          <div class="q-mb-md q-pa-md bg-grey-1 rounded-borders">
+            <q-checkbox
+              v-model="form.agree"
+              :rules="[val => !!val || 'You must agree before submitting']"
+              aria-required="true"
+            >
+              <span>
+                I agree to the
+                <a href="/terms" target="_blank" class="text-primary">Terms & Conditions</a>
+                and
+                <a href="/privacy" target="_blank" class="text-primary">Privacy Policy</a>.
+                I confirm that all information provided is accurate and complete.
+              </span>
+            </q-checkbox>
+          </div>
+
           <!-- Submit Button -->
           <q-btn
             label="Submit Application"
@@ -444,7 +461,8 @@ export default {
           expectedSalary: ''
         },
         availability: { interviewTime: '', joiningDate: '' },
-        additional: { whyInterested: '', relocate: null, legalRight: null, source: '' }
+        additional: { whyInterested: '', relocate: null, legalRight: null, source: '' },
+        agree: false
       },
       qualifications: ['High School', 'Diploma', "Bachelor's Degree", "Master's Degree", 'Ph.D.'],
       experienceYears: ['Fresher', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
@@ -472,6 +490,15 @@ export default {
       this.resumeError = false;
       this.loading = true;
       try {
+
+        if (!this.form.agree) {
+          this.$q.notify({
+            type: 'negative',
+            message: 'You must agree to Terms & Conditions before submitting.'
+          });
+          this.loading = false;
+          return;
+        }
         // Basic required fields check
         if (
           !this.form.firstName ||
@@ -525,11 +552,6 @@ export default {
   }
 };
 </script>
-
-
-
-
-
 
 <style scoped>
 .application-form-page {

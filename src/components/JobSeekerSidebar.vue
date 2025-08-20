@@ -3,12 +3,13 @@
     <!-- Sidebar Header -->
     <div class="sidebar-header">
       <div class="user-avatar">
-        <q-avatar size="40px" class="avatar-gradient">
-          <q-icon name="person" size="20px" color="white" />
+        <q-avatar size="50px" class="avatar-gradient">
+          <img v-if="userPhoto" :src="userPhoto" alt="User avatar" />
+          <span v-else>{{ userInitials }}</span>
         </q-avatar>
       </div>
       <div class="user-info">
-        <h6 class="user-name">Dashboard</h6>
+        <h6 class="user-name">{{ userName || 'Dashboard' }}</h6>
         <p class="user-role">Job Seeker</p>
       </div>
     </div>
@@ -25,62 +26,89 @@
           active-class="active-link"
           @click="navigate(item.key)"
           class="sidebar-item"
+          :aria-label="`${item.label} ${item.badge ? `(${item.badge} new)` : ''}`"
         >
           <q-item-section avatar class="item-icon">
             <div class="icon-wrapper">
               <q-icon 
                 :name="item.icon" 
-                :color="selectedSection === item.key ? 'white' : 'blue-grey-6'" 
-                size="18px"
+                :color="selectedSection === item.key ? 'white' : 'grey-5'" 
+                size="22px"
               />
             </div>
           </q-item-section>
           <q-item-section class="item-label">
             <span>{{ item.label }}</span>
           </q-item-section>
-          <q-item-section side class="item-indicator" v-if="item.badge">
+          <q-item-section side class="item-indicator" v-if="item.badge && item.badge !== '0'">
             <q-badge 
-              :color="item.badgeColor || 'orange'" 
+              :color="item.badgeColor" 
               :label="item.badge"
               rounded
               class="notification-badge"
+              :aria-label="`${item.label} has ${item.badge} new items`"
             />
           </q-item-section>
         </q-item>
       </q-list>
     </nav>
-
   </div>
 </template>
 
 <script setup>
-const emit = defineEmits(['navigate'])
+import { ref, computed } from 'vue';
+
+const emit = defineEmits(['navigate']);
 
 defineProps({
   selectedSection: String,
-})
+});
 
-// Enhanced ripple configuration
+// Simulated user data (could be fetched from auth service)
+const userName = ref('John Doe');
+const userPhoto = ref(null); // Replace with actual user photo URL if available
+const userInitials = computed(() => {
+  if (!userName.value) return 'JD';
+  const [first, last] = userName.value.split(' ');
+  return `${first?.charAt(0) || ''}${last?.charAt(0) || ''}`.toUpperCase();
+});
+
+// Simulated application and notification data
+const applications = ref([
+  { id: 1, jobTitle: 'Software Engineer', status: 'Pending', date: '2025-08-10' },
+  { id: 2, jobTitle: 'Data Analyst', status: 'Under Review', date: '2025-08-12' },
+  { id: 3, jobTitle: 'Product Manager', status: 'Pending', date: '2025-08-15' },
+]);
+
+const notifications = ref([
+  { message: 'Profile updated successfully!', timestamp: '10:20 PM IST, Aug 02, 2025', type: 'success' },
+  { message: 'New message received from Admin.', timestamp: '09:45 PM IST, Aug 02, 2025', type: 'info' },
+  { message: 'Your subscription is expiring soon!', timestamp: '08:00 PM IST, Aug 02, 2025', type: 'warning' },
+  { message: 'Failed to process payment.', timestamp: '07:30 PM IST, Aug 02, 2025', type: 'error' },
+  { message: 'Application submitted!', timestamp: '06:00 PM IST, Aug 01, 2025', type: 'success' },
+]);
+
+// Ripple configuration
 const rippleConfig = {
-  color: 'blue-2',
-  center: false
-}
+  color: 'blue-4',
+  center: false,
+};
 
-// Enhanced sidebar items with badges
-const sidebarItems = [
+// Sidebar items with dynamic badge counts
+const sidebarItems = computed(() => [
   { 
     key: 'applications', 
     label: 'My Applications', 
     icon: 'assignment_turned_in',
-    badge: '3',
-    badgeColor: 'blue'
+    badge: applications.value.length.toString(),
+    badgeColor: 'blue-8'
   },
   { 
     key: 'bookmarks', 
     label: 'Bookmarked Jobs', 
     icon: 'bookmark_added',
-    badge: '',
-    badgeColor: 'indigo'
+    badge: '0', // Could be dynamic if bookmarks data is available
+    badgeColor: 'indigo-8'
   },
   { 
     key: 'profile', 
@@ -91,194 +119,178 @@ const sidebarItems = [
     key: 'notifications', 
     label: 'Notifications', 
     icon: 'notifications_active',
-    badge: '5',
-    badgeColor: 'orange'
+    badge: notifications.value.length.toString(),
+    badgeColor: 'orange-8'
   },
   { 
     key: 'settings', 
     label: 'Settings', 
     icon: 'settings' 
   },
-]
+]);
 
 function navigate(section) {
-  emit('navigate', section)
+  emit('navigate', section);
 }
 </script>
 
 <style scoped>
 /* Sidebar Container */
 .dashboard-sidebar {
-  width: 260px;
+  width: 280px;
   min-height: 100vh;
-  background-color: #1565c0;
-  color: #f0f4f8;
+  background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
+  color: #f1f5f9;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.dashboard-sidebar:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 /* Sidebar Header */
 .sidebar-header {
-  padding: 1.5rem 1.25rem 1rem;
-  color: white;
+  padding: 2.25rem 1.75rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  position: relative;
+  gap: 1.25rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
 }
 
 .user-avatar {
   position: relative;
-  z-index: 2;
 }
 
 .avatar-gradient {
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #60a5fa, #1e40af);
+  border: 4px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.avatar-gradient:hover {
+  transform: scale(1.12);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
 }
 
 .user-info {
-  position: relative;
-  z-index: 2;
+  display: flex;
+  flex-direction: column;
 }
 
 .user-name {
-  margin: 0 0 0.2rem 0;
-  font-size: 1rem;
+  margin: 0;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: white;
+  color: #ffffff;
 }
 
 .user-role {
   margin: 0;
-  font-size: 0.8rem;
-  opacity: 0.9;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
 }
 
 /* Navigation Section */
 .sidebar-nav {
   flex: 1;
-  padding: 1rem 0;
+  padding: 2rem 0;
   overflow-y: auto;
 }
 
 .nav-list {
-  padding: 0 0.75rem;
+  padding: 0 1.25rem;
 }
 
 /* Sidebar Items */
 .sidebar-item {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
-  padding: 0.75rem;
-  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  margin: 0.75rem 0;
   transition: all 0.3s ease;
-  margin-bottom: 0.4rem;
-  position: relative;
   background: transparent;
-  color: #BCCCDC;
-  border-bottom: 1px solid #243B55;
+  color: #d1dae6;
 }
 
 .sidebar-item:hover {
-  background-color: #243B55;
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
+  transform: translateX(6px);
 }
 
 /* Active Link Styles */
 .active-link {
-  background-color: #00529b !important;
-  color: white !important;
+  background: #1e3a8a !important;
+  color: #ffffff !important;
   font-weight: 600;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+.active-link .icon-wrapper {
+  background: #ffffff;
+}
+
+.active-link .q-icon {
+  color: #1e40af !important;
 }
 
 /* Item Components */
 .item-icon {
-  min-width: auto;
-  margin-right: 0.5rem;
+  min-width: 44px;
+  margin-right: 1rem;
 }
 
 .icon-wrapper {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #f1f5f9;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
 }
 
+.sidebar-item:hover .icon-wrapper {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .item-label {
   font-weight: 500;
+  font-size: 1rem;
 }
 
 .item-indicator {
   min-width: auto;
-  margin-left: 0.4rem;
+  margin-left: 0.75rem;
 }
 
 .notification-badge {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  min-width: 18px;
-  height: 18px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  min-width: 24px;
+  height: 24px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease;
 }
 
-/* Sidebar Footer */
-.sidebar-footer {
-  padding: 0.75rem 1.25rem 1.5rem;
-  margin-top: auto;
-}
-
-.upgrade-card {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-}
-
-.upgrade-icon {
-  margin-bottom: 0.5rem;
-}
-
-.upgrade-title {
-  margin: 0 0 0.2rem 0;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.upgrade-text {
-  margin: 0 0 0.75rem 0;
-  font-size: 0.75rem;
-  color: #64748b;
-  line-height: 1.3;
-}
-
-.upgrade-btn {
-  font-weight: 600;
-  font-size: 0.75rem;
-  padding: 0.4rem 0.8rem;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
-  transition: all 0.3s ease;
-}
-
-.upgrade-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.35);
+.notification-badge:hover {
+  transform: scale(1.15);
 }
 
 /* Scrollbar Styling */
 .sidebar-nav::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 
 .sidebar-nav::-webkit-scrollbar-track {
@@ -286,12 +298,12 @@ function navigate(section) {
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(255, 255, 255, 0.6);
 }
 
 /* Responsive Design */
@@ -303,13 +315,89 @@ function navigate(section) {
 
 @media (max-width: 768px) {
   .dashboard-sidebar {
-    width: 260px;
+    width: 240px;
+  }
+
+  .sidebar-header {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .sidebar-item {
+    padding: 0.85rem 1rem;
+  }
+
+  .user-name {
+    font-size: 1.05rem;
+  }
+
+  .user-role {
+    font-size: 0.85rem;
+  }
+
+  .icon-wrapper {
+    width: 36px;
+    height: 36px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .dashboard-sidebar {
-    width: 260px;
+    width: 220px;
+  }
+
+  .sidebar-item {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+
+  .icon-wrapper {
+    width: 32px;
+    height: 32px;
+  }
+
+  .notification-badge {
+    min-width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Accessibility */
+.sidebar-item:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+@media (prefers-contrast: high) {
+  .dashboard-sidebar {
+    background: #1e3a8a;
+  }
+
+  .sidebar-item {
+    color: #ffffff;
+    border-bottom: 2px solid #ffffff;
+  }
+
+  .active-link {
+    background: #1e40af !important;
+  }
+
+  .icon-wrapper {
+    background: #ffffff;
+  }
+
+  .notification-badge {
+    border: 2px solid #ffffff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-sidebar,
+  .sidebar-item,
+  .avatar-gradient,
+  .icon-wrapper,
+  .notification-badge {
+    transition: none;
   }
 }
 </style>
