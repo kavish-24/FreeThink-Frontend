@@ -35,13 +35,12 @@
     >
       <q-card flat class="section-card">
         <q-card-section class="section-content">
-          <q-toggle
-            v-model="profilePublic"
-            label="Make profile public"
-            color="primary"
-            class="settings-toggle"
-            aria-label="Toggle profile visibility"
-          />
+          <q-toggle 
+  v-model="profilePublic" 
+  label="Make profile public" 
+  @update:model-value="toggleStatus" 
+/>
+
           <q-input
             v-model="displayName"
             label="Display Name"
@@ -180,68 +179,81 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useQuasar } from 'quasar';
+import { ref, computed, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
+import { passwordService } from '../services/password.service'
+import { jobSeekerProfileService } from 'src/services/profile.service';
+import { authHelpers } from 'src/services/auth.service'
 
-const $q = useQuasar();
+const $q = useQuasar()
+const profilePublic = ref(false);
 
-const profilePublic = ref(true);
-const displayName = ref('John Doe');
-const emailNotifications = ref(true);
-const pushNotifications = ref(false);
-const email = ref('johndoe@example.com');
-const newPassword = ref('');
-const confirmPassword = ref('');
-const showDeleteConfirm = ref(false);
+const userId = authHelpers.getCurrentUser()?.id
 
-const originalSettings = ref({
-  profilePublic: true,
-  displayName: 'John Doe',
-  emailNotifications: true,
-  pushNotifications: false
-});
+// State
+const email = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const savingPassword = ref(false)
 
-const hasChanges = computed(() => {
-  return (
-    profilePublic.value !== originalSettings.value.profilePublic ||
-    displayName.value !== originalSettings.value.displayName ||
-    emailNotifications.value !== originalSettings.value.emailNotifications ||
-    pushNotifications.value !== originalSettings.value.pushNotifications
-  );
-});
-
+// Validation
 const canSavePassword = computed(() => {
   return (
-    newPassword.value.length >= 6 &&
+    newPassword.value.length > 0 &&
     confirmPassword.value.length > 0 &&
     newPassword.value === confirmPassword.value
-  );
+  )
+})
+const toggleStatus = async () => {
+  const newStatus = profilePublic.value ? 'active' : 'inactive';
+const res = await jobSeekerProfileService.updateStatus(userId, newStatus);
+
+
+  if (res.success) {
+    $q.notify({ type: 'positive', message: `Status updated to ${newStatus}` });
+  } else {
+    $q.notify({ type: 'negative', message: 'Failed to update status' });
+    profilePublic.value = !profilePublic.value; // revert if failed
+  }
+};
+
+// Load email from profile API
+onMounted(async () => {
+  const res = await jobSeekerProfileService.getProfile(userId); // <-- fetch, don't update
+
+  if (res.success) {
+    email.value = res.data.email;
+    profilePublic.value = res.data.status === 'active';
+  } else {
+    $q.notify({ type: 'negative', message: 'Failed to load profile info' });
+  }
 });
 
-const saveSettings = () => {
-  originalSettings.value = {
-    profilePublic: profilePublic.value,
-    displayName: displayName.value,
-    emailNotifications: emailNotifications.value,
-    pushNotifications: pushNotifications.value
-  };
-  $q.notify({ type: 'positive', message: 'Settings saved successfully' });
-};
 
-const savePassword = () => {
-  $q.notify({ type: 'positive', message: 'Password changed successfully' });
-  newPassword.value = '';
-  confirmPassword.value = '';
-};
-
-const confirmDelete = () => {
-  showDeleteConfirm.value = true;
-};
-
-const deleteAccount = () => {
-  $q.notify({ type: 'negative', message: 'Account deleted' });
-};
+// Save password
+const savePassword = async () => {
+  try {
+    savingPassword.value = true
+    await passwordService.updatePassword(
+      email.value,
+      newPassword.value,
+      confirmPassword.value
+    )
+    $q.notify({ type: 'positive', message: 'Password updated successfully' })
+    newPassword.value = ''
+    confirmPassword.value = ''
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.message || 'Failed to update password'
+    })
+  } finally {
+    savingPassword.value = false
+  }
+}
 </script>
+
+
 
 <style scoped>
 .settings-card {

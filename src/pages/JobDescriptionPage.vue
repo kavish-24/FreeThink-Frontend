@@ -46,8 +46,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import jobService from '../services/job.service.js'
 // Components
-import AppHeader from '../components/HeaderPart.vue'
-import AppFooter from '../components/FooterPart.vue'
+
 import JobHeader from '../components/JobHeader.vue'
 import JobOverview from '../components/JobOverview.vue'
 import KeyResponsibilities from '../components/KeyResponsibilities.vue'

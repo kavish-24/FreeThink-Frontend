@@ -2,9 +2,12 @@
 <template>
   <div class="landing-page">
     <AppHeader />
-    
+
     <section class="hero">
-      <h1 class="tagline">Your Dream Job is Just a Click Away <br/><span class="handwritten">Explore. Apply. Succeed.</span></h1>
+
+      <div class="hero-background-strip"></div>
+      
+      <h1 class="tagline" style="color: #2a2a2a; text-shadow: 0 0 5px rgba(45, 108, 255, 0.442), 0 0 6px rgba(45, 108, 255, 0.442), 0 0 8px rgba(45, 108, 255, 0.442);">Your Dream Job is Just a Click Away <br/><span class="handwritten">Explore. Apply. Succeed.</span></h1>
       <p>
         Unlock your next big opportunity - thousands of jobs, zero stress. Start your career adventure with JobHub today!
       </p>
@@ -25,7 +28,9 @@
     <section v-if="isLoggedIn">
       <JobListingPage :searchQuery="searchInput" />
     </section>
-
+<section v-if="isLoggedIn && !isEmployer">
+  <SuggestedSkills />
+</section>
     <div v-else class="login-prompt">
       <p>
         <q-icon name="lock" size="1.2em" class="q-mr-sm" />
@@ -152,13 +157,14 @@ import { useRouter } from 'vue-router';
 import { ref, onMounted, computed } from 'vue'; // Added computed here
 import { useAuthStore } from '../stores/auth.store';
 import { storeToRefs } from 'pinia';
-
+import SuggestedSkills from '../components/SuggestedSkills.vue';
 export default {
   name: 'HomePage',
   components: {
     AppHeader,
     AppFooter,
-    JobListingPage
+    JobListingPage,
+    SuggestedSkills
   },
   setup() {
     const router = useRouter();
@@ -248,7 +254,12 @@ export default {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Satisfy&display=swap');
-
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  /* The header component has its own background and shadow */
+}
 @keyframes breathe {
   0%   { background-color: #e1f5fe; } /* Light Sky Blue */
   20%  { background-color: #e0f2f1; } /* Light Cyan/Green */
@@ -269,6 +280,80 @@ export default {
   50%  { background-color: #e0f2f1; } /* Light Sea Green */
   100% { background-color: #e0f7fa; } /* Back to Light Sea Blue */
 }
+/* ADD THESE NEW STYLES */
+
+@keyframes animated-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+/* In <style scoped> */
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0; /* Places it behind the hero content */
+
+  /* 1. The background image */
+  background-image: url('src/assets/bghome2.jpeg');
+  background-size: cover;
+  background-position: center;
+  
+  /* 2. A soft blur effect */
+  filter: blur(5px);
+  
+  /* 3. The mask that makes the center transparent */
+  -webkit-mask-image: 
+  /* This first mask makes the center transparent */
+  linear-gradient(to right, 
+    black 15%, transparent 45%, transparent 55%, black 85%
+  ),
+  /* This second mask makes the bottom edge blurry */
+  linear-gradient(to bottom,
+    black 85%, 
+    transparent 100%
+  );
+
+mask-image: 
+  linear-gradient(to right, 
+    black 15%, transparent 45%, transparent 55%, black 85%
+  ),
+  linear-gradient(to bottom,
+    black 85%, 
+    transparent 100%
+  );
+}
+.hero-background-strip {
+  position: absolute;
+  top: 50%;
+  left: -10%; /* Extend beyond the edges */
+  right: -10%;
+  height: 450px; /* Adjust height as needed */
+  transform: translateY(-50%) rotate(-2deg); /* Slight angle for dynamism */
+  z-index: 0; /* Place it behind the content */
+
+  /* A soft, multi-tone blue gradient */
+  background: linear-gradient(-45deg, #c8e4f9, #b9d4ff, #baf7fe, #9dd3ff);
+  background-size: 400% 400%;
+  animation: animated-gradient 15s ease infinite;
+  
+  filter: blur(20px); /* Softens the entire strip */
+  opacity: 0.7; /* Make it subtle */
+}
+
+/* Ensure hero content stays on top of the new strip */
+.hero h1,
+.hero p,
+.hero .search-box,
+.hero .hero-stats {
+  position: relative;
+  z-index: 1;
+}
+
 .landing-page {
   font-family: 'Inter', 'Segoe UI', sans-serif;
   color: #2a2a2a;
@@ -337,11 +422,19 @@ export default {
   background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(21, 101, 192, 0.2), rgba(0, 0, 0, 0));
   margin: 20px auto;
 }
+.handwritten {
+  opacity: 0;
+  transform: scale(.8);
+  animation: zoomIn .6s ease-out forwards, textGlow 4s infinite ease-in-out; /* Add the glow animation */
+  animation-delay: .2s, 0s; /* Adjust delays if needed */
+}
 
 /* Hero */
 .hero {
   text-align: center;
   padding: 90px 20px 70px;
+  position: relative; 
+  overflow: hidden;   
 }
 .hero h1 {
   font-size: 44px;
@@ -511,7 +604,6 @@ export default {
   transition: transform 0.2s ease;
   text-align: center;
   font-style:bold;
-  text-effect: glow;
   min-width: 260px;
   max-width: 300px;
   min-height: 330px;

@@ -122,6 +122,7 @@ const sidebarItems = computed(() => [
     badge: notifications.value.length.toString(),
     badgeColor: 'orange-8'
   },
+
   { 
     key: 'settings', 
     label: 'Settings', 
