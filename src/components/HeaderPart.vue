@@ -2,12 +2,8 @@
   <div class="header-container">
     <div class="top-margin-blur" :class="{ 'active-blur': isScrolled }"></div>
 
-    <header class="navbar" :class="{ 'starry-background': showWelcomeMessage }">
-      <div v-if="showWelcomeMessage" class="welcome-message">
-        Welcome to JobHub! 👋
-      </div>
-
-      <div v-if="!showWelcomeMessage" class="navbar-content">
+    <header class="navbar">
+      <div class="navbar-content">
         <div class="logo">💼 JobHub</div>
         <nav class="nav-links">
           <router-link to="/" exact-active-class="active-link"
@@ -78,18 +74,10 @@ export default {
     return {
       showDropdown: false,
       initialized: false,
-      showWelcomeMessage: false,
       isScrolled: false,
     };
   },
   async mounted() {
-    if (!sessionStorage.getItem('hasVisited')) {
-      this.showWelcomeMessage = true;
-      sessionStorage.setItem('hasVisited', 'true');
-      setTimeout(() => {
-        this.showWelcomeMessage = false;
-      }, 2500); // Increased time to enjoy the stars
-    }
     window.addEventListener('scroll', this.handleScroll);
     await this.authStore.checkAuth();
     this.initialized = true;
@@ -214,84 +202,12 @@ export default {
   transition: background 1.5s ease-in-out;
 }
 
-/* === STARRY BACKGROUND STYLES === */
-@keyframes twinkle {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 0.8;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-.starry-background {
-  background: linear-gradient(to bottom, #c6fcff, #a0bbfd, #a48ff7);
-  animation: none; /* Disable breathing animation */
-}
-
-.starry-background::before,
-.starry-background::after {
-  content: ' ';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.starry-background::before {
-  box-shadow: 5% 22% 1px #fff, 15% 80% 1px #fff, 25% 30% 1px #fff,
-    40% 90% 1px #fff, 55% 20% 1px #fff, 68% 75% 1px #fff, 80% 10% 1px #fff,
-    95% 50% 1px #fff, 8% 55% 1px #fff;
-  animation: twinkle 5s infinite;
-}
-
-.starry-background::after {
-  box-shadow: 20% 5% 2px #fff, 35% 45% 2px #fff, 50% 95% 2px #fff,
-    70% 35% 2px #fff, 85% 85% 2px #fff, 90% 25% 2px #fff;
-  animation: twinkle 7s infinite;
-}
-/* === END OF STARRY BACKGROUND STYLES === */
-
 .navbar-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   animation: fadeInUp 0.7s ease-out forwards;
-}
-
-.welcome-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: transparent;
-  color: #6a00ff;
-  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.7);
-  padding: 10px 25px;
-  font-size: 24px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-weight: 600;
-  z-index: 1000;
-  white-space: nowrap;
-  box-shadow: none;
-  animation: fadeInDown 0.5s ease-out;
-}
-
-@keyframes fadeInDown {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -70%);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
 }
 
 .logo {
@@ -316,7 +232,7 @@ export default {
   align-items: center;
   gap: 10px;
   font-family: Georgia;
-  font-size:20px;
+  font-size: 20px;
 }
 
 /* --- NAV LINKS: Improved typography and new hover effect --- */
@@ -369,7 +285,7 @@ export default {
   align-items: center;
   gap: 12px;
   font-family: Georgia;
-  font-size:20px;
+  font-size: 20px;
 }
 
 .auth-buttons .sign-in {
@@ -412,7 +328,7 @@ export default {
   color: #1565c0;
   font-weight: 700;
   font-family: Georgia;
-  font-size:20px;
+  font-size: 20px;
 }
 .nav-links .active-link::after {
   transform: scaleX(1);
