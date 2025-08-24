@@ -178,7 +178,7 @@ onMounted(() => {
 
 const redirectBasedOnRole = () => {
   if (authStore.isJobSeeker) {
-    router.push(authStore.returnUrl || '/dashboard'); // Changed to /dashboard for job seekers
+    router.push(authStore.returnUrl || '/'); 
   } else if (authStore.isEmployer) {
     router.push(authStore.returnUrl || '/employer-portal');
   }

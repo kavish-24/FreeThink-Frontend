@@ -4,143 +4,128 @@
     <div class="applications-header">
       <div class="header-content">
         <div class="title-section">
-          <h2 class="page-title">My Applications</h2>
-          <p class="page-subtitle">Track and manage your job application progress</p>
+          <h1 class="page-title gradient-text">My Applications</h1>
+          <p class="page-subtitle">Track your job applications and their progress</p>
         </div>
-        <div class="stats-section">
+        <div class="stats-badge">
           <div class="stat-item">
             <q-icon name="description" class="stat-icon" />
-            <span class="stat-value">{{ applications.length }}</span>
-            <span class="stat-label">Total Applications</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <q-icon name="trending_up" class="stat-icon success" />
-            <span class="stat-value">{{ getActiveApplicationsCount() }}</span>
-            <span class="stat-label">Active</span>
+            <span class="stat-number">{{ applications.length }}</span>
+            <span class="stat-label">Applications</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Filter Controls -->
-    <div class="controls-section">
-      <div class="filter-controls">
-        <div class="filter-chips">
-          <div 
-            v-for="filter in statusFilters" 
-            :key="filter.value"
-            @click="selectedFilter = filter.value"
-            :class="['filter-chip', { active: selectedFilter === filter.value }]"
-          >
-            <q-icon :name="filter.icon" class="filter-icon" />
-            <span>{{ filter.label }}</span>
-            <span class="filter-count">{{ getFilterCount(filter.value) }}</span>
-          </div>
-        </div>
+    <!-- Loading state -->
+    <div v-if="loading" class="loading-container">
+      <div class="loading-content">
+        <q-spinner-dots size="60px" color="primary" />
+        <h3 class="loading-title">Loading Applications</h3>
+        <p class="loading-subtitle">Fetching your latest application data...</p>
       </div>
     </div>
 
-    <!-- Applications List -->
-    <div class="applications-list">
-      <div v-if="filteredApplications.length === 0" class="empty-state">
+    <!-- Empty state -->
+    <div v-else-if="applications.length === 0" class="empty-state">
+      <div class="empty-content">
         <div class="empty-icon">
-          <q-icon name="inbox" />
+          <q-icon name="work_outline" />
         </div>
-        <h3 class="empty-title">No applications found</h3>
-        <p class="empty-description">
-          {{ selectedFilter === 'all' ? 'Start applying to jobs to see them here' : `No applications with status "${selectedFilter}"` }}
+        <h2 class="empty-title">No Applications Yet</h2>
+        <p class="empty-subtitle">
+          Ready to take the next step in your career? Start applying to jobs and track your progress here.
         </p>
+        <q-btn 
+          class="btn-unstop btn-primary btn-lg"
+          icon="search"
+          label="Browse Jobs"
+          @click="navigateToJobs"
+        />
       </div>
+    </div>
 
+    <!-- Applications Grid -->
+    <div v-else class="applications-grid">
       <div
-        v-for="(app) in filteredApplications"
-        :key="app.id"
-        class="application-card"
-        @click="viewApplication(app.id)"
+        v-for="(app, index) in applications"
+        :key="app.id || index"
+        class="application-card card-unstop card-interactive"
+        @click="viewApplication(app)"
       >
-        <div :class="['status-bar', getStatusClass(app.status)]"></div>
-        
-        <div class="card-content">
-          <div class="application-main">
-            <div class="job-info">
-              <h3 class="job-title">{{ app.position }}</h3>
-              
-              <div class="company-info">
-                <div class="company-details">
-                  <q-icon name="business" class="detail-icon" />
-                  <span class="company-name">{{ app.company }}</span>
-                </div>
-                <div class="location-details">
-                  <q-icon name="place" class="detail-icon" />
-                  <span class="location-text">{{ app.location }}</span>
-                </div>
-                <div class="salary-details">
-                  <q-icon name="payments" class="detail-icon" />
-                  <span class="salary-text">{{ app.salary }}</span>
-                </div>
-              </div>
-
-              <div class="application-meta">
-                <div class="date-info">
-                  <q-icon name="schedule" class="meta-icon" />
-                  <span>Applied {{ formatDate(app.date) }}</span>
-                </div>
-                <div class="progress-info">
-                  <q-icon name="timeline" class="meta-icon" />
-                  <span>{{ getProgressText(app.status) }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="application-actions">
-              <div class="status-section">
-                <div :class="['status-badge', getStatusClass(app.status)]">
-                  <q-icon :name="getStatusIcon(app.status)" class="status-icon" />
-                  <span class="status-text">{{ app.status }}</span>
-                </div>
-                <div class="progress-indicator">
-                  <div class="progress-track">
-                    <div 
-                      :class="['progress-fill', getStatusClass(app.status)]"
-                      :style="{ width: getProgressWidth(app.status) }"
-                    ></div>
-                  </div>
-                  <span class="progress-text">{{ getProgressPercentage(app.status) }}% Complete</span>
-                </div>
-              </div>
-
-              <div class="action-buttons">
-                <q-btn
-                  flat
-                  round
-                  icon="visibility"
-                  class="action-btn view-btn"
-                  @click.stop="viewApplication(app.id)"
-                >
-                  <q-tooltip class="professional-tooltip">View Details</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  icon="edit"
-                  class="action-btn edit-btn"
-                  @click.stop="editApplication(app.id)"
-                >
-                  <q-tooltip class="professional-tooltip">Edit Application</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  icon="more_vert"
-                  class="action-btn menu-btn"
-                  @click.stop="showMenu(app.id)"
-                >
-                  <q-tooltip class="professional-tooltip">More Options</q-tooltip>
-                </q-btn>
-              </div>
+        <!-- Card Header -->
+        <div class="card-header">
+          <div class="job-info">
+            <h3 class="job-title">{{ app.job?.title || 'Job Title' }}</h3>
+            <div class="company-info">
+              <q-icon name="business" class="company-icon" />
+              <span class="company-name">{{ app.job?.company || 'Company Name' }}</span>
             </div>
           </div>
+          <div class="status-badge">
+            <span 
+              class="badge-unstop"
+              :class="getStatusBadgeClass(app.status)"
+            >
+              {{ formatStatus(app.status) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Card Content -->
+        <div class="card-content">
+          <div class="job-details">
+            <div class="detail-item">
+              <q-icon name="place" class="detail-icon" />
+              <span class="detail-text">{{ app.job?.location || 'Location not specified' }}</span>
+            </div>
+            <div class="detail-item">
+              <q-icon name="attach_money" class="detail-icon" />
+              <span class="detail-text">{{ app.job?.salary || 'Salary not specified' }}</span>
+            </div>
+            <div class="detail-item">
+              <q-icon name="schedule" class="detail-icon" />
+              <span class="detail-text">Applied {{ formatDate(app.applied_at) }}</span>
+            </div>
+          </div>
+
+          <!-- Application Attachments -->
+          <div class="attachments" v-if="app.cover_letter || app.resume_link">
+            <div class="attachment-item" v-if="app.cover_letter">
+              <q-icon name="description" class="attachment-icon" />
+              <span class="attachment-text">Cover letter included</span>
+            </div>
+            <div class="attachment-item" v-if="app.resume_link">
+              <q-icon name="attach_file" class="attachment-icon" />
+              <span class="attachment-text">Resume attached</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="card-actions">
+          <q-btn
+            flat
+            round
+            icon="visibility"
+            color="primary"
+            size="sm"
+            class="action-btn"
+            @click.stop="viewApplication(app)"
+          >
+            <q-tooltip class="bg-grey-8">View Details</q-tooltip>
+          </q-btn>
+          <q-btn
+            flat
+            round
+            icon="more_vert"
+            color="grey-6"
+            size="sm"
+            class="action-btn"
+            @click.stop="showMoreOptions"
+          >
+            <q-tooltip class="bg-grey-8">More Options</q-tooltip>
+          </q-btn>
         </div>
       </div>
     </div>
@@ -148,188 +133,151 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
-import { ref, computed } from 'vue';
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { applicationService } from '../services/applicationService'
+import { useQuasar } from 'quasar'
 
-const router = useRouter();
-const selectedFilter = ref('all');
+const $q = useQuasar()
+const router = useRouter()
+const applications = ref([])
+const loading = ref(false)
 
-const applications = [
-  {
-    id: 'app-001',
-    position: 'Senior Frontend Developer',
-    company: 'TechCorp Inc.',
-    location: 'San Francisco, CA',
-    salary: '$120k - $150k',
-    date: '2024-01-15',
-    status: 'Under Review'
-  },
-  {
-    id: 'app-003',
-    position: 'UX Designer',
-    company: 'DesignStudio',
-    location: 'New York, NY',
-    salary: '$80k - $110k',
-    date: '2024-01-10',
-    status: 'Rejected'
-  },
-  {
-    id: 'app-004',
-    position: 'Full Stack Developer',
-    company: 'InnovateTech',
-    location: 'Austin, TX',
-    salary: '$90k - $120k',
-    date: '2024-01-08',
-    status: 'Applied'
+const emit = defineEmits(['applications-loaded'])
+
+const fetchApplications = async () => {
+  loading.value = true
+  try {
+    const response = await applicationService.getMyApplications()
+    if (response.success) {
+      applications.value = response.applications
+      // Emit the applications count to parent component
+      emit('applications-loaded', response.applications.length)
+    } else {
+      throw new Error(response.message || 'Failed to fetch applications')
+    }
+  } catch (error) {
+    console.error('Error fetching applications:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to load applications. Please try again.',
+      position: 'top'
+    })
+  } finally {
+    loading.value = false
   }
-];
+}
 
-const statusFilters = [
-  { value: 'all', label: 'All', icon: 'list' },
-  { value: 'Applied', label: 'Applied', icon: 'send' },
-  { value: 'Under Review', label: 'Under Review', icon: 'hourglass_empty' },
-  { value: 'Interview Scheduled', label: 'Interview', icon: 'event' },
-  { value: 'Rejected', label: 'Rejected', icon: 'close' }
-];
-
-const filteredApplications = computed(() => {
-  if (selectedFilter.value === 'all') {
-    return applications;
-  }
-  return applications.filter(app => app.status === selectedFilter.value);
-});
-
-const getActiveApplicationsCount = () => {
-  return applications.filter(app => 
-    ['Applied', 'Under Review', 'Interview Scheduled'].includes(app.status)
-  ).length;
-};
-
-const getFilterCount = (filterValue) => {
-  if (filterValue === 'all') return applications.length;
-  return applications.filter(app => app.status === filterValue).length;
-};
-
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'Applied':
-      return 'status-applied';
-    case 'Under Review':
-      return 'status-review';
-    case 'Interview Scheduled':
-      return 'status-interview';
-    case 'Rejected':
-      return 'status-rejected';
+const getStatusBadgeClass = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'applied':
+      return 'badge-primary'
+    case 'under review':
+    case 'reviewing':
+      return 'badge-warning'
+    case 'interview scheduled':
+    case 'interview':
+      return 'badge-info'
+    case 'accepted':
+    case 'hired':
+      return 'badge-success'
+    case 'rejected':
+      return 'badge-error'
+    case 'withdrawn':
+      return 'badge-secondary'
     default:
-      return 'status-default';
+      return 'badge-primary'
   }
-};
+}
 
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'Applied':
-      return 'send';
-    case 'Under Review':
-      return 'hourglass_empty';
-    case 'Interview Scheduled':
-      return 'event';
-    case 'Rejected':
-      return 'close';
-    default:
-      return 'help';
-  }
-};
+const navigateToJobs = () => {
+  router.push('/')
+}
 
-const getProgressWidth = (status) => {
-  switch (status) {
-    case 'Applied':
-      return '25%';
-    case 'Under Review':
-      return '50%';
-    case 'Interview Scheduled':
-      return '75%';
-    case 'Rejected':
-      return '100%';
-    default:
-      return '0%';
-  }
-};
+const showMoreOptions = () => {
+  $q.notify({
+    type: 'info',
+    message: 'More options coming soon!',
+    position: 'top'
+  })
+}
 
-const getProgressPercentage = (status) => {
-  switch (status) {
-    case 'Applied':
-      return 25;
-    case 'Under Review':
-      return 50;
-    case 'Interview Scheduled':
-      return 75;
-    case 'Rejected':
-      return 100;
-    default:
-      return 0;
-  }
-};
-
-const getProgressText = (status) => {
-  switch (status) {
-    case 'Applied':
-      return 'Application submitted';
-    case 'Under Review':
-      return 'Being reviewed by employer';
-    case 'Interview Scheduled':
-      return 'Interview process';
-    case 'Rejected':
-      return 'Application closed';
-    default:
-      return 'Status unknown';
-  }
-};
+const formatStatus = (status) => {
+  if (!status) return 'Applied'
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+}
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = Math.abs(now - date);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 1) return 'yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-  return date.toLocaleDateString();
-};
+  if (!dateString) return 'Unknown date'
+  try {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  } catch {
+    return 'Invalid date'
+  }
+}
 
-const viewApplication = (id) => {
-  router.push({ name: 'ApplicationDetails', params: { applicationId: id } });
-};
+const viewApplication = (app) => {
+  $q.dialog({
+    title: 'Application Details',
+    message: `
+      <div class="application-details-modal">
+        <div class="modal-header">
+          <h3>${app.job?.title || 'Job Title'}</h3>
+          <span class="status-badge ${getStatusBadgeClass(app.status)}">${formatStatus(app.status)}</span>
+        </div>
+        <div class="modal-content">
+          <div class="detail-row">
+            <strong>Company:</strong> ${app.job?.company || 'N/A'}
+          </div>
+          <div class="detail-row">
+            <strong>Location:</strong> ${app.job?.location || 'N/A'}
+          </div>
+          <div class="detail-row">
+            <strong>Salary:</strong> ${app.job?.salary || 'Not specified'}
+          </div>
+          <div class="detail-row">
+            <strong>Applied on:</strong> ${formatDate(app.applied_at)}
+          </div>
+          ${app.cover_letter ? '<div class="detail-row"><strong>Cover Letter:</strong> Included</div>' : ''}
+          ${app.resume_link ? '<div class="detail-row"><strong>Resume:</strong> Attached</div>' : ''}
+        </div>
+      </div>
+    `,
+    html: true,
+    ok: {
+      label: 'Close',
+      color: 'primary',
+      flat: true
+    }
+  })
+}
 
-const editApplication = (id) => {
-  router.push({ name: 'EditApplication', params: { applicationId: id } });
-};
-
-const showMenu = (id) => {
-  console.log('Show menu for application:', id);
-};
+onMounted(() => {
+  fetchApplications()
+})
 </script>
 
 <style scoped>
 .applications-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  padding: var(--space-6);
 }
 
-/* Header */
 .applications-header {
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-8);
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 16px;
+  align-items: flex-start;
+  gap: var(--space-6);
+  flex-wrap: wrap;
 }
 
 .title-section {
@@ -337,168 +285,170 @@ const showMenu = (id) => {
 }
 
 .page-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 4px 0;
+  font-size: var(--font-size-4xl);
+  font-weight: 800;
+  font-family: var(--font-family-display);
+  margin: 0 0 var(--space-2) 0;
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .page-subtitle {
-  font-size: 14px;
-  color: #6b7280;
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-600);
   margin: 0;
+  font-weight: 400;
 }
 
-.stats-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.stats-badge {
+  background: var(--color-surface);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-4) var(--space-6);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-gray-200);
 }
 
 .stat-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-  min-width: 80px;
+  gap: var(--space-2);
 }
 
 .stat-icon {
-  font-size: 20px;
-  color: #2563eb;
-  margin-bottom: 4px;
+  color: var(--color-primary-500);
+  font-size: 1.5rem;
 }
 
-.stat-icon.success {
-  color: #16a34a;
-}
-
-.stat-value {
-  font-size: 20px;
+.stat-number {
+  font-size: var(--font-size-2xl);
   font-weight: 700;
-  color: #111827;
+  color: var(--color-gray-800);
 }
 
 .stat-label {
-  font-size: 12px;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
   font-weight: 500;
 }
 
-.stat-divider {
-  width: 1px;
-  height: 32px;
-  background: #e5e7eb;
-}
-
-/* Controls */
-.controls-section {
+/* Loading State */
+.loading-container {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  min-height: 400px;
 }
 
-.filter-chips {
+.loading-content {
+  text-align: center;
+}
+
+.loading-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-gray-800);
+  margin: var(--space-4) 0 var(--space-2) 0;
+}
+
+.loading-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+/* Empty State */
+.empty-state {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
 }
 
-.filter-chip {
+.empty-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.empty-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto var(--space-6) auto;
+  background: linear-gradient(135deg, var(--color-primary-100) 0%, var(--color-primary-200) 100%);
+  border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #4b5563;
-  font-size: 14px;
-  cursor: pointer;
+  justify-content: center;
 }
 
-.filter-chip:hover:not(.active) {
-  border-color: #2563eb;
-  color: #2563eb;
-  background: #eff6ff;
+.empty-icon .q-icon {
+  font-size: 4rem;
+  color: var(--color-primary-500);
 }
 
-.filter-chip.active {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
+.empty-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin: 0 0 var(--space-3) 0;
 }
 
-.filter-icon {
-  font-size: 16px;
+.empty-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-600);
+  line-height: 1.6;
+  margin: 0 0 var(--space-6) 0;
 }
 
-.filter-count {
-  background: #e5e7eb;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 12px;
-  color: #4b5563;
-}
-
-.filter-chip.active .filter-count {
-  background: #bfdbfe;
-  color: #1e40af;
-}
-
-/* Application Cards */
-.applications-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Applications Grid */
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: var(--space-6);
 }
 
 .application-card {
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+  transition: all var(--transition-base);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.application-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary-500) 0%, var(--color-accent-purple) 100%);
+  transform: scaleX(0);
+  transition: transform var(--transition-base);
+}
+
+.application-card:hover::before {
+  transform: scaleX(1);
 }
 
 .application-card:hover {
-  border-color: #2563eb;
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary-200);
 }
 
-.status-bar {
-  height: 4px;
-}
-
-.status-bar.status-applied {
-  background: #2563eb;
-}
-
-.status-bar.status-review {
-  background: #d97706;
-}
-
-.status-bar.status-interview {
-  background: #16a34a;
-}
-
-.status-bar.status-rejected {
-  background: #dc2626;
-}
-
-.card-content {
-  padding: 16px;
-}
-
-.application-main {
+/* Card Header */
+.card-header {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: var(--space-4);
+  gap: var(--space-4);
 }
 
 .job-info {
@@ -506,258 +456,184 @@ const showMenu = (id) => {
 }
 
 .job-title {
-  font-size: 18px;
+  font-size: var(--font-size-lg);
   font-weight: 600;
-  color: #111827;
-  margin: 0 0 12px 0;
+  color: var(--color-gray-800);
+  margin: 0 0 var(--space-2) 0;
+  line-height: 1.4;
 }
 
 .company-info {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.company-details,
-.location-details,
-.salary-details {
-  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
-.detail-icon {
-  font-size: 16px;
-  color: #6b7280;
+.company-icon {
+  color: var(--color-gray-500);
+  font-size: 1rem;
 }
 
 .company-name {
-  font-size: 15px;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
   font-weight: 500;
-  color: #2563eb;
-}
-
-.location-text,
-.salary-text {
-  font-size: 14px;
-  color: #4b5563;
-}
-
-.application-meta {
-  display: flex;
-  gap: 16px;
-}
-
-.date-info,
-.progress-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.meta-icon {
-  font-size: 14px;
-}
-
-/* Application Actions */
-.application-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-  min-width: 180px;
-}
-
-.status-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
 }
 
 .status-badge {
-  display: flex;
+  flex-shrink: 0;
+}
+
+/* Badge Styles */
+.badge-unstop {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.status-badge.status-applied {
-  background: #eff6ff;
-  color: #1e40af;
-  border-color: #bfdbfe;
+.badge-primary {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
 }
 
-.status-badge.status-review {
+.badge-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-warning {
   background: #fef3c7;
   color: #92400e;
-  border-color: #fcd34d;
 }
 
-.status-badge.status-interview {
-  background: #ecfdf5;
-  color: #065f46;
-  border-color: #6ee7b7;
+.badge-error {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
-.status-badge.status-rejected {
-  background: #fef2f2;
-  color: #dc2626;
-  border-color: #f87171;
+.badge-info {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
-.status-icon {
-  font-size: 12px;
+.badge-secondary {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
 }
 
-.progress-indicator {
+/* Card Content */
+.card-content {
+  margin-bottom: var(--space-4);
+}
+
+.job-details {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  min-width: 100px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
-.progress-track {
-  width: 100%;
-  height: 5px;
-  background: #f3f4f6;
-  border-radius: 5px;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 5px;
-}
-
-.progress-fill.status-applied {
-  background: #2563eb;
-}
-
-.progress-fill.status-review {
-  background: #d97706;
-}
-
-.progress-fill.status-interview {
-  background: #16a34a;
-}
-
-.progress-fill.status-rejected {
-  background: #dc2626;
-}
-
-.progress-text {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.action-buttons {
+.detail-item {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.detail-icon {
+  color: var(--color-gray-500);
+  font-size: 1rem;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.detail-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-gray-100);
+  border-radius: var(--border-radius-md);
+}
+
+.attachment-icon {
+  color: var(--color-primary-500);
+  font-size: 0.875rem;
+}
+
+.attachment-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-700);
+  font-weight: 500;
+}
+
+/* Card Actions */
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-gray-200);
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #6b7280;
+  transition: all var(--transition-base);
 }
 
 .action-btn:hover {
-  border-color: #2563eb;
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-/* Tooltip */
-.professional-tooltip {
-  background: #111827;
-  color: #ffffff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 40px 16px;
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px dashed #e5e7eb;
-}
-
-.empty-icon {
-  font-size: 48px;
-  color: #d1d5db;
-  margin-bottom: 16px;
-}
-
-.empty-title {
-  font-size: 20px;
-  font-weight: 500;
-  color: #4b5563;
-  margin: 0 0 8px 0;
-}
-
-.empty-description {
-  font-size: 14px;
-  color: #6b7280;
+  transform: scale(1.1);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .applications-container {
+    padding: var(--space-4);
+  }
+  
+  .applications-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .header-content {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  
-  .stats-section {
-    justify-content: space-around;
-  }
-  
-  .controls-section {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .application-main {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .application-actions {
     align-items: stretch;
   }
   
-  .status-section {
-    align-items: stretch;
+  .page-title {
+    font-size: var(--font-size-3xl);
   }
   
-  .company-info {
-    flex-direction: column;
-    gap: 8px;
+  .application-card {
+    padding: var(--space-4);
   }
 }
 
 @media (max-width: 480px) {
-  .filter-chips {
+  .card-header {
     flex-direction: column;
-    gap: 6px;
+    align-items: stretch;
+    gap: var(--space-3);
   }
   
-  .filter-chip {
-    justify-content: center;
+  .status-badge {
+    align-self: flex-start;
   }
 }
 </style>

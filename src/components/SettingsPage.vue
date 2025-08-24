@@ -1,181 +1,196 @@
 <template>
-  <q-card class="settings-card q-pa-xl q-mb-xl" flat bordered>
-    <div class="row items-center justify-between q-mb-lg">
-      <div class="row items-center q-gutter-md">
-        <q-icon name="settings" size="28px" color="primary" class="settings-icon" />
-        <div class="text-h5 text-weight-bold header-title">Settings</div>
-      </div>
-      <q-btn
-        flat
-        label="Save Changes"
-        color="primary"
-        :disable="!hasChanges"
-        @click="saveSettings"
-        class="save-btn"
-        icon="save"
-        aria-label="Save settings changes"
-      >
-        <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-          Save Settings
-        </q-tooltip>
-      </q-btn>
-    </div>
-
-    <q-separator class="q-my-lg separator" />
-
-    <!-- Profile Preferences -->
-    <q-expansion-item
-      expand-separator
-      header-class="settings-header"
-      default-opened
-      label="Profile Preferences"
-      caption="Manage your profile visibility and public info"
-      icon="person_outline"
-      aria-label="Profile preferences section"
-    >
-      <q-card flat class="section-card">
-        <q-card-section class="section-content">
-          <q-toggle 
-  v-model="profilePublic" 
-  label="Make profile public" 
-  @update:model-value="toggleStatus" 
-/>
-
-          <q-input
-            v-model="displayName"
-            label="Display Name"
-            outlined
-            dense
-            class="q-mt-lg input-field"
-            :rules="[val => !!val || 'Display name is required']"
-            aria-label="Enter display name"
-          />
-        </q-card-section>
-      </q-card>
-    </q-expansion-item>
-
-    <!-- Notification Settings -->
-    <q-expansion-item
-      expand-separator
-      header-class="settings-header"
-      label="Notification Settings"
-      caption="Control how you receive updates"
-      icon="notifications"
-      aria-label="Notification settings section"
-    >
-      <q-card flat class="section-card">
-        <q-card-section class="section-content">
-          <div class="row q-gutter-lg items-center">
-            <q-toggle
-              v-model="emailNotifications"
-              label="Email Notifications"
-              color="primary"
-              class="settings-toggle"
-              aria-label="Toggle email notifications"
-            />
-            <q-toggle
-              v-model="pushNotifications"
-              label="Push Notifications"
-              color="primary"
-              class="settings-toggle"
-              aria-label="Toggle push notifications"
-            />
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-expansion-item>
-
-    <!-- Account Management -->
-    <q-expansion-item
-      expand-separator
-      header-class="settings-header"
-      label="Account Management"
-      caption="Update credentials or manage your account"
-      icon="manage_accounts"
-      aria-label="Account management section"
-    >
-      <q-card flat class="section-card">
-        <q-card-section class="section-content">
-          <q-input
-            v-model="email"
-            label="Email Address"
-            outlined
-            dense
-            readonly
-            class="q-mb-lg input-field"
-            aria-label="User email address (read-only)"
-          />
-          <q-input
-            v-model="newPassword"
-            label="New Password"
-            type="password"
-            outlined
-            dense
-            class="q-mb-lg input-field"
-            :rules="[val => val.length >= 6 || 'Password must be at least 6 characters']"
-            aria-label="Enter new password"
-          />
-          <q-input
-            v-model="confirmPassword"
-            label="Confirm Password"
-            type="password"
-            outlined
-            dense
-            class="q-mb-lg input-field"
-            :rules="[val => val === newPassword.value || 'Passwords must match']"
-            aria-label="Confirm new password"
-          />
+  <div class="settings-page">
+    <AppHeader />
+    <q-card class="settings-card q-pa-xl q-mb-xl" flat bordered>
+      <div class="row items-center justify-between q-mb-lg">
+        <div class="row items-center q-gutter-md">
           <q-btn
             flat
-            label="Save Password"
+            round
+            icon="arrow_back"
             color="primary"
-            icon="save"
-            :disable="!canSavePassword"
-            @click="savePassword"
-            class="q-mb-lg save-password-btn"
-            aria-label="Save new password"
+            @click="$router.push('/')"
+            class="back-btn"
+            aria-label="Go back to homepage"
           >
             <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-              Save Password
+              Back to Homepage
             </q-tooltip>
           </q-btn>
+          <q-icon name="settings" size="28px" color="primary" class="settings-icon" />
+          <div class="text-h5 text-weight-bold header-title">Settings</div>
+        </div>
+        <q-btn
+          flat
+          label="Save Changes"
+          color="primary"
+          :disable="!hasChanges"
+          @click="saveSettings"
+          class="save-btn"
+          icon="save"
+          aria-label="Save settings changes"
+        >
+          <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
+            Save Settings
+          </q-tooltip>
+        </q-btn>
+      </div>
 
-          <q-separator class="q-my-lg" />
+      <q-separator class="q-my-lg separator" />
 
-          <q-btn
-            flat
-            label="Delete Account"
-            color="negative"
-            icon="delete_forever"
-            @click="confirmDelete"
-            class="delete-btn"
-            aria-label="Delete account"
-          >
-            <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-              Delete Account
-            </q-tooltip>
-          </q-btn>
-        </q-card-section>
-      </q-card>
-    </q-expansion-item>
+      <!-- Profile Preferences -->
+      <q-expansion-item
+        expand-separator
+        header-class="settings-header"
+        default-opened
+        label="Profile Preferences"
+        caption="Manage your profile visibility and public info"
+        icon="person_outline"
+        aria-label="Profile preferences section"
+      >
+        <q-card flat class="section-card">
+          <q-card-section class="section-content">
+            <q-toggle 
+              v-model="profilePublic" 
+              label="Make profile public" 
+              @update:model-value="toggleStatus" 
+            />
+            <q-input
+              v-model="displayName"
+              label="Display Name"
+              outlined
+              dense
+              class="q-mt-lg input-field"
+              :rules="[val => !!val || 'Display name is required']"
+              aria-label="Enter display name"
+            />
+          </q-card-section>
+        </q-card>
+      </q-expansion-item>
 
-    <!-- Confirmation Dialog -->
-    <q-dialog v-model="showDeleteConfirm" persistent>
-      <q-card class="delete-confirm-card">
-        <q-card-section class="row items-center">
-          <q-icon name="warning_amber" color="negative" size="36px" class="q-mr-md" />
-          <div class="text-h6 text-weight-medium">Confirm Account Deletion</div>
-        </q-card-section>
-        <q-card-section class="text-body2 text-grey-8">
-          This action cannot be undone. Are you sure you want to delete your account?
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" v-close-popup aria-label="Cancel account deletion" />
-          <q-btn flat label="Delete" color="negative" @click="deleteAccount" v-close-popup aria-label="Confirm account deletion" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </q-card>
+      <!-- Notification Settings -->
+      <q-expansion-item
+        expand-separator
+        header-class="settings-header"
+        label="Notification Settings"
+        caption="Control how you receive updates"
+        icon="notifications"
+        aria-label="Notification settings section"
+      >
+        <q-card flat class="section-card">
+          <q-card-section class="section-content">
+            <div class="row q-gutter-lg items-center">
+              <q-toggle
+                v-model="emailNotifications"
+                label="Email Notifications"
+                color="primary"
+                class="settings-toggle"
+                aria-label="Toggle email notifications"
+              />
+              <q-toggle
+                v-model="pushNotifications"
+                label="Push Notifications"
+                color="primary"
+                class="settings-toggle"
+                aria-label="Toggle push notifications"
+              />
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-expansion-item>
+
+      <!-- Account Management -->
+      <q-expansion-item
+        expand-separator
+        header-class="settings-header"
+        label="Account Management"
+        caption="Update credentials or manage your account"
+        icon="manage_accounts"
+        aria-label="Account management section"
+      >
+        <q-card flat class="section-card">
+          <q-card-section class="section-content">
+            <q-input
+              v-model="email"
+              label="Email Address"
+              outlined
+              dense
+              readonly
+              class="q-mb-lg input-field"
+              aria-label="User email address (read-only)"
+            />
+            <q-input
+              v-model="newPassword"
+              label="New Password"
+              type="password"
+              outlined
+              dense
+              class="q-mb-lg input-field"
+              :rules="[val => val.length >= 6 || 'Password must be at least 6 characters']"
+              aria-label="Enter new password"
+            />
+            <q-input
+              v-model="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              outlined
+              dense
+              class="q-mb-lg input-field"
+              :rules="[val => val === newPassword.value || 'Passwords must match']"
+              aria-label="Confirm new password"
+            />
+            <q-btn
+              flat
+              label="Save Password"
+              color="primary"
+              icon="save"
+              :disable="!canSavePassword"
+              @click="savePassword"
+              class="q-mb-lg save-password-btn"
+              aria-label="Save new password"
+            >
+              <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
+                Save Password
+              </q-tooltip>
+            </q-btn>
+
+            <q-separator class="q-my-lg" />
+
+            <q-btn
+              flat
+              label="Delete Account"
+              color="negative"
+              icon="delete_forever"
+              @click="confirmDelete"
+              class="delete-btn"
+              aria-label="Delete account"
+            >
+              <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
+                Delete Account
+              </q-tooltip>
+            </q-btn>
+          </q-card-section>
+        </q-card>
+      </q-expansion-item>
+
+      <!-- Confirmation Dialog -->
+      <q-dialog v-model="showDeleteConfirm" persistent>
+        <q-card class="delete-confirm-card">
+          <q-card-section class="row items-center">
+            <q-icon name="warning_amber" color="negative" size="36px" class="q-mr-md" />
+            <div class="text-h6 text-weight-medium">Confirm Account Deletion</div>
+          </q-card-section>
+          <q-card-section class="text-body2 text-grey-8">
+            This action cannot be undone. Are you sure you want to delete your account?
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="Cancel" color="primary" v-close-popup aria-label="Cancel account deletion" />
+            <q-btn flat label="Delete" color="negative" @click="deleteAccount" v-close-popup aria-label="Confirm account deletion" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+    </q-card>
+  </div>
 </template>
 
 <script setup>
@@ -184,10 +199,10 @@ import { useQuasar } from 'quasar'
 import { passwordService } from '../services/password.service'
 import { jobSeekerProfileService } from 'src/services/profile.service';
 import { authHelpers } from 'src/services/auth.service'
+import AppHeader from './HeaderPart.vue';
 
 const $q = useQuasar()
 const profilePublic = ref(false);
-
 const userId = authHelpers.getCurrentUser()?.id
 
 // State
@@ -204,10 +219,10 @@ const canSavePassword = computed(() => {
     newPassword.value === confirmPassword.value
   )
 })
+
 const toggleStatus = async () => {
   const newStatus = profilePublic.value ? 'active' : 'inactive';
-const res = await jobSeekerProfileService.updateStatus(userId, newStatus);
-
+  const res = await jobSeekerProfileService.updateStatus(userId, newStatus);
 
   if (res.success) {
     $q.notify({ type: 'positive', message: `Status updated to ${newStatus}` });
@@ -219,7 +234,7 @@ const res = await jobSeekerProfileService.updateStatus(userId, newStatus);
 
 // Load email from profile API
 onMounted(async () => {
-  const res = await jobSeekerProfileService.getProfile(userId); // <-- fetch, don't update
+  const res = await jobSeekerProfileService.getProfile(userId);
 
   if (res.success) {
     email.value = res.data.email;
@@ -228,7 +243,6 @@ onMounted(async () => {
     $q.notify({ type: 'negative', message: 'Failed to load profile info' });
   }
 });
-
 
 // Save password
 const savePassword = async () => {
@@ -252,8 +266,6 @@ const savePassword = async () => {
   }
 }
 </script>
-
-
 
 <style scoped>
 .settings-card {
@@ -285,6 +297,18 @@ const savePassword = async () => {
 
 .settings-icon:hover {
   transform: rotate(30deg);
+}
+
+.back-btn {
+  padding: 8px;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .separator {
@@ -434,6 +458,10 @@ const savePassword = async () => {
   .input-field {
     margin-bottom: 16px;
   }
+
+  .back-btn {
+    padding: 6px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -455,7 +483,7 @@ const savePassword = async () => {
     font-size: 14px;
   }
 
-  .save-btn, .save-password-btn, .delete-btn {
+  .save-btn, .save-password-btn, .delete-btn, .back-btn {
     width: 100%;
     text-align: center;
   }
@@ -466,7 +494,8 @@ const savePassword = async () => {
 .settings-toggle:focus-visible,
 .save-btn:focus-visible,
 .save-password-btn:focus-visible,
-.delete-btn:focus-visible {
+.delete-btn:focus-visible,
+.back-btn:focus-visible {
   outline: 3px solid #3b82f6;
   outline-offset: 3px;
 }
@@ -486,7 +515,7 @@ const savePassword = async () => {
     font-weight: 700;
   }
 
-  .save-btn, .save-password-btn, .delete-btn {
+  .save-btn, .save-password-btn, .delete-btn, .back-btn {
     border: 2px solid #1e40af;
   }
 
@@ -502,7 +531,8 @@ const savePassword = async () => {
   .settings-toggle,
   .save-btn,
   .save-password-btn,
-  .delete-btn {
+  .delete-btn,
+  .back-btn {
     transition: none;
   }
 }

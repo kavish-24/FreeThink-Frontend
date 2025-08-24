@@ -19,8 +19,9 @@ const routes = [
       { path: 'application/:applicationId', name: 'ApplicationDetails', component: () => import('../components/ApplicationDetailsPage.vue'), props: true },
       { path: '/resume-builder', component: () => import('../components/resume-builder.vue') },
       { path: '/dashboard', name: 'JobSeekerDashboard', component: () => import('pages/JobSeekerDashboard.vue'), meta: { requiresAuth: true, role: 'job_seeker' } },
-      
-      
+      { path: '/profile', name: 'UserProfile', component: () => import('../components/UserProfile.vue'), meta: { requiresAuth: true } },
+      { path: '/notifications', name: 'Notifications', component: () => import('../components/NotificationsPage.vue'), meta: { requiresAuth: true } },
+      { path: '/settings', name: 'UserSettings', component: () => import('../components/SettingsPage.vue'), meta: { requiresAuth: true } },
       { path: '/application-success', name: 'ApplicationSuccess', component: () => import('pages/ApplicationSuccess.vue') },
       { path: '/test-instructions', name: 'TestInstructions', component: () => import('../pages/TestInstructions.vue') },
       { path: '/test', name: 'TestPage', component: () => import('../pages/TestPage.vue') },

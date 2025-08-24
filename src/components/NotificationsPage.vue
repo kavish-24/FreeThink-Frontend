@@ -1,95 +1,99 @@
 <template>
-  <q-card class="notification-card q-pa-xl q-mb-xl" flat bordered>
-    <div class="row items-center justify-between q-mb-lg">
-      <div class="row items-center q-gutter-md">
-        <q-icon name="notifications" size="44px" color="primary" class="notification-icon" />
-        <div class="text-h5 text-primary text-weight-bold header-title">Notifications</div>
-        <q-badge
-          v-if="notifications.length"
-          :label="notifications.length"
-          color="red-7"
-          rounded
-          floating
-          class="q-ml-sm text-subtitle2 badge-adjust"
-          aria-label="Number of notifications"
-        />
+  <div class="notifications-page">
+    <AppHeader />
+    <q-card class="notification-card q-pa-xl q-mb-xl" flat bordered>
+      <div class="row items-center justify-between q-mb-lg">
+        <div class="row items-center q-gutter-md">
+          <q-icon name="notifications" size="44px" color="primary" class="notification-icon" />
+          <div class="text-h5 text-primary text-weight-bold header-title">Notifications</div>
+          <q-badge
+            v-if="notifications.length"
+            :label="notifications.length"
+            color="red-7"
+            rounded
+            floating
+            class="q-ml-sm text-subtitle2 badge-adjust"
+            aria-label="Number of notifications"
+          />
+        </div>
+        <q-btn
+          flat
+          round
+          icon="delete_sweep"
+          size="md"
+          @click="clearAllNotifications"
+          aria-label="Clear all notifications"
+          v-if="notifications.length > 0"
+          class="clear-btn"
+        >
+          <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
+            Clear All Notifications
+          </q-tooltip>
+        </q-btn>
       </div>
-      <q-btn
-        flat
-        round
-        icon="delete_sweep"
-        size="md"
-        @click="clearAllNotifications"
-        aria-label="Clear all notifications"
-        v-if="notifications.length > 0"
-        class="clear-btn"
-      >
-        <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-          Clear All Notifications
-        </q-tooltip>
-      </q-btn>
-    </div>
 
-    <q-separator inset class="q-my-lg separator" />
+      <q-separator inset class="q-my-lg separator" />
 
-    <div class="q-mt-xl" v-if="notifications.length > 0">
-      <q-list bordered class="rounded-borders notification-list">
-        <transition-group name="slide-fade" tag="div">
-          <q-item
-            v-for="(notification, index) in notifications"
-            :key="notification.timestamp"
-            class="notification-item"
-            clickable
-            @click="dismissNotification(index)"
-            role="button"
-            :aria-label="`Notification: ${notification.message}`"
-          >
-            <q-item-section avatar>
-              <q-icon
-                :name="getNotificationIcon(notification.type)"
-                :color="getNotificationColor(notification.type)"
-                size="34px"
-                class="notification-type-icon"
-              />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label class="notification-message text-weight-medium">
-                {{ notification.message }}
-              </q-item-label>
-              <q-item-label caption class="notification-timestamp">
-                {{ notification.timestamp }}
-              </q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-btn
-                flat
-                round
-                icon="close"
-                size="sm"
-                @click.stop="dismissNotification(index)"
-                class="close-btn"
-                aria-label="Dismiss this notification"
-              >
-                <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-                  Dismiss Notification
-                </q-tooltip>
-              </q-btn>
-            </q-item-section>
-          </q-item>
-        </transition-group>
-      </q-list>
-    </div>
+      <div class="q-mt-xl" v-if="notifications.length > 0">
+        <q-list bordered class="rounded-borders notification-list">
+          <transition-group name="slide-fade" tag="div">
+            <q-item
+              v-for="(notification, index) in notifications"
+              :key="notification.timestamp"
+              class="notification-item"
+              clickable
+              @click="dismissNotification(index)"
+              role="button"
+              :aria-label="`Notification: ${notification.message}`"
+            >
+              <q-item-section avatar>
+                <q-icon
+                  :name="getNotificationIcon(notification.type)"
+                  :color="getNotificationColor(notification.type)"
+                  size="34px"
+                  class="notification-type-icon"
+                />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label class="notification-message text-weight-medium">
+                  {{ notification.message }}
+                </q-item-label>
+                <q-item-label caption class="notification-timestamp">
+                  {{ notification.timestamp }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-btn
+                  flat
+                  round
+                  icon="close"
+                  size="sm"
+                  @click.stop="dismissNotification(index)"
+                  class="close-btn"
+                  aria-label="Dismiss this notification"
+                >
+                  <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
+                    Dismiss Notification
+                  </q-tooltip>
+                </q-btn>
+              </q-item-section>
+            </q-item>
+          </transition-group>
+        </q-list>
+      </div>
 
-    <div v-else class="no-notifications text-center text-grey-6 q-py-xl">
-      <q-icon name="notifications_off" size="80px" color="grey-5" class="q-mb-lg" />
-      <div class="text-h6 text-grey-8 text-weight-medium">You're All Caught Up!</div>
-      <div class="text-body2 text-grey-6">No new notifications to display.</div>
-    </div>
-  </q-card>
+      <div v-else class="no-notifications text-center text-grey-6 q-py-xl">
+        <q-icon name="notifications_off" size="80px" color="grey-5" class="q-mb-lg" />
+        <div class="text-h6 text-grey-8 text-weight-medium">You're All Caught Up!</div>
+        <div class="text-body2 text-grey-6">No new notifications to display.</div>
+      </div>
+    </q-card>
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import AppHeader from './HeaderPart.vue';
 
 const notifications = ref([
   { message: 'Profile updated successfully!', timestamp: '10:20 PM IST, Aug 02, 2025', type: 'success' },
@@ -133,7 +137,7 @@ const getNotificationColor = (type) => {
   background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   max-width: 960px;
-  margin: 0 auto;
+  margin: 48px auto;
   padding: 40px;
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
@@ -275,6 +279,7 @@ const getNotificationColor = (type) => {
 @media (max-width: 768px) {
   .notification-card {
     max-width: 100%;
+    margin: 32px auto;
     padding: 28px;
     border-radius: 14px;
   }
@@ -314,6 +319,7 @@ const getNotificationColor = (type) => {
 
 @media (max-width: 480px) {
   .notification-card {
+    margin: 24px auto;
     padding: 20px;
   }
 

@@ -313,6 +313,7 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+  border: 1px solid #0d0d0e;
 }
 
 .quick-action-btn {

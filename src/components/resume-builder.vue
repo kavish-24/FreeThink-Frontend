@@ -113,30 +113,26 @@
 <script setup>
 import HeaderPart from './HeaderPart.vue';
 import FooterPart from './FooterPart.vue';
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { jsPDF } from 'jspdf';
 import ModernTemplate from '../components/templates/ModernTemplate.vue';
 import ClassicTemplate from '../components/templates/ClassicTemplate.vue';
 import ProfessionalTemplate from '../components/templates/ProfessionalTemplate.vue';
 import CreativeTemplate from '../components/templates/CreativeTemplate.vue';
-import api, { authHelpers } from '../services/auth.service'; // your axios instance
-
-const userId  = authHelpers.getCurrentUser()?.id // You can get this dynamically from auth state/store
 
 // Resume data state
 const resumeData = ref({
   name: '',
-  title: '',
-  position: '',
+    title: '',        
+  position: '',  
   email: '',
   phone: '',
-  address: '',
+  address:'',
   education: [],
   experience: [],
   skills: [],
   projects: [],
-  languages: [],
-  photo: ''
+   languages: [] 
 });
 const resumePhotoFile = ref(null);
 
@@ -156,7 +152,7 @@ const templateComponents = {
   Modern: ModernTemplate,
   Classic: ClassicTemplate,
   Professional: ProfessionalTemplate,
-  Creative: CreativeTemplate
+  Creative : CreativeTemplate
 };
 
 // Add/Remove education, experience, skills, and projects
@@ -184,7 +180,9 @@ const addProject = () => {
 const removeProject = (index) => {
   resumeData.value.projects.splice(index, 1);
 };
+// Add/Remove languages
 const addLanguage = () => {
+  if (!resumeData.value.languages) resumeData.value.languages = [];
   resumeData.value.languages.push({ name: '', level: '' });
 };
 const removeLanguage = (index) => {
@@ -205,31 +203,7 @@ const downloadPDF = () => {
     windowWidth: 800,
   });
 };
-
-// Fetch user profile and autofill
-const fetchUserProfile = async () => {
-  try {
-    const { data } = await api.get(`/profile/${userId}`);
-    resumeData.value.name = `${data.firstName || ''} ${data.lastName || ''}`.trim();
-    resumeData.value.title = data.title || '';
-    resumeData.value.position = data.title || ''; // You can adjust if different
-    resumeData.value.email = data.email || '';
-    resumeData.value.phone = data.phoneNumber || '';
-    resumeData.value.address = data.streetAddress || '';
-    resumeData.value.education = data.education || [];
-    resumeData.value.experience = data.experience || [];
-    resumeData.value.skills = (data.skills || []).map(skill => ({ name: skill }));
-    resumeData.value.photo = data.photo || '';
-  } catch (error) {
-    console.error('Error fetching profile for resume:', error);
-  }
-};
-
-onMounted(() => {
-  fetchUserProfile();
-});
 </script>
-
 
 <style scoped>
 #resume-preview {

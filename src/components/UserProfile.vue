@@ -1,4 +1,6 @@
 <template>
+  <div class="profile-page">
+    <AppHeader />
   <div class="q-pa-md bg-grey-1 full-height">
     <!-- Loading overlay -->
     <q-inner-loading :showing="loading">
@@ -7,29 +9,6 @@
     <!-- Header -->
     <q-card class="header-card q-pa-md q-mb-xl">
       <div class="row justify-between items-center">
-<<<<<<< HEAD
-        <h4 class="q-mt-none q-mb-none text-primary header-title">My Profile</h4>
-        <div class="row items-center q-gutter-sm">
-          <q-btn
-            flat
-            icon="edit"
-            :label="editMode ? 'Cancel' : 'Edit Profile'"
-            class="edit-btn"
-            @click="editMode = !editMode"
-          >
-            <q-tooltip class="professional-tooltip">Edit your profile details</q-tooltip>
-          </q-btn>
-          <q-btn
-            flat
-            icon="account_circle"
-            label="Complete Profile"
-            class="edit-btn"
-            @click="$emit('open-profile')"
-          >
-            <q-tooltip class="professional-tooltip">Complete your profile to get better job matches</q-tooltip>
-          </q-btn>
-        </div>
-=======
         <h4 class="q-mt-none q-mb-none text-primary">My Profile</h4>
         <q-btn
           flat
@@ -38,7 +17,6 @@
           class="edit-btn"
           @click="toggleEditMode"
         />
->>>>>>> 5ae37b3dc7f1e56766ac5181f357b2972b662bcd
       </div>
     </q-card>
 
@@ -77,11 +55,7 @@
             rounded
             class="q-mt-sm"
           />
-<<<<<<< HEAD
-          <div class="text-right text-caption text-primary q-mt-xs">85% Complete</div>
-=======
           <div class="text-right text-caption q-mt-xs">{{ Math.round(profileCompleteness * 100) }}%</div>
->>>>>>> 5ae37b3dc7f1e56766ac5181f357b2972b662bcd
         </div>
       </q-card>
     </div>
@@ -91,87 +65,6 @@
       <div class="section-title">Profile Information</div>
       <div class="row q-col-gutter-lg">
         <div class="col-12 col-md-6">
-<<<<<<< HEAD
-          <q-input
-            v-if="editMode"
-            v-model="profile.firstName"
-            label="First Name"
-            outlined
-            dense
-            class="input-field"
-          />
-          <div v-else class="info-row">
-            <span class="label">First Name:</span>
-            <span class="info-text">{{ profile.firstName }}</span>
-          </div>
-
-          <q-input
-            v-if="editMode"
-            v-model="profile.email"
-            label="Email"
-            outlined
-            dense
-            class="input-field"
-          />
-          <div v-else class="info-row">
-            <span class="label">Email:</span>
-            <span class="info-text">{{ profile.email }}</span>
-          </div>
-
-          <q-input
-            v-if="editMode"
-            v-model="profile.streetAddress"
-            label="Street Address"
-            outlined
-            dense
-            class="input-field"
-          />
-          <div v-else class="info-row">
-            <span class="label">Street Address:</span>
-            <span class="info-text">{{ profile.streetAddress }}</span>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-6">
-          <q-input
-            v-if="editMode"
-            v-model="profile.lastName"
-            label="Last Name"
-            outlined
-            dense
-            class="input-field"
-          />
-          <div v-else class="info-row">
-            <span class="label">Last Name:</span>
-            <span class="info-text">{{ profile.lastName }}</span>
-          </div>
-
-          <q-input
-            v-if="editMode"
-            v-model="profile.phoneNumber"
-            label="Phone Number"
-            outlined
-            dense
-            class="input-field"
-          />
-          <div v-else class="info-row">
-            <span class="label">Phone Number:</span>
-            <span class="info-text">{{ profile.phoneNumber }}</span>
-          </div>
-
-          <q-input
-            v-if="editMode"
-            v-model="profile.zipcode"
-            label="Zip Code"
-            outlined
-            dense
-            class="input-field"
-          />
-          <div v-else class="info-row">
-            <span class="label">Zip Code:</span>
-            <span class="info-text">{{ profile.zipcode }}</span>
-          </div>
-=======
           <q-input 
             v-if="editMode" 
             v-model="profile.firstName" 
@@ -233,7 +126,6 @@
             class="q-mb-md"
           />
           <div v-else class="q-mb-md"><span class="label">Zip Code:</span> {{ profile.zipcode }}</div>
->>>>>>> 5ae37b3dc7f1e56766ac5181f357b2972b662bcd
         </div>
       </div>
     </q-card>
@@ -366,24 +258,6 @@
             </div>
 
             <div v-else class="q-gutter-sm">
-<<<<<<< HEAD
-              <q-input v-model="exp.title" label="Job Title" dense outlined class="input-field" />
-              <q-input v-model="exp.company" label="Company" dense outlined class="input-field" />
-              <q-input v-model="exp.description" label="Description" type="textarea" dense outlined class="input-field" />
-              <q-input v-model="exp.start_date" type="date" label="Start Date" dense outlined class="input-field" />
-              <q-input v-model="exp.end_date" type="date" label="End Date" dense outlined class="input-field" />
-              <q-btn
-                icon="delete"
-                color="negative"
-                flat
-                dense
-                @click="removeExperience(index)"
-                size="sm"
-                class="delete-btn"
-              >
-                <q-tooltip class="professional-tooltip">Remove Experience</q-tooltip>
-              </q-btn>
-=======
               <q-input v-model="exp.title" label="Job Title" dense outlined />
               <q-input v-model="exp.company" label="Company" dense outlined />
               <q-input v-model="exp.description" label="Description" type="textarea" dense outlined />
@@ -396,7 +270,6 @@
                 @click="removeExperience(index)"
                 size="sm"
               />
->>>>>>> 5ae37b3dc7f1e56766ac5181f357b2972b662bcd
               <q-separator spaced />
             </div>
           </div>
@@ -500,6 +373,7 @@
       :loading="saving"
     />
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -507,6 +381,7 @@ import { onMounted, ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { jobSeekerProfileService } from 'src/services/profile.service';
 import { authHelpers } from 'src/services/auth.service';
+import AppHeader from 'src/components/HeaderPart.vue';
 
 const $q = useQuasar();
 const userId = authHelpers.getCurrentUser()?.id;
@@ -787,33 +662,307 @@ const formatDateForDisplay = (date) => {
 </script>
 
 <style scoped>
-.header-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+/* Font and color variables for consistency */
+:root {
+  --font-family-primary: 'Inter', sans-serif;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-gray-100: #f8fafc;
+  --color-gray-200: #e5e7eb;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-blue-50: #eff6ff;
+  --color-red: #ef4444;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --transition-base: all 0.3s ease;
 }
 
-.avatar-card, .info-card {
+.profile-page {
+  min-height: 100vh;
+  background: var(--color-gray-100);
+  font-family: var(--font-family-primary);
+}
+
+/* Header Card */
+.header-card {
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--color-gray-200);
+  transition: var(--transition-base);
+}
+
+.header-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.header-card h4 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.edit-btn {
+  color: var(--color-primary);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: var(--transition-base);
+}
+
+.edit-btn:hover {
+  background: var(--color-blue-50);
+  color: var(--color-primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Avatar Card */
+.avatar-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid var(--color-gray-200);
+  transition: var(--transition-base);
+}
+
+.avatar-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.professional-avatar {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  font-size: 2.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-base);
+}
+
+.professional-avatar:hover {
+  transform: scale(1.05);
+}
+
+.q-linear-progress {
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.q-linear-progress::v-deep(.q-linear-progress__track) {
+  background: var(--color-gray-200);
+}
+
+.q-linear-progress::v-deep(.q-linear-progress__model) {
+  background: var(--color-primary);
+  transition: width 0.5s ease;
+}
+
+/* Info Card */
+.info-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--color-gray-200);
+  transition: var(--transition-base);
+}
+
+.info-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
 }
 
 .section-title {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #1976d2;
-  margin-bottom: 16px;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
 }
 
 .label {
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #424242;
-  margin-bottom: 4px;
+  color: var(--color-gray-800);
+  margin-bottom: 0.25rem;
 }
 
-.resume-link {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
+/* Form Inputs and Selects */
+.q-input,
+.q-select {
+  margin-bottom: 1rem;
+}
+
+.q-input::v-deep(.q-field__control),
+.q-select::v-deep(.q-field__control) {
+  background: #f8fafc;
   border-radius: 8px;
-  background-color: #fafafa;
+  border: 1px solid var(--color-gray-200);
+  transition: var(--transition-base);
+}
+
+.q-input::v-deep(.q-field__control):focus-within,
+.q-select::v-deep(.q-field__control):focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Buttons */
+.q-btn {
+  border-radius: 8px;
+  transition: var(--transition-base);
+}
+
+.q-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.q-btn[color="primary"] {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.q-btn[color="primary"]:hover {
+  background: var(--color-primary-dark);
+}
+
+.q-btn[color="negative"] {
+  color: var(--color-red);
+}
+
+.q-btn[color="negative"]:hover {
+  background: #fef2f2;
+}
+
+/* Skill Chips */
+.skill-chip {
+  background: var(--color-blue-50);
+  color: var(--color-primary);
+  font-weight: 500;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  margin: 0.25rem;
+  transition: var(--transition-base);
+}
+
+.skill-chip:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+/* Resume Link */
+.resume-link {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+  transition: var(--transition-base);
+}
+
+.resume-link:hover {
+  background: var(--color-blue-50);
+  transform: translateY(-2px);
+}
+
+.resume-link a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.resume-link a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Save Button */
+.save-btn {
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  margin-top: 1.5rem;
+  transition: var(--transition-base);
+}
+
+.save-btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .avatar-card {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .info-card {
+    padding: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .header-card {
+    padding: 1rem;
+  }
+
+  .header-card h4 {
+    font-size: 1.5rem;
+  }
+
+  .q-input,
+  .q-select {
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .avatar-card {
+    padding: 1rem;
+  }
+
+  .professional-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .q-btn {
+    width: 100%;
+  }
+
+  .resume-link {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .save-btn {
+    width: 100%;
+  }
 }
 </style>

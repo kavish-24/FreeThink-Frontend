@@ -1,66 +1,298 @@
 <template>
-  <div class="header-container">
-    <div class="top-margin-blur" :class="{ 'active-blur': isScrolled }"></div>
-
-    <header class="navbar">
-      <div class="navbar-content">
-        <div class="logo">💼 JobHub</div>
-        <nav class="nav-links">
-          <router-link to="/" exact-active-class="active-link"
-            >Home</router-link
-          >
-
-          <div class="nav-dropdown-wrapper">
-            <JobsDropDown />
+  <header class="modern-navbar glass-effect">
+    <div class="navbar-container">
+      <!-- Logo Section -->
+      <div class="logo-section">
+        <router-link to="/" class="logo-link">
+          <div class="logo">
+            <q-icon name="work" class="logo-icon" />
+            <span class="logo-text">JobHub</span>
           </div>
+        </router-link>
+      </div>
 
-          <router-link to="/employers" exact-active-class="active-link"
-            >Employers</router-link
+      <!-- Centered Desktop Navigation -->
+      <nav class="desktop-nav-center hide-mobile">
+        <router-link to="/" class="nav-link" exact-active-class="nav-link-active">
+          <q-icon name="home" class="nav-icon" />
+          <span>Home</span>
+        </router-link>
+        <JobsDropDown v-if="!user || user.role !== 'job_seeker'" />
+        <router-link 
+          v-if="!user || user.role !== 'job_seeker'"
+          to="/employers" 
+          class="nav-link" 
+          exact-active-class="nav-link-active"
+        >
+          <q-icon name="business" class="nav-icon" />
+          <span>Employers</span>
+        </router-link>
+      </nav>
+
+      <!-- Mobile Menu Button -->
+      <q-btn
+        flat
+        dense
+        round
+        icon="menu"
+        class="mobile-menu-btn hide-desktop"
+        @click="toggleMobileMenu"
+      />
+
+      <!-- User Actions -->
+      <div class="user-actions">
+        <template v-if="!user && !isEmployerPage">
+          <q-btn 
+            class="btn-unstop btn-ghost"
+            label="Sign In"
+            @click="$router.push('/login')"
+            no-caps
+          />
+          <q-btn 
+            class="btn-unstop btn-primary"
+            label="Sign Up"
+            @click="$router.push('/create-account')"
+            no-caps
+          />
+        </template>
+
+        <template v-if="user">
+          <!-- Notifications -->
+          <q-btn
+            flat
+            round
+            icon="notifications_none"
+            class="notification-btn"
+            @click="$router.push(notificationRoute)"
           >
-        </nav>
+            <q-badge color="red" floating>3</q-badge>
+            <q-tooltip>Notifications</q-tooltip>
+          </q-btn>
 
-        <div class="auth-buttons">
-          <template v-if="!user && !isEmployerPage">
-            <router-link to="/login" class="sign-in">Sign In</router-link>
-            <router-link to="/create-account" class="sign-up"
-              >Sign Up</router-link
-            >
-          </template>
-
-          <template v-if="user">
-            <div class="user-dropdown" @click="toggleDropdown">
-              <div class="user-profile">
-                <q-icon name="account_circle" class="q-mr-sm" size="2.2rem" />
-                {{ user.name || user.email }}
-                <q-icon name="arrow_drop_down" size="1.8rem" />
+          <!-- User Menu -->
+          <q-btn-dropdown
+            flat
+            class="user-menu-btn"
+            dropdown-icon="none"
+          >
+            <template v-slot:label>
+              <div class="user-avatar">
+                <q-avatar size="32px" class="avatar">
+                  <q-icon name="person" />
+                </q-avatar>
+                <div class="user-info hide-mobile">
+                  <div class="user-name">{{ user.name || user.email }}</div>
+                  <div class="user-role">{{ getUserRoleLabel() }}</div>
+                </div>
+                <q-icon name="keyboard_arrow_down" class="dropdown-icon" />
               </div>
+            </template>
 
-              <div v-if="showDropdown" class="dropdown-menu">
-                <div
-                  v-if="user.role === 'job_seeker'"
-                  class="dropdown-item"
-                  @click="$router.push('/dashboard')"
-                >
-                  Job Seeker Dashboard
-                </div>
-                <div
-                  v-if="user.role === 'company'"
-                  class="dropdown-item"
-                  @click="$router.push('/employer-portal')"
-                >
-                  Employer Dashboard
-                </div>
-                <q-separator class="q-my-xs" />
-                <div class="dropdown-item logout-item" @click="logout">
-                  Logout
-                </div>
-              </div>
-            </div>
-          </template>
+            <q-list class="user-dropdown">
+              <q-item 
+                v-if="user.role === 'job_seeker' || user.type === 'seeker'" 
+                clickable 
+                v-close-popup 
+                @click="$router.push('/dashboard')"
+              >
+                <q-item-section avatar>
+                  <q-icon name="dashboard" />
+                </q-item-section>
+                <q-item-section>Dashboard</q-item-section>
+              </q-item>
+
+              <q-item 
+                v-if="user.role === 'job_seeker' || user.type === 'seeker'" 
+                clickable 
+                v-close-popup 
+                @click="$router.push('/resume-builder')"
+              >
+                <q-item-section avatar>
+                  <q-icon name="description" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Resume Builder</q-item-label>
+                  <q-item-label caption class="smart-caption">AI Powered</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-badge color="primary" label="AI" />
+                </q-item-section>
+              </q-item>
+              
+              <q-item 
+                v-if="user.role === 'company' || user.type === 'employer'" 
+                clickable 
+                v-close-popup 
+                @click="$router.push('/employer-portal')"
+              >
+                <q-item-section avatar>
+                  <q-icon name="business_center" />
+                </q-item-section>
+                <q-item-section>Employer Portal</q-item-section>
+              </q-item>
+
+              <q-item clickable v-close-popup @click="$router.push(profileRoute)">
+                <q-item-section avatar>
+                  <q-icon name="person" />
+                </q-item-section>
+                <q-item-section>Profile</q-item-section>
+              </q-item>
+
+              <q-item clickable v-close-popup @click="$router.push(settingsRoute)">
+                <q-item-section avatar>
+                  <q-icon name="settings" />
+                </q-item-section>
+                <q-item-section>Settings</q-item-section>
+              </q-item>
+
+              <q-separator />
+
+              <q-item clickable v-close-popup @click="logout">
+                <q-item-section avatar>
+                  <q-icon name="logout" color="negative" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-negative">Sign Out</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </template>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <q-drawer
+      v-model="mobileMenuOpen"
+      side="left"
+      overlay
+      behavior="mobile"
+      class="mobile-drawer"
+    >
+      <div class="drawer-content">
+        <div class="drawer-header">
+          <div class="logo">
+            <q-icon name="work" class="logo-icon" />
+            <span class="logo-text">JobHub</span>
+          </div>
+          <q-btn
+            flat
+            round
+            icon="close"
+            @click="mobileMenuOpen = false"
+          />
+        </div>
+
+        <q-list class="mobile-nav">
+          <q-item 
+            clickable
+            v-ripple
+            @click="navigateAndClose('/')"
+            :class="{ 'mobile-nav-active': $route.path === '/' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="home" />
+            </q-item-section>
+            <q-item-section>Home</q-item-section>
+          </q-item>
+
+          <q-item 
+            v-if="!user || user.role !== 'job_seeker'"
+            clickable
+            v-ripple
+            @click="navigateAndClose('/jobs')"
+          >
+            <q-item-section avatar>
+              <q-icon name="work" />
+            </q-item-section>
+            <q-item-section>Jobs</q-item-section>
+          </q-item>
+
+          <q-item 
+            v-if="!user || user.role !== 'job_seeker'"
+            clickable
+            v-ripple
+            @click="navigateAndClose('/employers')"
+            :class="{ 'mobile-nav-active': $route.path === '/employers' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="business" />
+            </q-item-section>
+            <q-item-section>Employers</q-item-section>
+          </q-item>
+
+          <q-item 
+            v-if="user"
+            clickable
+            v-ripple
+            @click="navigateAndClose(profileRoute)"
+            :class="{ 'mobile-nav-active': $route.path === profileRoute }"
+          >
+            <q-item-section avatar>
+              <q-icon name="person" />
+            </q-item-section>
+            <q-item-section>Profile</q-item-section>
+          </q-item>
+
+          <q-item 
+            v-if="user"
+            clickable
+            v-ripple
+            @click="navigateAndClose(settingsRoute)"
+            :class="{ 'mobile-nav-active': $route.path === settingsRoute }"
+          >
+            <q-item-section avatar>
+              <q-icon name="settings" />
+            </q-item-section>
+            <q-item-section>Settings</q-item-section>
+          </q-item>
+
+          <q-item 
+            v-if="user"
+            clickable
+            v-ripple
+            @click="navigateAndClose(notificationRoute)"
+            :class="{ 'mobile-nav-active': $route.path === notificationRoute }"
+          >
+            <q-item-section avatar>
+              <q-icon name="notifications_none" />
+            </q-item-section>
+            <q-item-section>Notifications</q-item-section>
+          </q-item>
+
+          <q-item 
+            v-if="user"
+            clickable
+            v-ripple
+            @click="logout"
+            :class="{ 'mobile-nav-active': $route.path === '/logout' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="logout" color="negative" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-negative">Sign Out</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+
+        <div class="drawer-footer" v-if="!user">
+          <q-btn 
+            class="btn-unstop btn-outline full-width"
+            label="Sign In"
+            @click="navigateAndClose('/login')"
+            no-caps
+          />
+          <q-btn 
+            class="btn-unstop btn-primary full-width"
+            label="Sign Up"
+            @click="navigateAndClose('/create-account')"
+            no-caps
+          />
         </div>
       </div>
-    </header>
-  </div>
+    </q-drawer>
+  </header>
 </template>
 
 <script>
@@ -74,33 +306,17 @@ export default {
     return {
       showDropdown: false,
       initialized: false,
-      isScrolled: false,
+      mobileMenuOpen: false,
     };
-  },
-  async mounted() {
-    window.addEventListener('scroll', this.handleScroll);
-    await this.authStore.checkAuth();
-    this.initialized = true;
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.handleScroll);
-  },
-  methods: {
-    handleScroll() {
-      this.isScrolled = window.scrollY > 10;
-    },
-    toggleDropdown() {
-      this.showDropdown = !this.showDropdown;
-    },
-    logout() {
-      this.authStore.logout();
-      this.showDropdown = false;
-      this.$router.push('/');
-    },
   },
   setup() {
     const authStore = useAuthStore();
     return { authStore };
+  },
+  async mounted() {
+    await this.authStore.checkAuth();
+    this.initialized = true;
+    console.log('AppNavbar mounted, user:', this.user);
   },
   computed: {
     user() {
@@ -118,322 +334,351 @@ export default {
       ];
       return employerPaths.includes(this.$route.path);
     },
+    notificationRoute() {
+      if (this.user && (this.user.role === 'job_seeker' || this.user.type === 'seeker')) {
+        return '/notifications';
+      } else if (this.user && (this.user.role === 'company' || this.user.type === 'employer')) {
+        return '/employer/notifications';
+      }
+      return '/notifications';
+    },
+    profileRoute() {
+      if (this.user && (this.user.role === 'job_seeker' || this.user.type === 'seeker')) {
+        return '/profile';
+      } else if (this.user && (this.user.role === 'company' || this.user.type === 'employer')) {
+        return '/employer/profile';
+      }
+      return '/profile';
+    },
+    settingsRoute() {
+      if (this.user && (this.user.role === 'job_seeker' || this.user.type === 'seeker')) {
+        return '/settings';
+      } else if (this.user && (this.user.role === 'company' || this.user.type === 'employer')) {
+        return '/employer/settings';
+      }
+      return '/settings';
+    },
   },
   watch: {
     $route: {
       handler() {
         this.authStore.checkAuth();
+        console.log('Route changed, user:', this.user);
       },
       immediate: true,
+    },
+  },
+  methods: {
+    toggleDropdown() {
+      this.showDropdown = !this.showDropdown;
+    },
+    toggleMobileMenu() {
+      this.mobileMenuOpen = !this.mobileMenuOpen;
+    },
+    navigateAndClose(path) {
+      this.$router.push(path);
+      this.mobileMenuOpen = false;
+    },
+    getUserRoleLabel() {
+      if (this.user?.role === 'job_seeker' || this.user?.type === 'seeker') {
+        return 'Job Seeker';
+      } else if (this.user?.role === 'company' || this.user?.type === 'employer') {
+        return 'Employer';
+      }
+      return 'User';
+    },
+    logout() {
+      this.authStore.logout();
+      this.showDropdown = false;
+      this.mobileMenuOpen = false;
+      this.$router.push('/');
+      console.log('Logout triggered, user:', this.user);
     },
   },
 };
 </script>
 
 <style scoped>
-/* --- FONT IMPORT --- */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
-.header-container {
-  height: 100px;
+.modern-navbar {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
 }
 
-.top-margin-blur {
-  position: fixed;
-  top: 0;
-  left: 20px;
-  right: 20px;
-  height: 20px;
-  z-index: 1099;
-  background-color: transparent;
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  transition: background-color 0.4s ease, backdrop-filter 0.4s ease;
-}
-
-.top-margin-blur.active-blur {
-  background-color: rgba(210, 253, 250, 0.75);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-@keyframes breathingBackground {
-  0% {
-    background-color: #d8ddff;
-  }
-  33% {
-    background-color: #bddbff;
-  }
-  66% {
-    background-color: #bebef9;
-  }
-  100% {
-    background-color: #afe6fa;
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.navbar {
-  display: flex;
-  padding: 0 25px;
+.navbar-container {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto minmax(200px, 1fr);
   align-items: center;
-  /* --- TYPOGRAPHY: Updated base font --- */
-  font-family: 'Poppins', sans-serif;
-  animation: breathingBackground 15s ease-in-out infinite;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  right: 20px;
-  z-index: 1100;
-  min-height: 50px;
-  overflow: visible;
-  transition: background 1.5s ease-in-out;
+  padding: 0 var(--space-6);
+  height: 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
 }
 
-.navbar-content {
+/* Logo Section */
+.logo-section {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 100%;
-  animation: fadeInUp 0.7s ease-out forwards;
+  justify-content: flex-start;
+  grid-column: 1;
+  min-width: 200px;
+}
+
+.logo-link {
+  text-decoration: none;
 }
 
 .logo {
-  font-weight: 700;
-  color: #1565c0;
-  font-size: 40px;
-  font-family: Gabriola;
-  font-style: bold;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-base);
 }
 
-/* --- LOGO HOVER: Improved effect --- */
 .logo:hover {
-  transform: scale(1.05) rotate(-2deg);
-  color: #1e88e5;
-  text-shadow: 0 4px 20px rgba(21, 101, 192, 0.4);
+  transform: scale(1.05);
 }
 
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: Georgia;
-  font-size: 20px;
+.logo-icon {
+  font-size: 2rem;
+  color: var(--color-primary-500);
 }
 
-/* --- NAV LINKS: Improved typography and new hover effect --- */
-.nav-links a {
-  position: relative;
-  margin: 0 12px;
-  color: #333;
-  font-weight: 500;
-  text-decoration: none;
-  font-size: 16px;
-  padding: 5px 0;
-  transition: color 0.3s ease;
-}
-
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: #1565c0;
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-.nav-links a:hover {
-  color: #1565c0;
-}
-
-.nav-links a:hover::after {
-  transform: scaleX(1);
-}
-
-.nav-dropdown-wrapper {
-  padding: 10px;
-  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
-  border-radius: 8px;
-}
-
-.nav-dropdown-wrapper:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.15);
-}
-
-/* --- BUTTONS: Redesigned for modern look --- */
-.auth-buttons {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: Georgia;
-  font-size: 20px;
-}
-
-.auth-buttons .sign-in {
-  font-weight: 600;
-  font-size: 15px;
-  color: #1565c0;
-  text-decoration: none;
-  padding: 7px 18px;
-  border: 2px solid #1565c0;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.auth-buttons .sign-in:hover {
-  background-color: #e3f2fd;
-  color: #1c4fcf;
-}
-
-.auth-buttons .sign-up {
-  background-image: linear-gradient(45deg, #1565c0 0%, #1e88e5 100%);
-  color: white;
-  font-size: 15px;
-  padding: 9px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-  border: none;
-  box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);
-  transition: all 0.3s ease;
-}
-
-.auth-buttons .sign-up:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 7px 20px rgba(21, 101, 192, 0.4);
-}
-
-/* --- Active Link Style --- */
-.nav-links .active-link {
-  position: relative;
-  color: #1565c0;
+.logo-text {
+  font-size: var(--font-size-xl);
   font-weight: 700;
-  font-family: Georgia;
-  font-size: 20px;
-}
-.nav-links .active-link::after {
-  transform: scaleX(1);
+  font-family: var(--font-family-display);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.user-profile {
-  cursor: pointer;
-  font-weight: 600;
-  color: #1565c0;
+/* Desktop Navigation */
+.desktop-nav {
   display: flex;
   align-items: center;
-  transition: all 0.2s ease;
-  gap: 10px;
-  font-size: 15px;
-  padding: 6px 12px;
-  border-radius: 8px;
+  gap: var(--space-2);
 }
-.user-profile:hover {
-  color: #1c4fcf;
-  background-color: #f5f7fa;
+
+/* Centered Desktop Navigation */
+.desktop-nav-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  z-index: 10;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  text-decoration: none;
+  color: var(--color-gray-600);
+  font-weight: 500;
+  transition: all var(--transition-base);
+  position: relative;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.nav-link-active {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.nav-icon {
+  font-size: 1.125rem;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  color: var(--color-gray-600);
+  grid-column: 3;
+  justify-self: end;
+  z-index: 20;
+}
+
+/* User Actions */
+.user-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  grid-column: 3;
+  min-width: 200px;
+}
+
+.notification-btn {
+  color: var(--color-gray-600);
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+.notification-btn:hover {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+  border-radius: var(--border-radius-lg);
+}
+
+.user-menu-btn {
+  color: var(--color-gray-700);
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.avatar {
+  border: 2px solid var(--color-primary-200);
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-gray-800);
+  line-height: 1.2;
+}
+
+.user-role {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  line-height: 1.2;
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+  color: var(--color-gray-500);
 }
 
 .user-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  /* --- TYPOGRAPHY: Updated font --- */
-  font-family: 'Poppins', sans-serif;
-  margin-top: 12px;
-  background-color: rgb(255, 255, 255);
-  border: 1px solid #eaecef;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
-  overflow: hidden;
-  z-index: 1102;
-  animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdown-item {
-  padding: 12px 18px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #333;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.dropdown-item:hover {
-  background-color: #f5f7fa;
-  color: #1565c0;
-}
-
-.logout-item {
-  color: #d32f2f !important;
-}
-
-.logout-item:hover {
-  background-color: #fdecea;
-  color: #b71c1c !important;
-}
-
-@keyframes slideDownFade {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-:deep(.jobs-dropdown-menu) {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 15px;
-  background: linear-gradient(135deg, #fdfdca 0%, #e9ffe5 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
   min-width: 220px;
-  z-index: 1101;
-  padding: 8px;
-  animation: slideDownFade 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-gray-200);
+}
+
+/* Mobile Drawer */
+.mobile-drawer {
+  background: var(--color-surface);
+}
+
+.drawer-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.mobile-nav {
+  flex: 1;
+  padding: var(--space-4) 0;
+}
+
+.mobile-nav .q-item {
+  margin: var(--space-1) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  color: var(--color-gray-700);
+}
+
+.mobile-nav .q-item:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.mobile-nav-active {
+  background: var(--color-primary-50) !important;
+  color: var(--color-primary-600) !important;
+}
+
+.drawer-footer {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 var(--space-4);
+    position: relative;
+  }
+  
+  .desktop-nav-center {
+    position: static;
+    transform: none;
+    display: none;
+  }
+  
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Button Overrides for Header */
+.user-actions .btn-unstop {
+  font-size: var(--font-size-sm);
+}
+
+.user-actions .btn-ghost {
+  color: var(--color-gray-600);
+}
+
+.user-actions .btn-ghost:hover {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+/* No fixed positioning, so no margin needed */
+
+.smart-caption {
+  color: var(--color-orange-600) !important;
+  font-weight: 500;
+  font-size: 11px;
 }
 </style>
