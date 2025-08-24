@@ -1,4 +1,5 @@
 <template>
+  <div v-if="!showQueries">
   <q-card class="notification-card q-pa-xl q-mb-xl" flat bordered>
     <div class="row items-center justify-between q-mb-lg">
       <div class="row items-center q-gutter-md">
@@ -31,6 +32,26 @@
     </div>
 
     <q-separator inset class="q-my-lg separator" />
+
+    <div class="q-my-lg">
+  <q-list bordered padding class="rounded-borders action-card">
+    <q-item clickable v-ripple @click="goToQueries" aria-label="Go to support and queries page">
+      <q-item-section avatar>
+        <q-avatar icon="support_agent" color="primary" text-color="white" />
+      </q-item-section>
+
+      <q-item-section>
+        <q-item-label class="text-weight-bold">Support & Queries</q-item-label>
+        <q-item-label caption>Have a question? View your past support tickets or create a new one.</q-item-label>
+      </q-item-section>
+
+      <q-item-section side>
+        <q-icon name="chevron_right" color="grey-6" />
+      </q-item-section>
+    </q-item>
+  </q-list>
+</div>
+
 
     <div class="q-mt-xl" v-if="notifications.length > 0">
       <q-list bordered class="rounded-borders notification-list">
@@ -85,11 +106,30 @@
       <div class="text-h6 text-grey-8 text-weight-medium">You're All Caught Up!</div>
       <div class="text-body2 text-grey-6">No new notifications to display.</div>
     </div>
+    
   </q-card>
+  </div>
+  <div v-else>
+  <!-- Add a button to return to notifications -->
+  <q-btn
+    label="Back to Notifications"
+    icon="arrow_back"
+    color="primary"
+    flat
+    @click="showQueries = false"
+    class="q-mb-md"
+  />
+  
+  <!-- Add the component for queries -->
+  <JobseekerQueriesAns />
+</div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import JobseekerQueriesAns from './JobseekerQueriesAns.vue';
+
+const showQueries = ref(false);
 
 const notifications = ref([
   { message: 'Profile updated successfully!', timestamp: '10:20 PM IST, Aug 02, 2025', type: 'success' },
@@ -104,6 +144,10 @@ const dismissNotification = (index) => {
 
 const clearAllNotifications = () => {
   notifications.value = [];
+};
+
+const goToQueries = () => {
+  showQueries.value = true;
 };
 
 const getNotificationIcon = (type) => {
@@ -163,6 +207,16 @@ const getNotificationColor = (type) => {
 .separator {
   background: linear-gradient(to right, #e2e8f0, #3b82f6, #e2e8f0);
   height: 2px;
+}
+
+.action-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+.action-card:hover {
+  background: #e9ecef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
 
 .notification-list {
