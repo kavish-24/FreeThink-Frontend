@@ -2,11 +2,9 @@
   <div class="profile-page">
     <AppHeader />
   <div class="q-pa-md bg-grey-1 full-height">
-    <!-- Loading overlay -->
     <q-inner-loading :showing="loading">
       <q-spinner-gears size="50px" color="primary" />
     </q-inner-loading>
-    <!-- Header -->
     <q-card class="header-card q-pa-md q-mb-xl">
       <div class="row justify-between items-center">
         <h4 class="q-mt-none q-mb-none text-primary">My Profile</h4>
@@ -20,7 +18,6 @@
       </div>
     </q-card>
 
-    <!-- Avatar Card -->
     <div class="row justify-center">
       <q-card class="avatar-card q-pa-lg q-mb-xl">
         <div class="column items-center q-gutter-md">
@@ -60,7 +57,6 @@
       </q-card>
     </div>
 
-    <!-- Info Card -->
     <q-card class="info-card q-pa-lg q-mb-xl">
       <div class="section-title">Profile Information</div>
       <div class="row q-col-gutter-lg">
@@ -130,7 +126,6 @@
       </div>
     </q-card>
 
-    <!-- Professional Background -->
     <q-card class="info-card q-pa-lg q-mb-xl">
       <div class="section-title">Professional Background</div>
 
@@ -277,7 +272,6 @@
       </div>
     </q-card>
 
-    <!-- Skills & Resume -->
     <q-card class="info-card q-pa-lg q-mb-xl">
       <div class="section-title">Skills & Resume</div>
       <div class="row q-col-gutter-lg">
@@ -321,7 +315,6 @@
         <div class="col-12 col-md-6">
           <div class="label q-mb-sm">Resume</div>
 
-          <!-- View mode preview -->
           <div v-if="!editMode">
             <q-img
               v-if="profile.resumeType === 'image' && profile.resume"
@@ -338,7 +331,6 @@
             <div v-else class="text-grey-7">No resume uploaded</div>
           </div>
 
-          <!-- Edit mode upload button -->
           <div v-if="editMode">
             <q-btn
               label="Upload Resume"

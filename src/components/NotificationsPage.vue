@@ -169,6 +169,16 @@ const getNotificationColor = (type) => {
   height: 2px;
 }
 
+.action-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+.action-card:hover {
+  background: #e9ecef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
 .notification-list {
   border-radius: 16px;
   background: #ffffff;

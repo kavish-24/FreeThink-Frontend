@@ -89,6 +89,12 @@ const routes = [
     meta: { requiresAuth: true, role: 'company' }
   },
   {
+    path: '/employer-queries',
+    name: 'EmployerQueries',
+    component: () => import('components/EmployerQueriesAns.vue'),
+    meta: { requiresAuth: true, role: 'company' }
+ },
+  {
     path: '/employer-messages',
     name: 'EmployerMessages',
     component: () => import('components/EmployerMessages.vue'),
