@@ -47,55 +47,78 @@
       </p>
 
       <div class="category-grid">
-        <q-card class="category-card cursor-pointer" @click="gotoCategory('Technology')">
-          <div class="icon">💻</div>
-          <h3>Information Technology</h3>
-          <p class="count">12,500+ jobs</p>
-          <small>Software, Web Development, Data Science</small>
-        </q-card>
-        <div class="category-card">
-          <div class="icon">📈</div>
-          <h3>Marketing & Sales</h3>
-          <p class="count">8,300+ jobs</p>
-          <small>Digital Marketing, Sales, Business Development</small>
-        </div>
-        <div class="category-card">
-          <div class="icon">💰</div>
-          <h3>Finance & Accounting</h3>
-          <p class="count">6,700+ jobs</p>
-          <small>Accounting, Financial Analysis, Investment</small>
-        </div>
-        <div class="category-card">
-          <div class="icon">👥</div>
-          <h3>Human Resources</h3>
-          <p class="count">4,200+ jobs</p>
-          <small>HR Management, Recruitment, Training</small>
-        </div>
-        <div class="category-card">
-          <div class="icon">📦</div>
-          <h3>Business & Consulting</h3>
-          <p class="count">3,800+ jobs</p>
-          <small>Strategy, Operations, Management</small>
-        </div>
-        <div class="category-card">
-          <div class="icon">🎨</div>
-          <h3>Design & Creative</h3>
-          <p class="count">2,900+ jobs</p>
-          <small>UI/UX, Graphics, Content Creation</small>
-        </div>
-        <div class="category-card">
-          <div class="icon">🛡️</div>
-          <h3>Legal & Compliance</h3>
-          <p class="count">1,500+ jobs</p>
-          <small>Legal Affairs, Compliance, Risk</small>
-        </div>
-        <div class="category-card">
-          <div class="icon">⚕️</div>
-          <h3>Healthcare & Medical</h3>
-          <p class="count">5,200+ jobs</p>
-          <small>Medical, Nursing, Healthcare Admin</small>
-        </div>
-      </div>
+  <q-card class="category-card cursor-pointer" style="background-image: url('https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');" @click="gotoCategory('Technology')">
+    <div class="icon">💻</div>
+    <div class="card-content">
+      <h3>Information Technology</h3>
+      <p class="count">12,500+ jobs</p>
+      <small>Software, Web Development, Data Science</small>
+    </div>
+  </q-card>
+
+  <div class="category-card" style="background-image: url('https://images.pexels.com/photos/6476783/pexels-photo-6476783.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+    <div class="icon">📈</div>
+    <div class="card-content">
+      <h3>Marketing & Sales</h3>
+      <p class="count">8,300+ jobs</p>
+      <small>Digital Marketing, Sales, Business Development</small>
+    </div>
+  </div>
+
+  <div class="category-card" style="background-image: url('https://images.pexels.com/photos/7788009/pexels-photo-7788009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+    <div class="icon">💰</div>
+    <div class="card-content">
+      <h3>Finance & Accounting</h3>
+      <p class="count">6,700+ jobs</p>
+      <small>Accounting, Financial Analysis, Investment</small>
+    </div>
+  </div>
+
+  <div class="category-card" style="background-image: url('https://images.pexels.com/photos/3184433/pexels-photo-3184433.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+    <div class="icon">👥</div>
+    <div class="card-content">
+      <h3>Human Resources</h3>
+      <p class="count">4,200+ jobs</p>
+      <small>HR Management, Recruitment, Training</small>
+    </div>
+  </div>
+
+  <div class="category-card" style="background-image: url('https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+    <div class="icon">📦</div>
+    <div class="card-content">
+      <h3>Business & Consulting</h3>
+      <p class="count">3,800+ jobs</p>
+      <small>Strategy, Operations, Management</small>
+    </div>
+  </div>
+
+  <div class="category-card" style="background-image: url('https://images.pexels.com/photos/326503/pexels-photo-326503.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+    <div class="icon">🎨</div>
+    <div class="card-content">
+      <h3>Design & Creative</h3>
+      <p class="count">2,900+ jobs</p>
+      <small>UI/UX, Graphics, Content Creation</small>
+    </div>
+  </div>
+
+  <div class="category-card" style="background-image: url('https://images.pexels.com/photos/3760067/pexels-photo-3760067.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+    <div class="icon">🛡️</div>
+    <div class="card-content">
+      <h3>Legal & Compliance</h3>
+      <p class="count">1,500+ jobs</p>
+      <small>Legal Affairs, Compliance, Risk</small>
+    </div>
+  </div>
+
+  <div class="category-card" style="background-image: url('https://images.pexels.com/photos/3992933/pexels-photo-3992933.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+    <div class="icon">⚕️</div>
+    <div class="card-content">
+      <h3>Healthcare & Medical</h3>
+      <p class="count">5,200+ jobs</p>
+      <small>Medical, Nursing, Healthcare Admin</small>
+    </div>
+  </div>
+</div>
     </section>
         <section v-if="!isLoggedIn" class="how-it-works">
       <h2>How It Works</h2>
@@ -569,7 +592,7 @@ mask-image:
 .categories {
   text-align: center;
   font-family: Lucida Bright;
-  padding: 30px 30px 70px;
+  padding: 60px 30px 70px;
   background-color: transparent; /* Changed from a solid color */
   border-radius: 20px; /* Add border-radius for a nicer hover effect */
   transition: background-color 0.5s ease; /* Smooth transition in */
@@ -597,42 +620,113 @@ mask-image:
   margin-top: 20px;
 }
 .category-card {
-  background: white;
+  position: relative; /* For positioning child elements */
   border-radius: 16px;
-  padding: 32px 22px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
-  text-align: center;
-  font-style:bold;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
   min-width: 260px;
   max-width: 300px;
-  min-height: 330px;
-  height: 220px;
+  height: 300px; /* Adjusted height */
+  overflow: hidden; /* Important for border-radius on children */
+  
+  /* Flexbox to position icon at top and content at bottom */
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-content: space-between; 
+  padding: 0; /* Remove old padding */
+  
+  /* Styles for the new background image */
+  background-size: cover;
+  background-position: center;
+}
+/* Add a dark overlay to make text more readable */
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
 }
 .category-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(37, 139, 222, 0.851);
+  border: none;
+}
+.categories h2 {
+  /* Keep your existing font styles */
+  font-size: 40px;
+  font-family: MV Boli;
+  font-weight: 700;
+  margin-bottom: 12px;
+
+  /* Add this for a smooth animation */
+  transition: transform 0.3s ease-out, text-shadow 0.4s ease-out;
+  cursor: pointer; /* Changes the cursor to indicate it's interactive */
+}
+
+.categories h2:hover {
+  /* 1. Animate the heading upwards */
   transform: translateY(-6px);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-  border: 1px solid #1565c0;
+  
+  /* 2. Add a soft blue glow that matches your theme */
+  text-shadow: 0 0 12px rgba(10, 121, 247, 0.842);
+}
+.card-content {
+  background: rgba(227, 242, 253, 0.668); /* Semi-transparent light blue */
+  backdrop-filter: blur(10px); /* The "glossy" effect */
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 16px;
+  width: 100%;
+  z-index: 2; /* Ensure it's above the ::before overlay */
+  text-align: center;
+  max-height: 55px; /* Collapsed height, just enough for the h3 */
+  overflow: hidden; /* Hides the extra content */
+  transition: max-height 0.4s ease-in-out;
+  box-sizing: border-box; /* Ensures padding is included in height calculation */
+}
+.category-card:hover .card-content {
+  max-height: 180px; /* Expanded height, enough for all content */
+}
+.card-content .count,
+.card-content small {
+  display: block; /* Ensures they take up their own line */
+  opacity: 0;
+  max-height: 0;
+  transition: opacity 0.2s ease, max-height 0.2s ease;
+}
+.category-card:hover .card-content .count,
+.category-card:hover .card-content small {
+  opacity: 1;
+  max-height: 50px; /* Give them space to appear */
+  transition-delay: 0.15s; /* Delay the fade-in until the box has expanded a bit */
 }
 .category-card .icon {
-  font-size: 30px;
-  margin-bottom: 14px;
+  font-size: 32px;
+  z-index: 2; /* Above the overlay */
+  margin: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: white; /* Make the emoji render cleanly */
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* A shadow to lift it off the image */
+  align-self: flex-start; /* Position icon to the top-left */
 }
+/* Keep other text styles, but ensure they are targeting the new structure */
 .category-card h3 {
   font-size: 18px;
   font-weight: 600;
   color: #1d2b53;
-  margin-bottom: 6px;
+  margin: 0 0 8px 0; /* Adjust margin */
 }
 .category-card .count {
   color: #1565c0;
   font-weight: 700;
 }
 .category-card small {
-  color: #888;
+  color: #334e68;
   font-size: 13px;
 }
 
@@ -640,22 +734,42 @@ mask-image:
 .how-it-works {
   padding: 80px 30px;
   text-align: center;
-  background-color: transparent; /* Changed from a solid color */
+  background-color: rgba(240, 245, 255, 0.5); /* Lighter, subtle background */
   border-radius: 20px;
   transition: background-color 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+.how-it-works::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400'%3E%3Cpath d='M-200 100 Q-100 0 0 100 T200 100 T400 100 T600 100 T800 100 T1000 100' stroke='%23eef4ff' fill='none' stroke-width='2'/%3E%3Cpath d='M-200 200 Q-100 100 0 200 T200 200 T400 200 T600 200 T800 200 T1000 200' stroke='%23eef4ff' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  z-index: 0;
+}
+.how-it-works > * {
+  position: relative;
+  z-index: 1;
 }
 .how-it-works h2 {
   font-size: 40px;
-  font-family:MV Boli;
+  font-family: 'MV Boli';
   color: #1565c0;
   margin-bottom: 10px;
+  transition: transform 0.3s ease-out, text-shadow 0.4s ease-out;
+  cursor: pointer;
+}
+.how-it-works h2:hover {
+  transform: translateY(-5px);
+  text-shadow: 0 0 12px rgba(21, 101, 192, 0.741);
 }
 .how-it-works .subtitle {
   font-size: 20px;
-  font-style:bold;
-  font-family: Geneva;
-  color: #666;
-  margin-bottom: 50px;
+  font-style: bold;
+  font-family: 'Geneva';
+  color: #556;
+  margin-bottom: 70px; /* Increased margin for more space */
 }
 
 .categories:hover,
@@ -667,43 +781,112 @@ mask-image:
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 40px;
+  gap: 30px; /* Slightly reduced gap */
   margin-bottom: 50px;
+  position: relative;
+}
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 55px; /* Adjust vertical position to align with icons */
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #cddcff, #cddcff 6px, transparent 6px, transparent 12px);
+  z-index: 0;
 }
 .step {
-  background: #fff;
-  border-radius: 14px;
-  padding: 30px 25px;
-  max-width: 300px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  /* --- The "Glass" Foundation --- */
+  background: rgba(195, 244, 252, 0.7); /* More opaque white for a clearer glass effect */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  /* --- The "Glass" Edge --- */
+  border: 1px solid rgba(255, 255, 255, 0.4); /* A border to define the edge */
+  border-right-color: rgba(255, 255, 255, 0.2);
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+
+  /* --- General Styling & Animation --- */
+  border-radius: 20px;
+  padding: 30px;
   text-align: center;
+  box-shadow: 0 8px 32px rgba(73, 31, 189, 0.188);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 300px;
+  max-width: 320px;
+
+  /* --- Prep for the Glossy Sheen --- */
+  position: relative;
+  overflow: hidden;
+}
+.step::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.step:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 40px rgba(25, 126, 242, 0.705);
+}
+.step:hover::after {
+  opacity: 1;
 }
 .step-icon {
-  font-size: 36px;
+  font-size: 28px;
   margin-bottom: 12px;
-  display: inline-block;
-  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
+/* Unique gradient backgrounds for each icon */
+.step-icon.blue { background: linear-gradient(135deg, #4dabf7, #1565c0); }
+.step-icon.green { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+.step-icon.purple { background: linear-gradient(135deg, #ab47bc, #6a1b9a); }
 .step-number {
-  background-color: #1565c0;
-  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #1565c0;
   width: 28px;
   height: 28px;
   border-radius: 50%;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 28px;
-  margin: 12px auto;
+  margin-top: -20px; /* Pulls number slightly over the icon */
+  margin-bottom: 20px;
+  border: 2px solid white;
 }
 .step h3 {
-  font-size: 18px;
-  margin: 12px 0;
+  font-size: 20px;
+  margin: 0 0 10px 0;
+  color: #1d2b53;
+  font-weight: 800;
 }
+
 .step p {
-  font-size: 14px;
-  color: #555;
+  font-size: 15px;
+  color: #445;
+  line-height: 1.6;
 }
 
 .tagline {
@@ -735,6 +918,16 @@ mask-image:
   flex-direction: column;
   align-items: center;
   max-width: 200px;
+  background-color: #f5eefb;
+  border-radius: 10px;
+  padding: 10px; 
+  transition: all 0.3s ease; 
+}
+
+.feature-item:hover {
+  transform: translateY(-4px);
+  background-color: #debdf9;
+  box-shadow: 0 5px 15px #6124da7f; 
 }
 
 .feature-item strong {
@@ -742,12 +935,15 @@ mask-image:
   font-weight: 600;
   font-size: 1.1rem;
   margin-bottom: 8px;
+  text-decoration: underline;
 }
 
 .feature-item small {
   color: #555;
   font-size: 0.9rem;
   line-height: 1.3;
+  font-family: sans-serif;
+  font-size: 15px;
 }
 
 .handwritten {
