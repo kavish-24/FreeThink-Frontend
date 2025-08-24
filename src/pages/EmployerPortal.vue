@@ -200,6 +200,7 @@ const fetchNavStats = async () => {
 const actionItems = ref([
   { icon: 'person_add', title: '5 New Applicants', subtitle: 'For Senior Frontend Developer', to: '/candidates?jobId=1' },
   { icon: 'mark_email_unread', title: '3 Unread Messages', subtitle: 'From Priya, Vikram, and more', to: '/employer-messages' },
+  { icon: 'rate_review', title: '1 New Query Reply', subtitle: 'Admin has replied to your support ticket', to: '/employer-queries' },
   { icon: 'pending', title: '2 Jobs Pending Review', subtitle: 'Awaiting admin approval', to: '/posted-jobs' },
   { icon: 'quiz', title: 'Add Screening Test', subtitle: 'Improve filtering by adding a test to your posted jobs', to: '/screening-test' },
 ]);
@@ -210,13 +211,14 @@ const upcomingInterviews = ref([
   { id: 3, candidateName: 'Sneha Verma', jobTitle: 'Senior Frontend Developer', date: 'Aug 5, 2025', time: '10:00 AM' },
 ]);
 
-const chartSeries = ref([{ name: 'New Applications', data: [8, 12, 5, 15, 9, 22, 18] }]);
+const chartSeries = ref([{ name: 'Jobs Posted', data: [] }]);
+const chartCategories = ref([]);
 const chartOptions = computed(() => ({
   chart: { type: 'bar', height: 350, toolbar: { show: false } },
   plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '60%' } },
   dataLabels: { enabled: false },
-  xaxis: { categories: ['Jul 26', 'Jul 27', 'Jul 28', 'Jul 29', 'Jul 30', 'Jul 31', 'Aug 01'] },
-  colors: ['#1565c0'], // Main blue theme color
+  xaxis: { categories: chartCategories.value },
+  colors: ['#1565c0'],
   theme: { mode: $q.dark.isActive ? 'dark' : 'light' }
 }));
 
@@ -291,6 +293,7 @@ onMounted(async () => {
       }
     }
     await fetchNavStats();
+    await fetchTrends();
   } catch (error) {
     console.error('Error fetching stats:', error);
   }
@@ -302,6 +305,7 @@ const links = computed(() => [
   { label: 'Post New Job', icon: 'add_box', to: '/post-job', highlight: true },
   { label: 'Candidates', icon: 'groups', to: '/candidates' },
   { label: 'Messages', icon: 'mail', to: '/employer-messages' },
+  { label: 'Support & Queries', icon: 'support_agent', to: '/employer-queries' },
   { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
   { label: 'Settings', icon: 'settings', to: '/employer-settings' }
 ]);
@@ -315,6 +319,69 @@ const navigate = (link) => {
 const todaysDate = new Date().toLocaleDateString('en-IN', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
 });
+
+const formatLabel = (isoDate) => {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  const options = { month: 'short', day: '2-digit' };
+  return d.toLocaleDateString('en-US', options);
+};
+
+// Helper: return array of Date objects for the last n days (oldest -> today)
+const getLastNDates = (n) => {
+  const dates = [];
+  const today = new Date();
+  // normalize to local midnight
+  today.setHours(0, 0, 0, 0);
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dates.push(d);
+  }
+  return dates;
+};
+
+// Helper: format a Date into local YYYY-MM-DD (without UTC shifts)
+const formatDateKeyLocal = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const fetchTrends = async () => {
+  try {
+    const companyId = authHelpers.getCurrentUser()?.id;
+    if (!companyId) return;
+    const response = await api.get(`/jobs/jobs/trends/${companyId}`);
+    // Always prepare the latest 7 calendar days (oldest -> today)
+    const last7Dates = getLastNDates(7);
+    const last7Keys = last7Dates.map(d => formatDateKeyLocal(d));
+
+    if (response.data?.success) {
+      // Normalize API data into a map keyed by local YYYY-MM-DD
+      const countByDate = (response.data.data || []).reduce((acc, row) => {
+        const parsed = new Date(row.date);
+        // normalize to local date key
+        const key = formatDateKeyLocal(new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()));
+        const count = Number(row.count) || 0;
+        acc[key] = (acc[key] || 0) + count;
+        return acc;
+      }, {});
+
+      chartCategories.value = last7Dates.map(d => formatLabel(d));
+      chartSeries.value = [{ name: 'Jobs Posted', data: last7Keys.map(k => countByDate[k] || 0) }];
+    } else {
+      chartCategories.value = last7Dates.map(d => formatLabel(d));
+      chartSeries.value = [{ name: 'Jobs Posted', data: last7Keys.map(() => 0) }];
+    }
+  } catch (err) {
+    console.error('Error fetching trends:', err);
+    const last7Dates = getLastNDates(7);
+    chartCategories.value = last7Dates.map(d => formatLabel(d));
+    chartSeries.value = [{ name: 'Jobs Posted', data: last7Dates.map(() => 0) }];
+  }
+};
 </script>
 
 <style scoped>

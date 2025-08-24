@@ -117,6 +117,8 @@
 import { ref, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
+import { jobSeekerProfileService } from 'src/services/profile.service'
+import { authHelpers } from 'src/services/auth.service'
 
 const props = defineProps({
   modelValue: Boolean
@@ -142,6 +144,7 @@ watch(() => props.modelValue, val => {
   if (val) {
     resetForm()
     step.value = 1
+    loadExistingProfile()
   }
 })
 
@@ -296,6 +299,58 @@ function resetForm() {
   experienceList.value = []
   addEducation();
   addExperience();
+}
+
+async function loadExistingProfile() {
+  try {
+    const user = authHelpers.getCurrentUser()
+    const userId = user?.id
+    if (!userId) return
+
+    const res = await jobSeekerProfileService.getProfile(userId)
+    if (!res.success || !res.data) return
+
+    const data = res.data || {}
+
+    // Personal details
+    profile.value.firstName = data.firstName || ''
+    profile.value.lastName = data.lastName || ''
+    profile.value.email = data.email || ''
+    profile.value.phone = data.phoneNumber || data.phone || ''
+    profile.value.street = data.streetAddress || ''
+    profile.value.city = data.city || ''
+    profile.value.state = data.state || ''
+    profile.value.zip = data.zipcode || ''
+    profile.value.summary = data.summary || ''
+    profile.value.skills = Array.isArray(data.skills) ? data.skills : []
+
+    // Profile picture preview if exists
+    if (data.photo) {
+      profilePicUrl.value = data.photo
+    }
+
+    // Education mapping
+    const eduArr = Array.isArray(data.education) ? data.education : []
+    educationList.value = eduArr.map(e => ({
+      id: Date.now() + Math.random(),
+      degree: e.degree || e.degree_type || '',
+      institution: e.school || e.institution || ''
+    }))
+    if (educationList.value.length === 0) addEducation()
+
+    // Experience mapping
+    const expArr = Array.isArray(data.experience) ? data.experience : []
+    experienceList.value = expArr.map(e => ({
+      id: Date.now() + Math.random(),
+      title: e.title || e.job_title || '',
+      company: e.company || e.company_name || '',
+      jobDescription: e.description || e.jobDescription || ''
+    }))
+    if (experienceList.value.length === 0) addExperience()
+  } catch (err) {
+    // Silent fail to avoid disrupting UX
+    console.error('Failed to autofill profile:', err)
+  }
 }
 </script>
 

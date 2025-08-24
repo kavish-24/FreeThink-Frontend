@@ -433,6 +433,8 @@
 <script>
 import AppHeader from '../components/HeaderPart.vue';
 import axios from 'axios';
+import { authHelpers } from 'src/services/auth.service';
+import { jobSeekerProfileService } from 'src/services/profile.service';
 
 export default {
   name: 'ApplicationForm',
@@ -478,8 +480,58 @@ export default {
   },
   mounted() {
     console.log('Applying for Job ID:', this.jobId);
+    this.autofillFromProfile();
   },
   methods: {
+    async autofillFromProfile() {
+      try {
+        const userId = authHelpers.getCurrentUser()?.id;
+        if (!userId) return;
+        const res = await jobSeekerProfileService.getProfile(userId);
+        if (!res.success || !res.data) return;
+        const data = res.data;
+
+        // Personal info
+        this.form.firstName = this.form.firstName || data.firstName || '';
+        this.form.lastName = this.form.lastName || data.lastName || '';
+        this.form.email = this.form.email || data.email || '';
+        this.form.phone = this.form.phone || data.phoneNumber || data.phone || '';
+        this.form.location = this.form.location || data.city || data.streetAddress || '';
+
+        // Skills (array -> comma separated)
+        if (!this.form.skills && Array.isArray(data.skills) && data.skills.length) {
+          this.form.skills = data.skills.join(', ');
+        }
+
+        // Education: use the most recent (last) entry if available
+        if (Array.isArray(data.education) && data.education.length) {
+          const edu = data.education[data.education.length - 1] || {};
+          const institution = edu.school || edu.institution || '';
+          const degree = edu.degree || edu.degree_type || '';
+          const endDate = edu.end_date || '';
+          const year = endDate ? new Date(endDate).getFullYear() : '';
+          this.form.education.institution = this.form.education.institution || institution;
+          this.form.education.qualification = this.form.education.qualification || degree;
+          this.form.education.passingYear = this.form.education.passingYear || year;
+        }
+
+        // Experience: use the most recent entry
+        if (Array.isArray(data.experience) && data.experience.length) {
+          const exp = data.experience[data.experience.length - 1] || {};
+          this.form.experience.jobTitle = this.form.experience.jobTitle || exp.title || exp.job_title || '';
+          this.form.experience.companyName = this.form.experience.companyName || exp.company || exp.company_name || '';
+          this.form.experience.responsibilities = this.form.experience.responsibilities || exp.description || '';
+        }
+
+        // Total experience years
+        if (!this.form.experience.totalYears && (data.experienceYears || data.totalExperience)) {
+          const years = data.experienceYears || data.totalExperience;
+          this.form.experience.totalYears = typeof years === 'number' ? `${years} Years` : years;
+        }
+      } catch (err) {
+        console.error('Failed to autofill application form:', err);
+      }
+    },
     onResumeAdded(files) {
       // Reset error when a file is added
       this.resumeError = false;

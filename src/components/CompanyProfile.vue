@@ -257,10 +257,11 @@ const loadCompanyData = async () => {
 };
 
 const openWizard = () => {
+  // Ensure latest company data is present before opening
   form.value = {
     ...company.value,
     logoFile: null,
-    positionsAvailable: company.value.positionsAvailable.join(', ')
+    positionsAvailable: (company.value.positionsAvailable || []).join(', ')
   };
   step.value = 1;
   showWizard.value = true;

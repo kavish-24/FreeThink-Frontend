@@ -20,6 +20,7 @@ const routes = [
       { path: '/resume-builder', component: () => import('../components/resume-builder.vue') },
       { path: '/dashboard', name: 'JobSeekerDashboard', component: () => import('pages/JobSeekerDashboard.vue'), meta: { requiresAuth: true, role: 'job_seeker' } },
       
+
       
       { path: '/application-success', name: 'ApplicationSuccess', component: () => import('pages/ApplicationSuccess.vue') },
       { path: '/test-instructions', name: 'TestInstructions', component: () => import('../pages/TestInstructions.vue') },
@@ -87,6 +88,12 @@ const routes = [
     component: () => import('components/EmployerCandidates.vue'),
     meta: { requiresAuth: true, role: 'company' }
   },
+  {
+    path: '/employer-queries',
+    name: 'EmployerQueries',
+    component: () => import('components/EmployerQueriesAns.vue'),
+    meta: { requiresAuth: true, role: 'company' }
+ },
   {
     path: '/employer-messages',
     name: 'EmployerMessages',
