@@ -180,7 +180,7 @@ const redirectBasedOnRole = () => {
   if (authStore.isJobSeeker) {
     router.push(authStore.returnUrl || '/'); 
   } else if (authStore.isEmployer) {
-    router.push(authStore.returnUrl || '/employer-portal');
+    router.push(authStore.returnUrl || '/employers');
   }
   authStore.setReturnUrl(null);
 };

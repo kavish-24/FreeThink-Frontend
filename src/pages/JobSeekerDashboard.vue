@@ -116,24 +116,15 @@
                 <template v-else-if="selectedSection === 'bookmarks'">
                   <BookmarkedJobs :jobs="bookmarkedJobs" @remove="handleRemove" />
                 </template>
-                <template v-else-if="selectedSection === 'profile'">
-                  <UserProfile />
-                </template>
-                <template v-else-if="selectedSection === 'notifications'">
-                  <NotificationComponent />
-                </template>
-                <template v-else-if="selectedSection === 'settings'">
-                  <SettingsComponent />
-                </template>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modals -->
-    <CompleteProfileModal v-model="showProfileModal" />
+      <!-- Modals -->
+      <CompleteProfileModal v-model="showProfileModal" />
+  </div>
   </div>
 </template>
 
@@ -142,9 +133,6 @@ import AppHeader from '../components/HeaderPart.vue'
 import CompleteProfileModal from 'components/CompleteProfileModal.vue';
 import BookmarkedJobs from 'components/BookmarkedJobs.vue';
 import MyApplications from 'components/MyApplications.vue';
-import UserProfile from 'src/components/UserProfile.vue';
-import NotificationComponent from 'src/components/NotificationsPage.vue';
-import SettingsComponent from 'src/components/SettingsPage.vue';
 import DashboardOverview from 'components/DashboardOverview.vue';
 
 import { useRouter } from 'vue-router';
@@ -172,10 +160,7 @@ const profileCompletion = ref(85);
 const dashboardTabs = computed(() => [
   { key: 'overview', label: 'Overview', icon: 'dashboard' },
   { key: 'applications', label: `Applications (${applicationCount.value})`, icon: 'work' },
-  { key: 'bookmarks', label: `Saved Jobs (${bookmarkedJobs.value.length})`, icon: 'bookmark' },
-  { key: 'profile', label: 'Profile', icon: 'person' },
-  { key: 'notifications', label: 'Notifications', icon: 'notifications' },
-  { key: 'settings', label: 'Settings', icon: 'settings' }
+  { key: 'bookmarks', label: `Saved Jobs (${bookmarkedJobs.value.length})`, icon: 'bookmark' }
 ]);
 
 const goToResume = () => router.push('/resume-builder');

@@ -189,35 +189,6 @@
                   rows="4"
                   aria-label="Responsibilities or achievements"
                 />
-                <q-select
-                  outlined
-                  dense
-                  label="Notice Period"
-                  v-model="form.experience.noticePeriod"
-                  :options="noticePeriods"
-                  class="col-12 col-md-6 input-field"
-                  aria-label="Notice period"
-                />
-                <q-input
-                  outlined
-                  dense
-                  label="Current Salary"
-                  type="number"
-                  prefix="$"
-                  v-model="form.experience.currentSalary"
-                  class="col-12 col-md-3 input-field short-field"
-                  aria-label="Current salary"
-                />
-                <q-input
-                  outlined
-                  dense
-                  label="Expected Salary"
-                  type="number"
-                  prefix="$"
-                  v-model="form.experience.expectedSalary"
-                  class="col-12 col-md-3 input-field short-field"
-                  aria-label="Expected salary"
-                />
               </div>
             </q-card-section>
           </q-card>
@@ -249,102 +220,6 @@
                   class="input-field"
                   rows="4"
                   aria-label="Certifications"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <!-- Availability -->
-          <q-card class="card-style q-mb-lg">
-            <q-card-section class="q-pa-lg">
-              <div class="section-title q-mb-md">
-                <q-icon name="event" color="primary" size="28px" class="q-mr-sm" />
-                Availability
-              </div>
-              <div class="q-gutter-md row items-start">
-                <q-input
-                  outlined
-                  dense
-                  label="Preferred Interview Time Slot"
-                  type="datetime-local"
-                  v-model="form.availability.interviewTime"
-                  class="col-12 col-md-6 input-field"
-                  aria-label="Preferred interview time"
-                />
-                <q-input
-                  outlined
-                  dense
-                  label="Earliest Joining Date"
-                  type="date"
-                  v-model="form.availability.joiningDate"
-                  class="col-12 col-md-6 input-field short-field"
-                  aria-label="Earliest joining date"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <!-- Additional Questions -->
-          <q-card class="card-style q-mb-lg">
-            <q-card-section class="q-pa-lg">
-              <div class="section-title q-mb-md">
-                <q-icon name="quiz" color="primary" size="28px" class="q-mr-sm" />
-                Additional Questions
-              </div>
-              <div class="q-gutter-md column">
-                <q-input
-                  outlined
-                  dense
-                  type="textarea"
-                  label="Why are you interested in this role? *"
-                  v-model="form.additional.whyInterested"
-                  class="input-field"
-                  :rules="[val => !!val || 'This field is required']"
-                  rows="4"
-                  aria-required="true"
-                />
-                <div class="row q-col-gutter-md">
-                  <div class="col-12 col-md-6">
-                    <div class="text-subtitle1 q-mb-sm">Are you willing to relocate? *</div>
-                    <q-field
-                      v-model="form.additional.relocate"
-                      :rules="[val => val !== null || 'Please select an option']"
-                      borderless
-                      aria-required="true"
-                    >
-                      <q-option-group
-                        v-model="form.additional.relocate"
-                        :options="yesNoOptions"
-                        type="radio"
-                        inline
-                      />
-                    </q-field>
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <div class="text-subtitle1 q-mb-sm">Do you have the legal right to work in this country? *</div>
-                    <q-field
-                      v-model="form.additional.legalRight"
-                      :rules="[val => val !== null || 'Please select an option']"
-                      borderless
-                      aria-required="true"
-                    >
-                      <q-option-group
-                        v-model="form.additional.legalRight"
-                        :options="yesNoOptions"
-                        type="radio"
-                        inline
-                      />
-                    </q-field>
-                  </div>
-                </div>
-                <q-select
-                  outlined
-                  dense
-                  label="How did you hear about this job?"
-                  v-model="form.additional.source"
-                  :options="sources"
-                  class="input-field"
-                  aria-label="Source of job discovery"
                 />
               </div>
             </q-card-section>
@@ -392,22 +267,25 @@
             </q-card-section>
           </q-card>
 
-          <!-- Agreement Checkbox -->
-          <div class="q-mb-md q-pa-md bg-grey-1 rounded-borders">
-            <q-checkbox
-              v-model="form.agree"
-              :rules="[val => !!val || 'You must agree before submitting']"
-              aria-required="true"
-            >
-              <span>
-                I agree to the
-                <a href="/terms" target="_blank" class="text-primary">Terms & Conditions</a>
-                and
-                <a href="/privacy" target="_blank" class="text-primary">Privacy Policy</a>.
-                I confirm that all information provided is accurate and complete.
-              </span>
-            </q-checkbox>
-          </div>
+          <!-- Terms & Conditions -->
+          <q-card class="card-style q-mb-lg">
+            <q-card-section class="q-pa-md">
+              <q-checkbox
+                v-model="form.agreeTerms"
+                color="primary"
+                :rules="[val => val === true || 'You must agree before submitting']"
+              >
+                <span>
+                  I agree to the 
+                  <router-link to="/terms-and-conditions" class="legal-links">Terms & Conditions</router-link> 
+                  and 
+                  <router-link to="/privacy-policy" class="legal-links">Privacy Policy</router-link>
+                  I confirm that all information provided is accurate and complete.
+                </span>
+              </q-checkbox>
+            </q-card-section>
+          </q-card>
+
 
           <!-- Submit Button -->
           <q-btn
@@ -433,8 +311,6 @@
 <script>
 import AppHeader from '../components/HeaderPart.vue';
 import axios from 'axios';
-import { authHelpers } from 'src/services/auth.service';
-import { jobSeekerProfileService } from 'src/services/profile.service';
 
 export default {
   name: 'ApplicationForm',
@@ -457,81 +333,20 @@ export default {
           totalYears: '',
           jobTitle: '',
           companyName: '',
-          responsibilities: '',
-          noticePeriod: '',
-          currentSalary: '',
-          expectedSalary: ''
+          responsibilities: ''
         },
-        availability: { interviewTime: '', joiningDate: '' },
-        additional: { whyInterested: '', relocate: null, legalRight: null, source: '' },
-        agree: false
+        agreeTerms: false
       },
       qualifications: ['High School', 'Diploma', "Bachelor's Degree", "Master's Degree", 'Ph.D.'],
       experienceYears: ['Fresher', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
-      noticePeriods: ['Immediate', '15 Days', '1 Month', '2 Months', '3 Months'],
-      yesNoOptions: [
-        { label: 'Yes', value: 'Yes' },
-        { label: 'No', value: 'No' }
-      ],
-      sources: ['LinkedIn', 'Company Website', 'Job Portal', 'Social Media', 'Referral', 'Other'],
       loading: false,
       resumeError: false
     };
   },
   mounted() {
     console.log('Applying for Job ID:', this.jobId);
-    this.autofillFromProfile();
   },
   methods: {
-    async autofillFromProfile() {
-      try {
-        const userId = authHelpers.getCurrentUser()?.id;
-        if (!userId) return;
-        const res = await jobSeekerProfileService.getProfile(userId);
-        if (!res.success || !res.data) return;
-        const data = res.data;
-
-        // Personal info
-        this.form.firstName = this.form.firstName || data.firstName || '';
-        this.form.lastName = this.form.lastName || data.lastName || '';
-        this.form.email = this.form.email || data.email || '';
-        this.form.phone = this.form.phone || data.phoneNumber || data.phone || '';
-        this.form.location = this.form.location || data.city || data.streetAddress || '';
-
-        // Skills (array -> comma separated)
-        if (!this.form.skills && Array.isArray(data.skills) && data.skills.length) {
-          this.form.skills = data.skills.join(', ');
-        }
-
-        // Education: use the most recent (last) entry if available
-        if (Array.isArray(data.education) && data.education.length) {
-          const edu = data.education[data.education.length - 1] || {};
-          const institution = edu.school || edu.institution || '';
-          const degree = edu.degree || edu.degree_type || '';
-          const endDate = edu.end_date || '';
-          const year = endDate ? new Date(endDate).getFullYear() : '';
-          this.form.education.institution = this.form.education.institution || institution;
-          this.form.education.qualification = this.form.education.qualification || degree;
-          this.form.education.passingYear = this.form.education.passingYear || year;
-        }
-
-        // Experience: use the most recent entry
-        if (Array.isArray(data.experience) && data.experience.length) {
-          const exp = data.experience[data.experience.length - 1] || {};
-          this.form.experience.jobTitle = this.form.experience.jobTitle || exp.title || exp.job_title || '';
-          this.form.experience.companyName = this.form.experience.companyName || exp.company || exp.company_name || '';
-          this.form.experience.responsibilities = this.form.experience.responsibilities || exp.description || '';
-        }
-
-        // Total experience years
-        if (!this.form.experience.totalYears && (data.experienceYears || data.totalExperience)) {
-          const years = data.experienceYears || data.totalExperience;
-          this.form.experience.totalYears = typeof years === 'number' ? `${years} Years` : years;
-        }
-      } catch (err) {
-        console.error('Failed to autofill application form:', err);
-      }
-    },
     onResumeAdded(files) {
       // Reset error when a file is added
       this.resumeError = false;
@@ -541,23 +356,22 @@ export default {
       console.log('submitForm called');
       this.resumeError = false;
       this.loading = true;
-      try {
 
-        if (!this.form.agree) {
-          this.$q.notify({
-            type: 'negative',
-            message: 'You must agree to Terms & Conditions before submitting.'
-          });
-          this.loading = false;
-          return;
-        }
+      if (!this.form.agreeTerms) {
+      this.$q.notify({
+        type: 'negative',
+        message: 'You must agree to Terms & Conditions before submitting.'
+      });
+      this.loading = false;
+      return;
+      }
+      try {
         // Basic required fields check
         if (
           !this.form.firstName ||
           !this.form.lastName ||
           !this.form.email ||
           !this.form.phone ||
-          !this.form.additional.whyInterested ||
           !this.$refs.resumeUploader.files.length
         ) {
           this.$q.notify({ type: 'negative', message: 'Please fill out all required fields.' });
@@ -570,18 +384,12 @@ export default {
 
         // Append mandatory fields
         formData.append('job_id', this.jobId);
-        formData.append('cover_letter', this.form.additional.whyInterested);
 
         // Append resume file
         const resumeFile = this.$refs.resumeUploader.files[0];
         formData.append('resume', resumeFile);
 
-        // You can append other optional form fields here as needed, example:
-        // formData.append('firstName', this.form.firstName);
-        // formData.append('lastName', this.form.lastName);
-        // etc...
-
-        const res = await axios.post('http://localhost:3000/api/apply', formData, {
+        const res = await axios.post('http://localhost:3000/api/applications/apply', formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
@@ -784,4 +592,20 @@ small {
   content: ' *';
   color: #ef4444;
 }
+
+.q-checkbox {
+  font-size: 0.95rem;
+  color: #374151; /* neutral gray */
+}
+
+.q-checkbox a {
+  color: #1565c0;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.q-checkbox a:hover {
+  text-decoration: underline;
+}
+
 </style>
