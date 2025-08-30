@@ -11,8 +11,8 @@
           </div>
         </div>
         <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-          <div class="text-subtitle1 text-weight-medium text-white">{{ employer.name }}</div>
-          <div class="text-caption text-blue-grey-4">{{ employer.email }}</div>
+          <div class="text-subtitle1 text-weight-medium text-white">{{ currentUser.name }}</div>
+          <div class="text-caption text-blue-grey-4">{{ currentUser.email }}</div>
         </div>
         <div class="sidebar-section q-pt-md q-pb-none">
           <q-list class="nav-list">
@@ -163,7 +163,7 @@ import { authHelpers } from 'src/services/auth.service';
 const apexchart = VueApexCharts;
 const router = useRouter();
 const $q = useQuasar();
-
+const currentUser = authHelpers.getCurrentUser() || {};
 const dashboardStats = ref([
   { value: 10, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-5' },
   { value: 4, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-6' },

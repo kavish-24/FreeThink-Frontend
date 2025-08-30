@@ -24,12 +24,12 @@
 
       <!-- Right: Actions -->
       <div class="column items-end q-mt-sm q-mt-none-md">
-        <q-btn
+         <q-btn
           label="Apply Now"
           :style="{ backgroundColor: '#1565c0', color: 'white' }"
           class="q-mb-sm"
           unelevated
-          @click="goToApplicationForm"
+          @click="showDialog = true"
         />
         <div class="q-gutter-sm">
           <!-- Bookmark Button -->
@@ -68,23 +68,81 @@
       </div>
     </div>
   </q-card>
+   <q-dialog v-model="showDialog" persistent>
+  <q-card style="min-width: 400px; max-width: 600px;">
+    <q-card-section class="row items-center q-pb-none">
+      <div class="text-h6">Apply for {{ job.title }}</div>
+      <q-space />
+      <q-btn icon="close" flat round dense v-close-popup />
+    </q-card-section>
+
+    <q-separator />
+
+    <q-card-section>
+      <div class="q-mb-md">
+        Applying to <b>{{ job.company?.companyName }}</b>
+      </div>
+
+      <!-- Resume Upload -->
+      <q-file
+        filled
+        v-model="resume"
+        label="Upload Resume"
+        accept=".pdf,.doc,.docx"
+        max-file-size="5000000"
+        bottom-slots
+      >
+        <template v-slot:hint>PDF, DOC, DOCX — Max 5MB</template>
+      </q-file>
+
+      <!-- Cover Letter Upload -->
+      <q-file
+        filled
+        v-model="coverLetter"
+        label="Upload Cover Letter"
+        accept=".pdf,.doc,.docx"
+        max-file-size="5000000"
+        bottom-slots
+        class="q-mt-md"
+      >
+        <template v-slot:hint>Optional</template>
+      </q-file>
+    </q-card-section>
+
+    <q-separator />
+
+    <q-card-actions align="right">
+      <q-btn flat label="Cancel" color="grey" v-close-popup />
+      <q-btn 
+        unelevated 
+        label="Submit Application" 
+        color="primary" 
+        :loading="submitting" 
+        @click="submitApplication" 
+      />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
 </template>
 
 <script setup>
 import { ref, toRef, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { authHelpers } from '../services/auth.service'
+import api, { authHelpers } from '../services/auth.service'
 import { bookmarkService } from '../services/bookmarkService'
 import shareIcon from '../assets/share.png'
-
+import { useQuasar } from 'quasar'
 const props = defineProps({ job: Object })
 const job = toRef(props, 'job')
-const router = useRouter()
 const isHovered = ref(false)
 const isBookmarked = ref(false)
 const loading = ref(false)
-
+const showDialog = ref(false)
 const userId = authHelpers.getCurrentUser()?.id
+const resume = ref(null)
+const coverLetter = ref(null)
+const submitting = ref(false)
+const $q = useQuasar()
 
 const formattedDeadline = computed(() => {
   if (!job.value?.deadline) return 'Not specified'
@@ -104,11 +162,51 @@ const createddate = computed(() => {
   })
 })
 
-const goToApplicationForm = () => {
-  if (job.value?.id) {
-    router.push({ name: 'ApplicationForm', params: { jobId: job.value.id } })
+
+const submitApplication = async () => {
+  if (!resume.value) {
+    return $q.notify({ type: 'negative', message: 'Please upload your resume.' })
+  }
+
+  try {
+    submitting.value = true
+    const token = localStorage.getItem('token')
+    const formData = new FormData()
+    formData.append('job_id', job.value.id)
+    formData.append('resume', resume.value)
+    if (coverLetter.value) formData.append('coverLetter', coverLetter.value)
+
+    const res = await api.post('/applications/apply', formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    $q.notify({ type: 'positive', message: res.data.message || 'Application submitted successfully ✅' })
+    showDialog.value = false
+
+  } catch (err) {
+    let message = 'Failed to apply'
+
+    if (err.response) {
+      // If backend returned JSON
+      if (err.response.data?.message) message = err.response.data.message
+      else message = JSON.stringify(err.response.data)
+    } else if (err.request) {
+      // No response from backend
+      message = 'No response from server'
+    } else {
+      message = err.message
+    }
+
+    console.error('Application error:', err)  // log full error for debugging
+    $q.notify({ type: 'negative', message })
+  } finally {
+    submitting.value = false
   }
 }
+
 
 const checkBookmark = async () => {
   try {

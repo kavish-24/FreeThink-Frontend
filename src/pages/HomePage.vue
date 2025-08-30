@@ -92,6 +92,7 @@
       <JobListingPage :searchQuery="searchInput" />
     </section>
 
+  
     <!-- Categories Section -->
     <section v-if="!isEmployer" class="categories-section">
       <div class="container-unstop">
@@ -137,7 +138,9 @@
         </div>
       </div>
     </section>
-
+  <section v-if="isLoggedIn && !isEmployer">
+      <SuggestedSkills />
+    </section>
     <!-- How It Works Section -->
     <section v-if="!isLoggedIn" class="how-it-works-section">
       <div class="container-unstop">
@@ -191,6 +194,7 @@
 import AppHeader from '../components/HeaderPart.vue';
 import AppFooter from '../components/FooterPart.vue';
 import JobListingPage from './JobListing.vue';
+import SuggestedSkills from '../components/SuggestedSkills.vue';
 import { useRouter } from 'vue-router';
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../stores/auth.store';
@@ -201,7 +205,8 @@ export default {
   components: {
     AppHeader,
     AppFooter,
-    JobListingPage
+    JobListingPage,
+    SuggestedSkills
   },
   setup() {
     const router = useRouter();
@@ -212,6 +217,7 @@ export default {
     const isLoggedIn = computed(() => authStore.isAuthenticated);
     const isEmployer = computed(() => authStore.role === 'company');
 
+    // Template refs for animation
     const heroStats = ref(null);
     const statJobs = ref(null);
     const statCompanies = ref(null);
@@ -357,15 +363,17 @@ export default {
     }
 
     function performSearch() {
-      const query = searchInput.value.trim();
-      const location = locationInput.value.trim();
+      const searchQuery = searchInput.value.trim();
+      const locationQuery = locationInput.value.trim();
       
-      if (query || location) {
-        const searchParams = new URLSearchParams();
-        if (query) searchParams.append('q', query);
-        if (location) searchParams.append('location', location);
-        
-        router.push(`/jobs?${searchParams.toString()}`);
+      if (searchQuery || locationQuery) {
+        router.push({
+          name: 'JobListing',
+          query: {
+            search: searchQuery,
+            location: locationQuery
+          }
+        });
       }
     }
 

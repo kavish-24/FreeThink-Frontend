@@ -1,11 +1,12 @@
 <template>
   <q-card class="my-card q-pa-md bg-blue-1 text-blue-8">
-    <q-card-section class="q-pt-none text-center">
-      <div class="main-title text-primary" style="font-family: 'Lucida Handwriting'; font-size: 30px;">Recommended Skills for You</div>
-      <div class="category-text q-mb-md" style="font-family: 'Georgia'; font-size: 15px;">
-        Category: <span class="text-primary text-weight-bold">{{ category || "Loading..." }}</span>
+    <q-card-section class="q-pt-none text-center text-grey-9">
+      <div class="main-title text-primary">Recommended Skills for Professional Development</div>
+      <div class="category-text q-mb-md">
+        Category: <span class="text-primary text-weight-medium">{{ category || 'Loading...' }}</span>
       </div>
     </q-card-section>
+
 
     <q-separator color="blue-3" />
 

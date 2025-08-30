@@ -12,8 +12,8 @@
         </div>
 
         <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-          <div class="text-subtitle1 text-weight-medium text-white">{{ employer.name }}</div>
-          <div class="text-caption text-blue-grey-4">{{ employer.email }}</div>
+          <div class="text-subtitle1 text-weight-medium text-white">{{company.companyName || 'Loading...'}}</div>
+          <div class="text-caption text-blue-grey-4">{{  company.user.email || '-' }}</div>
         </div>
 
         <div class="sidebar-section q-pt-md q-pb-none">
@@ -132,10 +132,30 @@
               </q-step>
 
               <q-step :name="3" title="Branding" icon="palette">
-                <q-file v-model="form.logoFile" label="Upload Company Logo" outlined accept=".jpg, .jpeg, .png" max-file-size="2097152" @rejected="onRejected">
-                  <template v-slot:prepend> <q-icon name="attach_file" /> </template>
-                  <template v-slot:hint> Max 2MB (PNG, JPG) </template>
-                </q-file>
+              <q-file
+  v-model="form.logoFile"
+  label="Upload Company Logo"
+  outlined
+  accept=".jpg, .jpeg, .png"
+  max-file-size="2097152"
+  @rejected="onRejected"
+>
+  <template v-slot:prepend>
+    <q-icon name="attach_file" />
+  </template>
+  <template v-slot:hint>
+    Max 2MB (PNG, JPG)
+  </template>
+</q-file>
+
+<q-btn
+  label="Upload Logo"
+  color="primary"
+  class="q-mt-sm"
+  :disable="!form.logoFile || loading"
+  @click="uploadProfilePic"
+/>
+
                 <q-input v-model="form.description" label="About the Company" type="textarea" outlined class="q-mt-md" />
               </q-step>
 
@@ -167,7 +187,12 @@ import api from 'src/services/auth.service';
 const router = useRouter();
 const $q = useQuasar();
 
-const employer = ref({  });
+const currentUser = authHelpers.getCurrentUser();
+
+const employer = ref({
+  name: currentUser?.name || 'Unknown Company',
+  email: currentUser?.email || ''
+});
 const loading = ref(false);
 const companyId = ref(authHelpers.getCurrentUser()?.id);
 
@@ -257,14 +282,57 @@ const loadCompanyData = async () => {
 };
 
 const openWizard = () => {
-  // Ensure latest company data is present before opening
   form.value = {
     ...company.value,
     logoFile: null,
-    positionsAvailable: (company.value.positionsAvailable || []).join(', ')
+    positionsAvailable: company.value.positionsAvailable.join(', ')
   };
   step.value = 1;
   showWizard.value = true;
+};
+
+const uploadProfilePic = async () => {
+  if (!form.value.logoFile) {
+    $q.notify({ color: 'negative', message: 'Please select a file to upload.' });
+    return;
+  }
+
+  try {
+    loading.value = true;
+
+    const formData = new FormData();
+    formData.append('photo', form.value.logoFile);
+
+    const userId = companyId.value; // your current company ID
+
+    const res = await api.post(`/companies/photo/${userId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    if (res.data.url) {
+      // Update logo in form and UI
+      form.value.logo = res.data.url;
+      company.value.logo = res.data.url;
+
+      $q.notify({
+        color: 'positive',
+        icon: 'check_circle',
+        message: 'Logo uploaded successfully!'
+      });
+
+      form.value.logoFile = null; // reset file input
+    }
+
+  } catch (err) {
+    console.error('Upload error:', err);
+    $q.notify({
+      color: 'negative',
+      icon: 'error',
+      message: err.response?.data?.error || 'Failed to upload logo'
+    });
+  } finally {
+    loading.value = false;
+  }
 };
 
 const submitForm = async () => {

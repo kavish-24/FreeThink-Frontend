@@ -47,8 +47,8 @@
         <!-- User Info Section -->
         <div class="sidebar-section user-section">
           <div class="user-info">
-            <div class="user-name">{{ employer.name || 'Loading...' }}</div>
-            <div class="user-email">{{ employer.email || '' }}</div>
+            <div class="user-name">{{ currentUser.name || 'Loading...' }}</div>
+            <div class="user-email">{{ currentUser.email || '' }}</div>
           </div>
         </div>
 
