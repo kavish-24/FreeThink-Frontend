@@ -1,7 +1,7 @@
 
 import axios from "axios";
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = "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";
 
 export const getSuggestions = async (prompt, field) => {
   try {
@@ -40,10 +40,13 @@ if (field === 'Job Tags' || field === 'Key Skills') {
     .map(s => s.trim())
     .filter(Boolean);
 }
-return text
-  .split("\n")
-  .filter((item) => item.trim())
-  .map((item) => item.replace(/^\d+\.\s*/, "").trim());
+// Clean AI text for Job Description
+const cleanText = text
+  .replace(/^\s*\d+\.\s*/gm, "")
+  .replace(/\n{2,}/g, "\n\n")
+  .trim();
+
+return cleanText ? [cleanText] : []; // always return array
 
   } catch (err) {
     console.error(`OpenRouter Mistral error for ${field}:`, err);

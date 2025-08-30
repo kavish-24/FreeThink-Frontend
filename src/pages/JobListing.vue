@@ -137,7 +137,7 @@
                     <q-avatar size="48px" font-size="28px" color="blue-1" text-color="primary" icon="business" class="q-mr-md" />
                     <div class="full-width">
                       <div class="text-body1 text-weight-bold text-primary job-title">{{ job.title }}</div>
-                      <div class="text-caption text-grey-8 company-name">{{ job.companyName }}</div>
+                      <div class="text-caption text-grey-8 company-name">{{ job.companyName  }}</div>
 
                       <div class="row items-center text-caption text-grey-8 q-mt-sm q-gutter-x-md q-gutter-y-xs">
                         <div class="row items-center no-wrap">

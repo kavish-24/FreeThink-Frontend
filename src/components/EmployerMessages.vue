@@ -10,8 +10,8 @@
         </div>
       </div>
       <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-        <div class="text-subtitle1 text-weight-medium text-white">{{ employer.name }}</div>
-        <div class="text-caption text-blue-grey-4">{{ employer.email }}</div>
+        <div class="text-subtitle1 text-weight-medium text-white">{{ currentUser.name }}</div>
+        <div class="text-caption text-blue-grey-4">{{ currentUser.email }}</div>
       </div>
       <div class="sidebar-section q-pt-md q-pb-none">
         <q-list class="nav-list">
@@ -130,7 +130,7 @@ import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import AppHeader from 'src/components/HeaderPart.vue';
-
+import { authHelpers } from 'src/services/auth.service';
 const router = useRouter();
 const $q = useQuasar();
 
@@ -141,7 +141,7 @@ const newMessage = ref('');
 const chatScrollArea = ref(null);
 const showBroadcastDialog = ref(false);
 const broadcastForm = ref({ text: '', expiry: '' });
-
+const currentUser = authHelpers.getCurrentUser();
 onMounted(() => {
   const stored = localStorage.getItem('employerData');
   if (stored) employer.value = JSON.parse(stored);

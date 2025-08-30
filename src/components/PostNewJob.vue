@@ -721,13 +721,16 @@ const formatDate = (dateStr) => {
 // Format description suggestions as paragraphs
 const formatDescriptionSuggestion = (suggestion) => {
   if (!suggestion) return '';
+console.log('Original suggestion:', suggestion);
+  // 1. Split by double newlines (natural paragraphs)
+  let paragraphs = suggestion.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
 
-  // Split by double newlines or numbered list endings if present
-  const paragraphs = suggestion
-    .split(/\n{2,}|(?<=\.)\s+(?=[A-Z])/g) // split by double newlines or period + space + capital
-    .map(p => p.trim())
-    .filter(p => p.length > 0);
+  // 2. If only one paragraph, split by period followed by space + capital letter
+  if (paragraphs.length === 1) {
+    paragraphs = suggestion.split(/(?<=\.)\s+(?=[A-Z])/).map(p => p.trim()).filter(Boolean);
+  }
 
+  // 3. Wrap paragraphs in <p> tags
   return paragraphs.map(p => `<p>${p}</p>`).join('');
 };
 

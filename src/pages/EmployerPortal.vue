@@ -163,7 +163,7 @@ import { authHelpers } from 'src/services/auth.service';
 const apexchart = VueApexCharts;
 const router = useRouter();
 const $q = useQuasar();
-const currentUser = authHelpers.getCurrentUser() || {};
+
 const dashboardStats = ref([
   { value: 10, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-5' },
   { value: 4, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-6' },
@@ -222,12 +222,13 @@ const chartOptions = computed(() => ({
   theme: { mode: $q.dark.isActive ? 'dark' : 'light' }
 }));
 
+const currentUser = authHelpers.getCurrentUser();
+
 const employer = ref({
-  name: 'Innovate Inc.',
-  email: 'hr@innovate.com',
-  status: 'pending',
-  rejectionReason: ''
+  name: currentUser?.name || 'Unknown Company',
+  email: currentUser?.email || ''
 });
+
 const selected = ref('Dashboard Overview');
 const activeBroadcast = ref(null);
 const verificationStatus = ref('');
