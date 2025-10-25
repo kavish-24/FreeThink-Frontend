@@ -207,6 +207,7 @@ const currentUser = authHelpers.getCurrentUser();
 const conversations = ref([]);
 const activeBroadcasts = ref([]);
 const availableJobs = ref([]);
+const allJobs = ref([]); // Store original list for filtering
 const loading = ref(false);
 const creatingConversation = ref(false);
 
@@ -268,11 +269,13 @@ const loadActiveBroadcasts = async () => {
 const loadAvailableJobs = async () => {
   try {
     // TODO: Replace with actual job service call
-    availableJobs.value = [
+    const jobs = [
       { id: 1, title: 'Frontend Developer', companyName: 'Tech Corp', employerId: 1 },
       { id: 2, title: 'UI/UX Designer', companyName: 'Design Studio', employerId: 2 },
       { id: 3, title: 'Full Stack Developer', companyName: 'Startup Inc', employerId: 3 }
     ];
+    allJobs.value = [...jobs]; // Store original list
+    availableJobs.value = [...jobs]; // Display list
   } catch (error) {
     console.error('Error loading jobs:', error);
   }
@@ -390,10 +393,10 @@ const viewBroadcast = async (broadcast) => {
 const filterJobs = (val, update) => {
   update(() => {
     if (val === '') {
-      availableJobs.value = availableJobs.value;
+      availableJobs.value = [...allJobs.value]; // Reset to original list
     } else {
       const needle = val.toLowerCase();
-      availableJobs.value = availableJobs.value.filter(job => 
+      availableJobs.value = allJobs.value.filter(job => 
         job.title.toLowerCase().includes(needle) || 
         job.companyName.toLowerCase().includes(needle)
       );
