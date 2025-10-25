@@ -57,15 +57,32 @@
         </template>
 
         <template v-if="user">
+          <!-- Messages -->
+          <q-btn
+            flat
+            round
+            icon="message"
+            class="message-btn"
+            @click="openMessageSidebar"
+          >
+            <q-tooltip>Messages</q-tooltip>
+          </q-btn>
+
           <!-- Notifications -->
           <q-btn
             flat
             round
             icon="notifications_none"
             class="notification-btn"
-            @click="$router.push(notificationRoute)"
+            @click="handleNotificationClick"
           >
-            <q-badge color="red" floating>3</q-badge>
+            <q-badge 
+              v-if="unreadNotificationCount > 0" 
+              color="red" 
+              floating
+            >
+              {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+            </q-badge>
             <q-tooltip>Notifications</q-tooltip>
           </q-btn>
 
@@ -225,6 +242,18 @@
             v-if="user"
             clickable
             v-ripple
+            @click="openMessageSidebarMobile"
+          >
+            <q-item-section avatar>
+              <q-icon name="message" />
+            </q-item-section>
+            <q-item-section>Messages</q-item-section>
+          </q-item>
+
+          <q-item 
+            v-if="user"
+            clickable
+            v-ripple
             @click="openProfileSidebarMobile"
           >
             <q-item-section avatar>
@@ -294,6 +323,16 @@
 
     <!-- Profile Sidebar -->
     <ProfileSidebar v-model="showProfileSidebar" />
+    
+    <!-- Message Sidebar -->
+    <MessageSidebar ref="messageSidebar" v-model="showMessageSidebar" @notification-read="loadUnreadNotificationCount" />
+    
+    <!-- Notification Sidebar -->
+    <NotificationSidebar 
+      v-model="showNotificationSidebar" 
+      @notification-read="loadUnreadNotificationCount"
+      @open-message-sidebar="openMessageSidebar"
+    />
   </header>
 </template>
 
@@ -301,16 +340,23 @@
 import { useAuthStore } from 'src/stores/auth.store';
 import JobsDropDown from './JobsDropDown.vue';
 import ProfileSidebar from './ProfileSidebar.vue';
+import MessageSidebar from './MessageSidebar.vue';
+import NotificationSidebar from './NotificationSidebar.vue';
+import notificationService from 'src/services/notification.service';
 
 export default {
   name: 'AppNavbar',
-  components: { JobsDropDown, ProfileSidebar },
+  components: { JobsDropDown, ProfileSidebar, MessageSidebar, NotificationSidebar },
   data() {
     return {
       showDropdown: false,
       initialized: false,
       mobileMenuOpen: false,
       showProfileSidebar: false,
+      showMessageSidebar: false,
+      showNotificationSidebar: false,
+      unreadNotificationCount: 0,
+      notificationCheckInterval: null,
     };
   },
   setup() {
@@ -321,6 +367,14 @@ export default {
     await this.authStore.checkAuth();
     this.initialized = true;
     console.log('AppNavbar mounted, user:', this.user);
+    
+    if (this.user) {
+      await this.loadUnreadNotificationCount();
+      this.initializeWebSocketNotifications();
+    }
+    
+    // Listen for message sidebar open requests from notifications
+    window.addEventListener('message', this.handleWindowMessage);
   },
   computed: {
     user() {
@@ -371,6 +425,20 @@ export default {
       },
       immediate: true,
     },
+    user: {
+      handler(newUser, oldUser) {
+        if (newUser && !oldUser) {
+          // User just logged in
+          this.loadUnreadNotificationCount();
+          this.initializeWebSocketNotifications();
+        } else if (!newUser && oldUser) {
+          // User just logged out
+          this.disconnectWebSocketNotifications();
+          this.unreadNotificationCount = 0;
+        }
+      },
+      immediate: false,
+    },
   },
   methods: {
     toggleDropdown() {
@@ -390,6 +458,10 @@ export default {
       this.mobileMenuOpen = false;
       this.showProfileSidebar = true;
     },
+    openMessageSidebarMobile() {
+      this.mobileMenuOpen = false;
+      this.showMessageSidebar = true;
+    },
     getUserRoleLabel() {
       if (this.user?.role === 'job_seeker' || this.user?.type === 'seeker') {
         return 'Job Seeker';
@@ -398,13 +470,77 @@ export default {
       }
       return 'User';
     },
+    async loadUnreadNotificationCount() {
+      if (!this.user?.id) return;
+      
+      try {
+        const response = await notificationService.getUnreadCount(this.user.id);
+        this.unreadNotificationCount = response.count || 0;
+      } catch (error) {
+        console.error('Failed to load notification count:', error);
+        // If notification service fails, don't show any count
+        this.unreadNotificationCount = 0;
+      }
+    },
+    initializeWebSocketNotifications() {
+      // Initialize WebSocket connection for notifications
+      notificationService.initializeWebSocket();
+      
+      // Set up WebSocket listeners for real-time notifications
+      notificationService.setupWebSocketListeners({
+        onNewNotification: this.handleNewNotification,
+        onNotificationRead: this.handleNotificationRead
+      });
+    },
+
+    disconnectWebSocketNotifications() {
+      notificationService.disconnectWebSocket();
+    },
+
+    handleNewNotification(notification) {
+      console.log('Received new notification via WebSocket:', notification);
+      this.unreadNotificationCount++;
+    },
+
+    handleNotificationRead(data) {
+      console.log('Notification read via WebSocket:', data);
+      // Refresh the count when notifications are read
+      this.loadUnreadNotificationCount();
+    },
+    async handleNotificationClick() {
+      // Open notifications in sidebar
+      this.showNotificationSidebar = true;
+    },
+    handleWindowMessage(event) {
+      if (event.data?.type === 'OPEN_MESSAGE_SIDEBAR') {
+        this.openMessageSidebar();
+        if (event.data.conversationId) {
+          // Pass conversation ID to message sidebar if needed
+          this.$nextTick(() => {
+            if (this.$refs.messageSidebar) {
+              this.$refs.messageSidebar.selectConversationById(event.data.conversationId);
+            }
+          });
+        }
+      }
+    },
+    openMessageSidebar() {
+      this.showNotificationSidebar = false; // Close notifications sidebar
+      this.showMessageSidebar = true;
+    },
     logout() {
+      this.disconnectWebSocketNotifications();
       this.authStore.logout();
       this.showDropdown = false;
       this.mobileMenuOpen = false;
+      this.unreadNotificationCount = 0;
       this.$router.push('/');
       console.log('Logout triggered, user:', this.user);
     },
+  },
+  beforeUnmount() {
+    this.disconnectWebSocketNotifications();
+    window.removeEventListener('message', this.handleWindowMessage);
   },
 };
 </script>
@@ -416,6 +552,8 @@ export default {
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--color-gray-200);
   box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 1000;
 }
 
 .navbar-container {
@@ -485,7 +623,7 @@ export default {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  z-index: 10;
+  z-index: 5;
 }
 
 .nav-link {
@@ -521,7 +659,7 @@ export default {
   color: var(--color-gray-600);
   grid-column: 3;
   justify-self: end;
-  z-index: 20;
+  z-index: 5;
 }
 
 /* User Actions */
@@ -541,6 +679,18 @@ export default {
 }
 
 .notification-btn:hover {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+  border-radius: var(--border-radius-lg);
+}
+
+.message-btn {
+  color: var(--color-gray-600);
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+.message-btn:hover {
   color: var(--color-primary-600);
   background: var(--color-primary-50);
   border-radius: var(--border-radius-lg);
@@ -596,6 +746,7 @@ export default {
 /* Mobile Drawer */
 .mobile-drawer {
   background: var(--color-surface);
+  z-index: 1500;
 }
 
 .drawer-content {

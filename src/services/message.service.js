@@ -1,7 +1,31 @@
 import api from './auth.service.js';
+import socketService from './socket.service.js';
 
 export const messageService = {
-  // Conversation methods
+  // WebSocket connection management
+  socket: null,
+  isInitialized: false,
+  currentConversationId: null,
+
+  initializeSocket() {
+    if (this.isInitialized) return;
+
+    this.socket = socketService.connect();
+    this.isInitialized = true;
+    console.log('Message service WebSocket initialized');
+  },
+
+  disconnectSocket() {
+    if (this.socket) {
+      if (this.currentConversationId) {
+        this.leaveConversation(this.currentConversationId);
+      }
+      socketService.disconnect();
+      this.socket = null;
+      this.isInitialized = false;
+      this.currentConversationId = null;
+    }
+  },
   async getConversations() {
     try {
       console.log('Fetching conversations...');
@@ -219,40 +243,64 @@ export const messageService = {
   },
 
   // Real-time connection methods
-  setupSocketListeners(socket, callbacks) {
-    if (!socket) return;
+  setupSocketListeners(callbacks) {
+    if (!this.socket) {
+      this.initializeSocket();
+    }
 
-    socket.on('new_message', (message) => {
+    if (!this.socket) return;
+
+    this.socket.on('new_message', (message) => {
+      console.log('Received new message via WebSocket:', message);
       callbacks.onNewMessage?.(message);
     });
 
-    socket.on('message_read', (data) => {
+    this.socket.on('message_read', (data) => {
+      console.log('Received message read via WebSocket:', data);
       callbacks.onMessageRead?.(data);
     });
 
-    socket.on('typing', (data) => {
+    this.socket.on('typing', (data) => {
       callbacks.onTyping?.(data);
     });
 
-    socket.on('stop_typing', (data) => {
+    this.socket.on('stop_typing', (data) => {
       callbacks.onStopTyping?.(data);
     });
   },
 
-  joinConversation(socket, conversationId) {
-    socket?.emit('join_conversation', { conversationId });
+  joinConversation(conversationId) {
+    if (!this.socket) {
+      this.initializeSocket();
+    }
+
+    if (this.socket && conversationId) {
+      this.socket.emit('join_conversation', { conversationId });
+      this.currentConversationId = conversationId;
+      console.log('Joined conversation:', conversationId);
+    }
   },
 
-  leaveConversation(socket, conversationId) {
-    socket?.emit('leave_conversation', { conversationId });
+  leaveConversation(conversationId) {
+    if (this.socket && conversationId) {
+      this.socket.emit('leave_conversation', { conversationId });
+      if (this.currentConversationId === conversationId) {
+        this.currentConversationId = null;
+      }
+      console.log('Left conversation:', conversationId);
+    }
   },
 
-  emitTyping(socket, conversationId) {
-    socket?.emit('typing', { conversationId });
+  emitTyping(conversationId) {
+    if (this.socket && conversationId) {
+      this.socket.emit('typing', { conversationId });
+    }
   },
 
-  emitStopTyping(socket, conversationId) {
-    socket?.emit('stop_typing', { conversationId });
+  emitStopTyping(conversationId) {
+    if (this.socket && conversationId) {
+      this.socket.emit('stop_typing', { conversationId });
+    }
   },
 
   // Broadcast methods

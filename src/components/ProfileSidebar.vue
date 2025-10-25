@@ -542,6 +542,7 @@ const openFullProfile = () => {
 <style scoped>
 .profile-sidebar-dialog {
   --dialog-width: 450px;
+  z-index: 9999;
 }
 
 .profile-sidebar-card {
@@ -561,7 +562,7 @@ const openFullProfile = () => {
   padding: 20px;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 2000;
 }
 
 .header-content {

@@ -391,7 +391,26 @@ const markAllAsRead = async () => {
 
 const handleAction = (notification) => {
   if (notification.action_url) {
-    window.open(notification.action_url, '_blank');
+    // Check if this is a message notification
+    if (notification.type === 'message' && notification.action_url.includes('/messages')) {
+      // Extract conversation ID from URL if possible
+      const conversationMatch = notification.action_url.match(/conversation=(\d+)/);
+      if (conversationMatch) {
+        // Emit event to parent component to open message sidebar with specific conversation
+        window.parent.postMessage({
+          type: 'OPEN_MESSAGE_SIDEBAR',
+          conversationId: conversationMatch[1]
+        }, '*');
+      } else {
+        // Just open message sidebar
+        window.parent.postMessage({
+          type: 'OPEN_MESSAGE_SIDEBAR'
+        }, '*');
+      }
+    } else {
+      // For other notifications, open in new tab as before
+      window.open(notification.action_url, '_blank');
+    }
   }
 };
 
@@ -401,6 +420,7 @@ const getNotificationIcon = (type) => {
     warning: 'warning',
     error: 'error',
     success: 'check_circle',
+    message: 'message',
   };
   return icons[type] || 'notifications';
 };
@@ -411,6 +431,7 @@ const getNotificationColor = (type) => {
     warning: 'orange-6',
     error: 'red-6',
     success: 'green-6',
+    message: 'purple-6',
   };
   return colors[type] || 'grey-6';
 };
