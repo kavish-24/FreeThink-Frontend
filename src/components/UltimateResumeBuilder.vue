@@ -786,7 +786,7 @@ import ExecutiveTemplate from './resume-templates/ExecutiveTemplate.vue'
 import CreativeTemplate from './resume-templates/CreativeTemplate.vue'
 import MinimalistTemplate from './resume-templates/MinimalistTemplate.vue'
 import TechnicalTemplate from './resume-templates/TechnicalTemplate.vue'
-
+import api from '../services/auth.service'
 const $q = useQuasar()
 
 // Reactive data
@@ -1047,7 +1047,7 @@ const fetchAvailableJobs = async () => {
     } else {
       console.warn('No jobs returned from backend, trying direct API call...')
       // Try direct API call as fallback
-      const directResponse = await fetch('http://localhost:3000/api/jobs/jobs')
+      const directResponse = await api.get('/jobs/jobs');
       const directData = await directResponse.json()
       
       if (directData.success && directData.jobs && directData.jobs.length > 0) {

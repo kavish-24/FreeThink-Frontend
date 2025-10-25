@@ -34,37 +34,54 @@
           </q-btn>
         </div>
         <q-scroll-area class="col">
-          <q-list separator>
-            <q-item v-for="convo in conversations" :key="convo.candidateId" clickable v-ripple
-              @click="selectConversation(convo)" :active="selectedConversation?.candidateId === convo.candidateId"
+          <div v-if="loading" class="q-pa-md text-center">
+            <q-spinner color="primary" size="3em" />
+            <div class="text-body2 q-mt-md">Loading conversations...</div>
+          </div>
+          <q-list v-else separator>
+            <q-item v-for="convo in conversations" :key="convo.id" clickable v-ripple
+              @click="selectConversation(convo)" :active="selectedConversation?.id === convo.id"
               active-class="selected-convo">
               <q-item-section avatar>
-                <q-avatar color="blue-grey-2" text-color="primary">{{ convo.candidateName.charAt(0) }}</q-avatar>
+                <q-avatar color="blue-grey-2" text-color="primary">
+                  {{ (convo.candidateName || convo.participantName || 'Unknown')?.charAt(0)?.toUpperCase() || 'U' }}
+                </q-avatar>
               </q-item-section>
               <q-item-section>
-                <q-item-label lines="1">{{ convo.candidateName }}</q-item-label>
-                <q-item-label caption lines="1">{{ convo.messages[convo.messages.length - 1].text }}</q-item-label>
+                <q-item-label lines="1">{{ convo.candidateName || convo.participantName || 'Unknown Candidate' }}</q-item-label>
+                <q-item-label caption lines="1">{{ convo.lastMessage || 'No messages yet' }}</q-item-label>
               </q-item-section>
               <q-item-section side top>
-                <q-item-label caption>{{ formatTimeAgo(convo.messages[convo.messages.length - 1].timestamp) }}
-                </q-item-label>
+                <q-item-label caption>{{ formatTimeAgo(convo.lastMessageTime) }}</q-item-label>
                 <q-badge v-if="convo.unread" color="negative" rounded floating />
               </q-item-section>
             </q-item>
+            <div v-if="conversations.length === 0" class="q-pa-md text-center text-grey-6">
+              <q-icon name="chat" size="3em" />
+              <div class="text-body2 q-mt-md">No conversations yet</div>
+            </div>
           </q-list>
         </q-scroll-area>
       </div>
 
       <div class="chat-window column" v-if="selectedConversation">
         <div class="chat-header q-pa-md row items-center">
-          <q-avatar color="primary" text-color="white" size="md" class="q-mr-md">{{
-            selectedConversation.candidateName.charAt(0) }}</q-avatar>
-          <div class="text-h6">{{ selectedConversation.candidateName }}</div>
+          <q-avatar color="primary" text-color="white" size="md" class="q-mr-md">
+            {{ (selectedConversation.candidateName || selectedConversation.participantName || 'Unknown')?.charAt(0)?.toUpperCase() || 'U' }}
+          </q-avatar>
+          <div class="text-h6">{{ selectedConversation.candidateName || selectedConversation.participantName || 'Unknown Candidate' }}</div>
         </div>
         <q-scroll-area ref="chatScrollArea" class="col chat-messages q-pa-md">
-          <div v-for="(msg, i) in selectedConversation.messages" :key="i">
-            <q-chat-message :name="msg.sender === 'employer' ? 'You' : selectedConversation.candidateName"
-              :text="[msg.text]" :sent="msg.sender === 'employer'" :stamp="formatTimeAgo(msg.timestamp)" />
+          <div v-for="(msg, i) in selectedConversation.messages" :key="i" class="message-wrapper"
+               :class="{ 'my-message': msg.sender === 'employer', 'other-message': msg.sender !== 'employer' }">
+            <q-chat-message 
+              :name="msg.sender === 'employer' ? 'You' : (selectedConversation.candidateName || selectedConversation.participantName || 'Unknown Candidate')"
+              :text="[msg.text]" 
+              :sent="msg.sender === 'employer'" 
+              :stamp="formatTimeAgo(msg.timestamp)"
+            />
+           
+            
           </div>
         </q-scroll-area>
         <div class="chat-input-area q-pa-md">
@@ -86,15 +103,23 @@
       <q-card style="width: 500px">
         <q-card-section>
           <div class="text-h6">Create Broadcast Message</div>
-          <div class="text-caption">This message will appear on the dashboard.</div>
+          <div class="text-caption">Send a message to all or selected job seekers</div>
         </q-card-section>
         <q-card-section class="q-gutter-y-md">
-          <q-input v-model="broadcastForm.text" type="textarea" outlined label="Broadcast Message" />
-          <q-input filled v-model="broadcastForm.expiry" label="Expiry Date & Time">
+          <q-input v-model="broadcastForm.title" outlined label="Broadcast Title" />
+          <q-input v-model="broadcastForm.content" type="textarea" outlined label="Message Content" rows="4" />
+          <q-select v-model="broadcastForm.targetAudience" outlined label="Target Audience" 
+                    :options="[
+                      { label: 'All Job Seekers', value: 'all' },
+                      { label: 'Active Applicants', value: 'applicants' },
+                      { label: 'Specific Skills', value: 'skills' }
+                    ]" 
+                    option-label="label" option-value="value" emit-value map-options />
+          <q-input filled v-model="broadcastForm.scheduledFor" label="Schedule For (Optional)">
             <template v-slot:prepend>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="broadcastForm.expiry" mask="YYYY-MM-DD HH:mm">
+                  <q-date v-model="broadcastForm.scheduledFor" mask="YYYY-MM-DD HH:mm">
                     <div class="row items-center justify-end">
                       <q-btn v-close-popup label="Close" color="primary" flat />
                     </div>
@@ -105,7 +130,7 @@
             <template v-slot:append>
               <q-icon name="access_time" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-time v-model="broadcastForm.expiry" mask="YYYY-MM-DD HH:mm" format24h>
+                  <q-time v-model="broadcastForm.scheduledFor" mask="YYYY-MM-DD HH:mm" format24h>
                     <div class="row items-center justify-end">
                       <q-btn v-close-popup label="Close" color="primary" flat />
                     </div>
@@ -117,7 +142,7 @@
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cancel" v-close-popup />
-          <q-btn color="primary" label="Schedule Broadcast" @click="scheduleBroadcast" />
+          <q-btn color="primary" label="Send Broadcast" @click="scheduleBroadcast" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -131,6 +156,8 @@ import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import AppHeader from 'src/components/HeaderPart.vue';
 import { authHelpers } from 'src/services/auth.service';
+import messageService from 'src/services/message.service';
+
 const router = useRouter();
 const $q = useQuasar();
 
@@ -140,30 +167,54 @@ const selectedConversation = ref(null);
 const newMessage = ref('');
 const chatScrollArea = ref(null);
 const showBroadcastDialog = ref(false);
-const broadcastForm = ref({ text: '', expiry: '' });
+const broadcastForm = ref({ title: '', content: '', scheduledFor: '', targetAudience: 'all' });
 const currentUser = authHelpers.getCurrentUser();
-onMounted(() => {
+const conversations = ref([]);
+const loading = ref(false);
+
+onMounted(async () => {
   const stored = localStorage.getItem('employerData');
   if (stored) employer.value = JSON.parse(stored);
-  if (conversations.value.length > 0) {
-    selectConversation(conversations.value[0]);
-  }
+  await loadConversations();
 });
 
-const conversations = ref([
-  {
-    candidateId: 102, candidateName: 'Priya Patel', unread: true,
-    messages: [
-      { sender: 'candidate', text: 'Hi, I am very interested in the UI/UX Designer role. Could you tell me more about the team?', timestamp: '2025-07-31T11:30:00Z' },
-      { sender: 'employer', text: 'Hi Priya, thanks for your interest! Our design team is a collaborative group of 5 designers working closely with product managers.', timestamp: '2025-07-31T12:00:00Z' },
-      { sender: 'candidate', text: 'That sounds great! Thank you for the information.', timestamp: '2025-08-01T09:00:00Z' },
-    ]
-  },
-  {
-    candidateId: 104, candidateName: 'Sneha Verma', unread: false,
-    messages: [ { sender: 'candidate', text: 'Thank you for scheduling the interview. I look forward to it!', timestamp: '2025-07-30T15:00:00Z' } ]
-  },
-]);
+const loadConversations = async () => {
+  loading.value = true;
+  try {
+    const result = await messageService.getConversations();
+    console.log('Raw conversations result:', result);
+    if (result.success) {
+      console.log('Individual conversations:', result.conversations);
+      conversations.value = result.conversations.map(conv => {
+        console.log('Processing conversation:', conv);
+        const mapped = {
+          id: conv.id,
+          candidateId: conv.participantId || conv.jobSeekerId,
+          candidateName: conv.participantName || conv.candidateName || conv.jobSeekerName,
+          participantName: conv.participantName,
+          unread: conv.unread || conv.unreadCount > 0,
+          lastMessage: conv.lastMessage,
+          lastMessageTime: conv.lastMessageTime || conv.lastMessageAt,
+          jobTitle: conv.jobTitle,
+          jobId: conv.jobId,
+          messages: []
+        };
+        console.log('Mapped conversation:', mapped);
+        return mapped;
+      });
+      if (conversations.value.length > 0) {
+        selectConversation(conversations.value[0]);
+      }
+    } else {
+      $q.notify({ type: 'negative', message: result.error });
+    }
+  } catch (error) {
+    console.error('Error loading conversations:', error);
+    $q.notify({ type: 'negative', message: 'Failed to load conversations' });
+  } finally {
+    loading.value = false;
+  }
+};
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -173,36 +224,98 @@ const scrollToBottom = () => {
   });
 };
 
-const selectConversation = (convo) => {
+const selectConversation = async (convo) => {
   selectedConversation.value = convo;
-  if (convo.unread) convo.unread = false;
+  
+  console.log('EmployerMessages - selectConversation debug:');
+  console.log('currentUser:', currentUser);
+  console.log('currentUser?.id:', currentUser?.id);
+  console.log('convo:', convo);
+  
+  // Mark as read
+  if (convo.unread) {
+    await messageService.markAsRead(convo.id);
+    convo.unread = false;
+  }
+  
+  // Load messages for this conversation
+  try {
+    const result = await messageService.getMessages(convo.id);
+    if (result.success) {
+      convo.messages = result.messages.map(msg => {
+        const isMyMessage = msg.senderId === currentUser?.id;
+        console.log('Message mapping:', {
+          senderId: msg.senderId,
+          currentUserId: currentUser?.id,
+          isMyMessage: isMyMessage,
+          content: msg.content?.substring(0, 20) + '...'
+        });
+        return {
+          sender: isMyMessage ? 'employer' : 'candidate',
+          text: msg.content,
+          timestamp: msg.createdAt
+        };
+      });
+    }
+  } catch (error) {
+    console.error('Error loading messages:', error);
+  }
+  
   scrollToBottom();
 };
 
-const sendMessage = () => {
+const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedConversation.value) return;
-  selectedConversation.value.messages.push({
-    sender: 'employer',
-    text: newMessage.value,
-    timestamp: new Date().toISOString()
-  });
-  newMessage.value = '';
-  scrollToBottom();
+  
+  try {
+    const result = await messageService.sendMessage(
+      selectedConversation.value.id,
+      newMessage.value
+    );
+    
+    if (result.success) {
+      selectedConversation.value.messages.push({
+        sender: 'employer',
+        text: newMessage.value,
+        timestamp: new Date().toISOString()
+      });
+      newMessage.value = '';
+      scrollToBottom();
+    } else {
+      $q.notify({ type: 'negative', message: result.error });
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
+    $q.notify({ type: 'negative', message: 'Failed to send message' });
+  }
 };
 
-const scheduleBroadcast = () => {
-  if (!broadcastForm.value.text || !broadcastForm.value.expiry) {
-    $q.notify({ type: 'negative', message: 'Please fill in all fields.' });
+const scheduleBroadcast = async () => {
+  if (!broadcastForm.value.title || !broadcastForm.value.content) {
+    $q.notify({ type: 'negative', message: 'Please fill in title and content.' });
     return;
   }
+  
   const broadcastData = {
-    text: broadcastForm.value.text,
-    expiry: new Date(broadcastForm.value.expiry).toISOString(),
+    title: broadcastForm.value.title,
+    content: broadcastForm.value.content,
+    targetAudience: broadcastForm.value.targetAudience,
+    scheduledFor: broadcastForm.value.scheduledFor ? new Date(broadcastForm.value.scheduledFor).toISOString() : null
   };
-  localStorage.setItem('jobhubBroadcast', JSON.stringify(broadcastData));
-  $q.notify({ type: 'positive', message: 'Broadcast scheduled successfully!' });
-  showBroadcastDialog.value = false;
-  broadcastForm.value = { text: '', expiry: '' };
+  
+  try {
+    const result = await messageService.createBroadcast(broadcastData);
+    if (result.success) {
+      $q.notify({ type: 'positive', message: 'Broadcast scheduled successfully!' });
+      showBroadcastDialog.value = false;
+      broadcastForm.value = { title: '', content: '', scheduledFor: '', targetAudience: 'all' };
+    } else {
+      $q.notify({ type: 'negative', message: result.error });
+    }
+  } catch (error) {
+    console.error('Error creating broadcast:', error);
+    $q.notify({ type: 'negative', message: 'Failed to create broadcast' });
+  }
 };
 
 const links = [
@@ -281,4 +394,31 @@ const formatTimeAgo = (dateString) => {
 .chat-header { background-color: #f5f5f5; border-bottom: 1px solid #e0e0e0; }
 .chat-messages { background-color: #f4f8fa; }
 .chat-input-area { background-color: #fff; border-top: 1px solid #e0e0e0; }
+
+/* Message alignment styles */
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.my-message {
+  align-self: flex-end;
+  margin-left: 20%;
+}
+
+.my-message .q-chat-message {
+  background-color: #2196F3;
+  color: white;
+}
+
+.other-message {
+  align-self: flex-start;
+  margin-right: 20%;
+}
+
+.other-message .q-chat-message {
+  background-color: #f5f5f5;
+  color: #333;
+}
 </style>

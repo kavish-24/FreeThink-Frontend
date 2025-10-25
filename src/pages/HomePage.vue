@@ -13,7 +13,7 @@
         <div class="hero-text animate-slide-up">
           <h1 class="hero-title">
             Your Dream Job is Just a Click Away
-            <span class="handwritten">Explore. Apply. Succeed.</span>
+            <span class="hero-title">Explore. Apply. Succeed.</span>
           </h1>
           <p class="hero-subtitle">
             Connect with top companies, discover amazing opportunities, and take the next step in your career journey with JobHub.

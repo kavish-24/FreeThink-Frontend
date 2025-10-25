@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from 'stores/auth.store'
 import routes from './routes.js'
-
+import api from '../services/auth.service'
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -29,7 +29,7 @@ const router = createRouter({
 // Helper function to verify admin token
 async function verifyAdminToken(token) {
   try {
-    const response = await fetch('http://localhost:3000/api/admin/verify-token', {
+    const response = await api.get('admin/verify-token', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'

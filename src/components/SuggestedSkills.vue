@@ -57,7 +57,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import api from "../services/auth.service";
 import { authHelpers } from "src/services/auth.service";
 
 const suggestions = ref([]);
@@ -69,7 +69,7 @@ const userId = authHelpers.getCurrentUser()?.id || "defaultUserId";
 const fetchSuggestions = async () => {
   loading.value = true;
   try {
-    const res = await axios.get(`http://localhost:3000/api/skills/${userId}`);
+    const res = await api.get(`skills/${userId}`);
     if (res.data) {
       category.value = res.data.category || "General";
       suggestions.value = res.data.suggestions.map(s =>

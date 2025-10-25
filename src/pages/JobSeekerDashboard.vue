@@ -69,6 +69,15 @@
               </div>
             </div>
             <div class="stat-card card-unstop">
+              <div class="stat-icon messages">
+                <q-icon name="chat" />
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ unreadMessageCount }}</div>
+                <div class="stat-label">New Messages</div>
+              </div>
+            </div>
+            <div class="stat-card card-unstop">
               <div class="stat-icon profile">
                 <q-icon name="person" />
               </div>
@@ -116,6 +125,9 @@
                 <template v-else-if="selectedSection === 'bookmarks'">
                   <BookmarkedJobs :jobs="bookmarkedJobs" @remove="handleRemove" />
                 </template>
+                <template v-else-if="selectedSection === 'messages'">
+                  <JobSeekerMessages @message-sent="loadUnreadMessageCount" />
+                </template>
               </div>
             </div>
           </div>
@@ -134,14 +146,16 @@ import CompleteProfileModal from 'components/CompleteProfileModal.vue';
 import BookmarkedJobs from 'components/BookmarkedJobs.vue';
 import MyApplications from 'components/MyApplications.vue';
 import DashboardOverview from 'components/DashboardOverview.vue';
+import JobSeekerMessages from 'components/JobSeekerMessages.vue';
 
-import { useRouter } from 'vue-router';
 
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { bookmarkService } from '../services/bookmarkService';
 import { applicationService } from '../services/applicationService';
 import { authHelpers } from '../services/auth.service';
 import { useAuthStore } from '../stores/auth.store';
+import messageService from '../services/message.service';
 
 const authStore = useAuthStore();
 const bookmarkedJobs = ref([]);
@@ -156,11 +170,13 @@ const userName = computed(() => authStore.userData?.name || 'User');
 const applicationCount = ref(0);
 const interviewCount = ref(2);
 const profileCompletion = ref(85);
+const unreadMessageCount = ref(0);
 
 const dashboardTabs = computed(() => [
   { key: 'overview', label: 'Overview', icon: 'dashboard' },
   { key: 'applications', label: `Applications (${applicationCount.value})`, icon: 'work' },
-  { key: 'bookmarks', label: `Saved Jobs (${bookmarkedJobs.value.length})`, icon: 'bookmark' }
+  { key: 'bookmarks', label: `Saved Jobs (${bookmarkedJobs.value.length})`, icon: 'bookmark' },
+  { key: 'messages', label: `Messages ${unreadMessageCount.value > 0 ? `(${unreadMessageCount.value})` : ''}`, icon: 'chat' }
 ]);
 
 const goToResume = () => router.push('/resume-builder');
@@ -178,6 +194,21 @@ const fetchApplications = async () => {
 
 const updateApplicationCount = (count) => {
   applicationCount.value = count;
+};
+
+const loadUnreadMessageCount = async () => {
+  try {
+    const result = await messageService.getUnreadCount();
+    if (result.success) {
+      unreadMessageCount.value = result.count;
+    } else {
+      console.error('Failed to load unread message count:', result.error);
+      unreadMessageCount.value = 0;
+    }
+  } catch (error) {
+    console.error('Error loading unread message count:', error);
+    unreadMessageCount.value = 0;
+  }
 };
 
 const fetchBookmarks = async () => {
@@ -214,6 +245,10 @@ const handleRemove = async (jobId) => {
 onMounted(() => {
   fetchApplications();
   fetchBookmarks();
+  loadUnreadMessageCount();
+  
+  // Refresh unread count every 30 seconds
+  setInterval(loadUnreadMessageCount, 30000);
 });
 </script>
 
@@ -385,6 +420,10 @@ onMounted(() => {
 
 .stat-icon.interviews {
   background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+}
+
+.stat-icon.messages {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .stat-icon.profile {

@@ -37,6 +37,15 @@
   @click="handleApplyClick"
 />
 
+      <q-btn
+        label="Message"
+        color="primary"
+        flat
+        class="q-mb-sm q-ml-sm"
+        icon="chat"
+        @click="openMessageDialog"
+      />
+
         <div class="q-gutter-sm">
           <!-- Bookmark Button -->
           <q-btn
@@ -130,11 +139,36 @@
   </q-card>
 </q-dialog>
 
+<q-dialog v-model="showMessageDialog" persistent>
+  <q-card style="min-width: 360px; max-width: 720px;">
+    <q-card-section class="row items-center q-pb-none">
+      <div class="text-h6">Message {{ job.title }}</div>
+      <q-space />
+      <q-btn icon="close" flat round dense v-close-popup @click="showMessageDialog = false" />
+    </q-card-section>
+
+    <q-separator />
+
+    <q-card-section>
+      <div class="q-mb-md">To: <b>{{ job.company?.companyName || 'Employer' }}</b></div>
+      <q-input filled type="textarea" v-model="messageBody" label="Your message" autogrow />
+    </q-card-section>
+
+    <q-separator />
+
+    <q-card-actions align="right">
+      <q-btn flat label="Cancel" color="grey" v-close-popup @click="showMessageDialog = false" />
+      <q-btn unelevated label="Send" color="primary" :loading="sendingMessage" @click="sendMessageToEmployer" />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
 </template>
 
 <script setup>
 import { ref, toRef, computed, onMounted } from 'vue'
 import api, { authHelpers } from '../services/auth.service'
+import messageService from '../services/message.service'
 import { bookmarkService } from '../services/bookmarkService'
 import shareIcon from '../assets/share.png'
 import { useQuasar } from 'quasar'
@@ -151,6 +185,9 @@ const submitting = ref(false)
 const hasApplied = ref(false)
 const checkingApplication = ref(false)
 const $q = useQuasar()
+const showMessageDialog = ref(false)
+const messageBody = ref('')
+const sendingMessage = ref(false)
 
 const formattedDeadline = computed(() => {
   if (!job.value?.deadline) return 'Not specified'
@@ -175,7 +212,7 @@ const checkIfApplied = async () => {
   
   try {
     checkingApplication.value = true
-    const token = localStorage.getItem('token')
+    const token = authHelpers.getToken() // Use authHelpers instead of direct localStorage
     const res = await api.get(`/applications/check/${job.value.id}`, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -209,7 +246,7 @@ const submitApplication = async () => {
 
   try {
     submitting.value = true
-    const token = localStorage.getItem('token')
+    const token = authHelpers.getToken() // Use authHelpers instead of direct localStorage
     const formData = new FormData()
     formData.append('job_id', job.value.id)
     formData.append('resume', resume.value)
@@ -285,6 +322,86 @@ onMounted(() => {
   checkBookmark()
   checkIfApplied()
 })
+
+const openMessageDialog = () => {
+  // Prefill a polite starter message
+  messageBody.value = `Hi, I'm interested in the ${job.value?.title || 'this role'}. Could you share more details?`;
+  showMessageDialog.value = true
+}
+
+const sendMessageToEmployer = async () => {
+  // Debug: Log the job object to see its structure
+  console.log('Full job object:', job.value)
+  console.log('Company object:', job.value?.company)
+  
+  // Try several possible fields for employer/company id
+  const employerId = job.value?.company?.id || 
+                    job.value?.company?.companyId || 
+                    job.value?.company?.company_id || 
+                    job.value?.company?.userId ||
+                    job.value?.company?.user_id ||
+                    job.value?.company_id || 
+                    job.value?.employer_id ||
+                    job.value?.employerId ||
+                    job.value?.posted_by ||
+                    job.value?.user_id ||
+                    job.value?.userId ||
+                    null
+                    
+  console.log('Detected employer ID:', employerId)
+  
+  if (!employerId) {
+    // Show more detailed error with available fields
+    const availableFields = Object.keys(job.value || {})
+    const companyFields = Object.keys(job.value?.company || {})
+    console.log('Available job fields:', availableFields)
+    console.log('Available company fields:', companyFields)
+    $q.notify({ 
+      type: 'negative', 
+      message: `Unable to determine employer to message. Available fields: ${availableFields.join(', ')}` 
+    })
+    return
+  }
+
+  if (!messageBody.value.trim()) {
+    $q.notify({ type: 'warning', message: 'Please enter a message' })
+    return
+  }
+
+  try {
+    sendingMessage.value = true
+    console.log('Calling messageService.createConversation with:', { employerId, jobId: job.value.id, messageBody: messageBody.value })
+    // createConversation should create a conversation and optionally send the first message
+    const res = await messageService.createConversation(employerId, job.value.id, messageBody.value)
+    console.log('createConversation response:', res)
+    
+    if (res && res.success) {
+      $q.notify({ type: 'positive', message: 'Message sent — conversation started.' })
+      showMessageDialog.value = false
+      messageBody.value = ''
+      // Optionally navigate to messages page or open conversation — left commented for now
+      // router.push({ name: 'JobSeekerMessages' })
+    } else {
+      const errMsg = res?.error || 'Failed to send message'
+      const statusInfo = res?.status ? ` (Status: ${res.status})` : ''
+      $q.notify({ 
+        type: 'negative', 
+        message: `${errMsg}${statusInfo}`,
+        timeout: 5000
+      })
+      console.error('Backend error details:', res?.details)
+    }
+  } catch (err) {
+    console.error('Error sending message to employer:', err)
+    $q.notify({ 
+      type: 'negative', 
+      message: `Failed to send message: ${err.message}`,
+      timeout: 5000 
+    })
+  } finally {
+    sendingMessage.value = false
+  }
+}
 </script>
 
 <style scoped>

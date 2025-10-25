@@ -310,8 +310,7 @@
 
 <script>
 import AppHeader from '../components/HeaderPart.vue';
-import axios from 'axios';
-
+import api from '../services/auth.service';
 export default {
   name: 'ApplicationForm',
   components: { AppHeader },
@@ -389,7 +388,7 @@ export default {
         const resumeFile = this.$refs.resumeUploader.files[0];
         formData.append('resume', resumeFile);
 
-        const res = await axios.post('http://localhost:3000/api/applications/apply', formData, {
+        const res = await api.post('applications/apply', formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'

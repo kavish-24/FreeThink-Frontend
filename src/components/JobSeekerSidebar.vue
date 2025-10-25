@@ -56,7 +56,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import messageService from '../services/message.service';
 
 const emit = defineEmits(['navigate']);
 
@@ -88,6 +89,9 @@ const notifications = ref([
   { message: 'Application submitted!', timestamp: '06:00 PM IST, Aug 01, 2025', type: 'success' },
 ]);
 
+// Message unread count
+const unreadMessageCount = ref(0);
+
 // Ripple configuration
 const rippleConfig = {
   color: 'blue-4',
@@ -111,6 +115,13 @@ const sidebarItems = computed(() => [
     badgeColor: 'indigo-8'
   },
   { 
+    key: 'messages', 
+    label: 'Messages', 
+    icon: 'chat',
+    badge: unreadMessageCount.value > 0 ? unreadMessageCount.value.toString() : '0',
+    badgeColor: 'green-8'
+  },
+  { 
     key: 'profile', 
     label: 'My Profile', 
     icon: 'account_circle' 
@@ -130,9 +141,40 @@ const sidebarItems = computed(() => [
   },
 ]);
 
+// Load unread message count
+const loadUnreadMessageCount = async () => {
+  try {
+    const result = await messageService.getUnreadCount();
+    if (result.success) {
+      unreadMessageCount.value = result.count;
+    } else {
+      console.error('Failed to load unread message count:', result.error);
+      unreadMessageCount.value = 0;
+    }
+  } catch (error) {
+    console.error('Error loading unread message count:', error);
+    unreadMessageCount.value = 0;
+  }
+};
+
 function navigate(section) {
   emit('navigate', section);
+  
+  // If navigating to messages, reload unread count after a short delay
+  if (section === 'messages') {
+    setTimeout(() => {
+      loadUnreadMessageCount();
+    }, 1000);
+  }
 }
+
+// Load unread count on component mount and set up periodic refresh
+onMounted(() => {
+  loadUnreadMessageCount();
+  
+  // Refresh unread count every 30 seconds
+  setInterval(loadUnreadMessageCount, 30000);
+});
 </script>
 
 <style scoped>
