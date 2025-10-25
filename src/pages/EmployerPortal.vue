@@ -165,10 +165,10 @@ const router = useRouter();
 const $q = useQuasar();
 
 const dashboardStats = ref([
-  { value: 10, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-5' },
-  { value: 4, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-6' },
+  { value: 28, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-5' },
+  { value: 19, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-6' },
   { value: 87, label: 'Total Applicants', icon: 'groups', iconColor: 'blue-7' },
-  { value: 2, label: 'Pending Review', icon: 'pending_actions', iconColor: 'blue-8' }
+  { value: 0, label: 'Pending Review', icon: 'pending_actions', iconColor: 'blue-8' }
 ]);
 
 const navStats = ref({

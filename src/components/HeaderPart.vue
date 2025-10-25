@@ -131,7 +131,7 @@
                 <q-item-section>Employer Portal</q-item-section>
               </q-item>
 
-              <q-item clickable v-close-popup @click="$router.push(profileRoute)">
+              <q-item clickable v-close-popup @click="openProfileSidebar">
                 <q-item-section avatar>
                   <q-icon name="person" />
                 </q-item-section>
@@ -225,8 +225,7 @@
             v-if="user"
             clickable
             v-ripple
-            @click="navigateAndClose(profileRoute)"
-            :class="{ 'mobile-nav-active': $route.path === profileRoute }"
+            @click="openProfileSidebarMobile"
           >
             <q-item-section avatar>
               <q-icon name="person" />
@@ -292,21 +291,26 @@
         </div>
       </div>
     </q-drawer>
+
+    <!-- Profile Sidebar -->
+    <ProfileSidebar v-model="showProfileSidebar" />
   </header>
 </template>
 
 <script>
 import { useAuthStore } from 'src/stores/auth.store';
 import JobsDropDown from './JobsDropDown.vue';
+import ProfileSidebar from './ProfileSidebar.vue';
 
 export default {
   name: 'AppNavbar',
-  components: { JobsDropDown },
+  components: { JobsDropDown, ProfileSidebar },
   data() {
     return {
       showDropdown: false,
       initialized: false,
       mobileMenuOpen: false,
+      showProfileSidebar: false,
     };
   },
   setup() {
@@ -378,6 +382,13 @@ export default {
     navigateAndClose(path) {
       this.$router.push(path);
       this.mobileMenuOpen = false;
+    },
+    openProfileSidebar() {
+      this.showProfileSidebar = true;
+    },
+    openProfileSidebarMobile() {
+      this.mobileMenuOpen = false;
+      this.showProfileSidebar = true;
     },
     getUserRoleLabel() {
       if (this.user?.role === 'job_seeker' || this.user?.type === 'seeker') {

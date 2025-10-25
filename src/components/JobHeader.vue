@@ -24,13 +24,19 @@
 
       <!-- Right: Actions -->
       <div class="column items-end q-mt-sm q-mt-none-md">
-         <q-btn
-          label="Apply Now"
-          :style="{ backgroundColor: '#1565c0', color: 'white' }"
-          class="q-mb-sm"
-          unelevated
-          @click="showDialog = true"
-        />
+      <q-btn
+  :label="hasApplied ? 'Applied' : 'Apply Now'"
+  :color="hasApplied ? 'positive' : 'primary'"
+  :icon="hasApplied ? 'check_circle' : 'send'"
+  :disable="hasApplied || checkingApplication"
+  :loading="checkingApplication"
+  class="q-mb-sm q-px-md"
+  unelevated
+  rounded
+  glossy
+  @click="handleApplyClick"
+/>
+
         <div class="q-gutter-sm">
           <!-- Bookmark Button -->
           <q-btn
@@ -142,6 +148,8 @@ const userId = authHelpers.getCurrentUser()?.id
 const resume = ref(null)
 const coverLetter = ref(null)
 const submitting = ref(false)
+const hasApplied = ref(false)
+const checkingApplication = ref(false)
 const $q = useQuasar()
 
 const formattedDeadline = computed(() => {
@@ -161,6 +169,37 @@ const createddate = computed(() => {
     year: 'numeric'
   })
 })
+
+const checkIfApplied = async () => {
+  if (!userId || !job.value?.id) return
+  
+  try {
+    checkingApplication.value = true
+    const token = localStorage.getItem('token')
+    const res = await api.get(`/applications/check/${job.value.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    hasApplied.value = res.data.hasApplied
+  } catch (err) {
+    console.error('Error checking application status:', err)
+    hasApplied.value = false
+  } finally {
+    checkingApplication.value = false
+  }
+}
+
+const handleApplyClick = () => {
+  if (hasApplied.value) {
+    $q.notify({
+      type: 'warning',
+      message: 'You have already applied for this job'
+    })
+    return
+  }
+  showDialog.value = true
+}
 
 
 const submitApplication = async () => {
@@ -185,6 +224,7 @@ const submitApplication = async () => {
 
     $q.notify({ type: 'positive', message: res.data.message || 'Application submitted successfully ✅' })
     showDialog.value = false
+    hasApplied.value = true // Update the status immediately
 
   } catch (err) {
     let message = 'Failed to apply'
@@ -243,6 +283,7 @@ const openSettings = () => {
 
 onMounted(() => {
   checkBookmark()
+  checkIfApplied()
 })
 </script>
 

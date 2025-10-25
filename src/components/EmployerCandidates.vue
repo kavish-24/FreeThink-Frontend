@@ -331,8 +331,6 @@
           </q-expansion-item>
         </div>
       </div>
-
-      <!-- Enhanced Empty State -->
       <div v-else class="empty-state">
         <div class="empty-content">
           <div class="empty-icon">

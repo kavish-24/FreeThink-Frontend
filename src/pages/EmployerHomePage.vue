@@ -11,7 +11,9 @@
         <h1 class="tagline text-glow" style="color: #2a2a2a; text-shadow: 0 0 5px rgba(45, 108, 255, 0.442), 0 0 6px rgba(45, 108, 255, 0.442), 0 0 8px rgba(45, 108, 255, 0.442);">Hire the Best Talent <span class="handwritten">Faster</span></h1>
         <p>Connect with over <strong>500,000</strong> pre‑screened professionals. Use AI-powered matching to find your perfect candidate in days, not months.</p>
         <div class="hero-buttons">
-          <button class="btn primary" @click="goToEmployerLogin">Post a Job Now</button>
+          <button class="btn primary" @click="goToEmployerLogin">
+  Post a Job Now
+</button>
           <button class="btn outline" @click="scrollToPricing">View Plans</button>
         </div>
         <div class="hero-stats" ref="heroStats">
@@ -222,6 +224,7 @@
 import AppHeader from '../components/HeaderPart.vue';
 import AppFooter from '../components/FooterPart.vue';
 import JobseekerSuggestions from './JobseekerSuggestions.vue'
+import { useAuthStore } from 'src/stores/auth.store';
 export default {
   name: 'EmployerHomePage',
   components: {
@@ -341,6 +344,17 @@ export default {
   },
   methods: {
     // #################### SCRIPT METHODS FOR SLIDER ####################
+     goToEmployerLogin() {
+      const authStore = useAuthStore(); // Pinia store instance
+
+      if (authStore.isAuthenticated && authStore.role === 'company') {
+        // Already logged in as employer → go to post-job page
+        this.$router.push('/post-job');
+      } else {
+        // Not logged in → go to employer login
+        this.$router.push('/employer-signup'); // or '/employer-login' depending on your route
+      }
+    },
     setActiveImage(index) {
       this.activeImageIndex = index;
     },
@@ -389,9 +403,7 @@ export default {
       }
     },
     // #################### END OF SCRIPT METHODS ####################
-    goToEmployerLogin() {
-      this.$router.push('/employer-signup');
-    },
+    
     scrollToPricing() {
       const pricingSection = document.getElementById('pricing-section');
       pricingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });

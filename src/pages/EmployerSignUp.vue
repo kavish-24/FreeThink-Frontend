@@ -204,16 +204,20 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-// import { companyAuth } from '../services/auth.service';
+import { companyAuth, auth } from '../services/auth.service';
+import { authHelpers } from '../services/auth.service';
 
 export default {
   name: 'EmployerSignup',
   setup() {
     const router = useRouter();
     const $q = useQuasar();
+
     const loading = ref(false);
     const error = ref('');
     const showPassword = ref(false);
+    const user = ref(null);
+    const isAuthenticated = ref(false);
 
     const formData = ref({
       companyName: '',
@@ -221,9 +225,14 @@ export default {
       contactNumber: '',
       password: '',
       website: '',
+      logo: '',
+      description: '',
       industry: '',
       location: '',
-      description: ''
+      companySize: '',
+      foundedYear: '',
+      linkedinUrl: '',
+      twitterHandle: ''
     });
 
     const registerCompany = async () => {
@@ -231,66 +240,66 @@ export default {
         loading.value = true;
         error.value = '';
 
-        const registrationData = {
-          companyName: formData.value.companyName.trim(),
-          email: formData.value.email.trim().toLowerCase(),
-          password: formData.value.password,
-          contactNumber: formData.value.contactNumber
-        };
+        // 1️⃣ Register company
+        const response = await companyAuth.register(formData.value);
 
-        const response = await new Promise(resolve => setTimeout(() => {
-          resolve({ success: true, employer: { id: `comp_${Date.now()}`, ...registrationData } });
-        }, 1500));
-        
-        if (response.success) {
-          const employerData = {
-            id: formData.value.id, // Use company name as ID for simplicity
-            name: formData.value.companyName,
-            email: formData.value.email,
-            status: 'pending',
-            // Add any other employer data you want to store
-          };
-          localStorage.setItem('employerData', JSON.stringify(employerData));
-          
-          // Store auth token if available in response
-          if (response.token) {
-            localStorage.setItem('authToken', response.token);
-            localStorage.setItem('userData', JSON.stringify({
-              id: response.userId,
-              email: formData.value.email,
-              role: 'company',
-              status: 'pending'
-            }));
-          }
-
-          // Redirect to employer portal
-          router.push('/employer-portal');
-        } else {
-          error.value = response.error || 'Registration failed.';
+        if (!response.success) {
+          error.value = response.error || 'Registration failed';
+          $q.notify({ type: 'negative', message: error.value, position: 'top' });
+          return;
         }
+
+        // 2️⃣ Explicitly log in
+        const loginResponse = await auth.login({
+          email: formData.value.email,
+          password: formData.value.password
+        });
+
+        if (!loginResponse.success) {
+          error.value = loginResponse.error || 'Login failed after registration';
+          $q.notify({ type: 'negative', message: error.value, position: 'top' });
+          return;
+        }
+
+        // 3️⃣ Save token & user data
+        const loginUser = loginResponse.data.user;
+        const token = loginResponse.data.token;
+        authHelpers.setAuthData(token, loginUser);
+
+        user.value = loginUser;
+        isAuthenticated.value = true;
+
+        // 4️⃣ Redirect to employer portal
+        router.push('/employers');
+
+        $q.notify({
+          type: 'positive',
+          message: 'Registration & login successful 🎉',
+          position: 'top',
+        });
+
       } catch (err) {
-        console.error('Registration error:', err);
+        console.error('Registration/Login error:', err);
         error.value = 'An unexpected error occurred.';
+        $q.notify({ type: 'negative', message: error.value, position: 'top' });
       } finally {
         loading.value = false;
       }
     };
-
-    const goToEmployers = () => router.push('/employers');
-    const goToHome = () => router.push('/');
 
     return {
       formData,
       loading,
       error,
       showPassword,
+      user,
+      isAuthenticated,
       registerCompany,
-      goToEmployers,
-      goToHome,
       $q
     };
   }
 };
+
 </script>
 
 <style scoped>

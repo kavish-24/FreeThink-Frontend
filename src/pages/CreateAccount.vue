@@ -195,31 +195,39 @@ const showConfirmPassword = ref(false);
 
 const handleSubmit = async () => {
   try {
-    const result = await authStore.register({
-      name: `${formData.value.firstName} ${formData.value.lastName}`, // Combine first and last name
-      email: formData.value.email,
-      phone: formData.value.phone.replace(/\D/g, ''),
-      password: formData.value.password,
+    const { email, password, firstName, lastName, phone } = formData.value;
+
+    // Register user
+    await authStore.register({
+      firstName,
+  lastName,
+      email,
+      phone: phone.replace(/\D/g, ''),
+      password,
     });
 
-    if (result.success) {
-      $q.notify({
-        type: 'positive',
-        message: 'OTP sent to your email. Please verify.',
-        position: 'top',
-        timeout: 2000,
-      });
+    // Immediately login after registration
+    await authStore.login({ email, password });
 
-      // Assume OTP verification redirects to a separate page or modal
-      router.push({
-        path: '/verify-otp',
-        query: { email: formData.value.email },
-      });
-    }
+    // Redirect to home
+    router.push('/');
+
+    $q.notify({
+      type: 'positive',
+      message: 'Registration & login successful 🎉',
+      position: 'top',
+    });
+
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration/Login error:", error);
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'Registration failed',
+      position: 'top',
+    });
   }
 };
+
 
 const goBack = () => {
   router.push('/');

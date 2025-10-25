@@ -26,49 +26,36 @@ api.interceptors.request.use(
 
 // Company Auth API
 export const companyAuth = {
-  // Register a new companyr
   register: async (companyData) => {
     try {
-      console.log('Preparing registration payload with data:', companyData);
-
-      // Send exactly what the backend expects
       const payload = {
-        companyName: companyData.companyName,
-        email: companyData.email,
+        companyName: companyData.companyName.trim(),
+        email: companyData.email.trim().toLowerCase(),
         password: companyData.password,
-        contactNumber: companyData.contactNumber
+        contactNumber: companyData.contactNumber || null,
+        website: companyData.website || null,
+        logo: companyData.logo || null,
+        description: companyData.description || null,
+        industry: companyData.industry || null,
+        location: companyData.location || null,
+        companySize: companyData.companySize || null,
+        foundedYear: companyData.foundedYear ? Number(companyData.foundedYear) : null,
+        linkedinUrl: companyData.linkedinUrl || null,
+        twitterHandle: companyData.twitterHandle || null
       };
 
-      console.log('Sending registration request to /auth/company/register with payload:', payload);
       const response = await api.post('/auth/company/register', payload);
+
+      // Return token + user data separately
       return {
         success: true,
-        data: response.data,
+        data: response.data.data, // user info
+        token: response.data.token // JWT
       };
     } catch (error) {
       console.error('Company registration error:', error);
-      console.error('Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message,
-        config: {
-          url: error.config?.url,
-          method: error.config?.method,
-          data: error.config?.data
-        }
-      });
-
       let errorMessage = 'Company registration failed. Please try again.';
-
-      if (error.response?.data?.errors) {
-        // Handle validation errors
-        errorMessage = error.response.data.errors
-          .map(err => `${err.param}: ${err.msg}`)
-          .join('\n');
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
+      if (error.response?.data?.message) errorMessage = error.response.data.message;
 
       return {
         success: false,
@@ -76,9 +63,9 @@ export const companyAuth = {
         response: error.response?.data
       };
     }
-  },
-  // Add other company auth methods as needed
+  }
 };
+
 
 // Unified Auth API
 export const auth = {

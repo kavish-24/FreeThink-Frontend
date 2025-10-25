@@ -7,11 +7,18 @@
     </q-inner-loading>
     <q-card class="header-card q-pa-md q-mb-xl">
       <div class="row justify-between items-center">
-        <h4 class="q-mt-none q-mb-none text-primary">My Profile</h4>
+        <div class="header-title-section">
+          <h4 class="q-mt-none q-mb-none text-primary header-title">
+            <q-icon name="person" class="header-icon q-mr-sm" />
+            My Profile
+          </h4>
+          <p class="header-subtitle">Manage your personal and professional information</p>
+        </div>
         <q-btn
           flat
-          icon="edit"
+          :icon="editMode ? 'close' : 'edit'"
           :label="editMode ? 'Cancel' : 'Edit Profile'"
+          :color="editMode ? 'negative' : 'primary'"
           class="edit-btn"
           @click="toggleEditMode"
         />
@@ -23,12 +30,15 @@
         <div class="column items-center q-gutter-md">
           <div class="avatar-container">
             <q-avatar
-              size="100px"
+              size="120px"
               class="bg-primary text-white cursor-pointer professional-avatar"
               @click="triggerFileUpload"
             >
               <img v-if="profile.photo" :src="profile.photo" />
-              <span v-else>{{ initials }}</span>
+              <span v-else class="avatar-initials">{{ initials }}</span>
+              <div v-if="editMode" class="avatar-overlay">
+                <q-icon name="camera_alt" size="24px" />
+              </div>
             </q-avatar>
             <input
               type="file"
@@ -38,21 +48,45 @@
               hidden
             />
           </div>
-          <div class="text-h6 text-weight-medium text-dark">{{ fullName }}</div>
-          <div class="text-caption text-grey-7">{{ profile.email }}</div>
+          <div class="profile-info-section">
+            <div class="text-h5 text-weight-bold text-dark">{{ fullName }}</div>
+            <div class="text-subtitle1 text-primary">{{ profile.title || 'Professional Title' }}</div>
+            <div class="text-caption text-grey-7">{{ profile.email }}</div>
+          </div>
         </div>
 
         <div class="q-mt-lg full-width">
-          <div class="text-caption text-grey-6 text-weight-medium">Profile Completeness</div>
-          <q-linear-progress
-            :value="profileCompleteness"
-            color="primary"
-            track-color="grey-3"
-            size="12px"
-            rounded
-            class="q-mt-sm"
-          />
-          <div class="text-right text-caption q-mt-xs">{{ Math.round(profileCompleteness * 100) }}%</div>
+          <div class="profile-stats-row">
+            <div class="stat-item">
+              <div class="stat-number">{{ profile.experienceYears || 0 }}</div>
+              <div class="stat-label">Years Experience</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <div class="stat-number">{{ profile.skills?.length || 0 }}</div>
+              <div class="stat-label">Skills</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <div class="stat-number">{{ profile.education?.length || 0 }}</div>
+              <div class="stat-label">Education</div>
+            </div>
+          </div>
+          
+          <div class="completeness-section q-mt-lg">
+            <div class="text-caption text-grey-6 text-weight-medium">Profile Completeness</div>
+            <q-linear-progress
+              :value="profileCompleteness"
+              color="primary"
+              track-color="grey-3"
+              size="12px"
+              rounded
+              class="q-mt-sm"
+            />
+            <div class="text-right text-caption q-mt-xs text-primary text-weight-medium">
+              {{ Math.round(profileCompleteness * 100) }}%
+            </div>
+          </div>
         </div>
       </q-card>
     </div>
@@ -355,11 +389,40 @@
       </div>
     </q-card>
 
+    <div v-if="editMode" class="save-section">
+      <q-card class="save-card q-pa-lg">
+        <div class="row justify-between items-center">
+          <div class="save-info">
+            <div class="text-h6 text-weight-medium">Ready to save your changes?</div>
+            <div class="text-caption text-grey-6">Make sure all information is correct before saving</div>
+          </div>
+          <div class="save-actions q-gutter-sm">
+            <q-btn
+              flat
+              label="Cancel"
+              color="grey-7"
+              @click="toggleEditMode"
+              class="cancel-btn"
+            />
+            <q-btn
+              label="Save Changes"
+              color="primary"
+              icon="save"
+              @click="saveProfile"
+              :loading="saving"
+              class="save-btn"
+              unelevated
+            />
+          </div>
+        </div>
+      </q-card>
+    </div>
+
     <q-btn
       v-if="editMode"
       label="Save Changes"
       color="primary"
-      class="q-mt-lg save-btn"
+      class="q-mt-lg save-btn mobile-only"
       icon="save"
       @click="saveProfile"
       :loading="saving"
@@ -681,55 +744,86 @@ const formatDateForDisplay = (date) => {
 
 /* Header Card */
 .header-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
   margin-bottom: 2rem;
   border: 1px solid var(--color-gray-200);
   transition: var(--transition-base);
 }
 
 .header-card:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
-.header-card h4 {
-  font-size: 1.75rem;
+.header-title-section {
+  flex: 1;
+}
+
+.header-title {
+  font-size: 2rem;
   font-weight: 700;
   color: var(--color-primary);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.header-icon {
+  font-size: 2rem;
+}
+
+.header-subtitle {
+  font-size: 1rem;
+  color: var(--color-gray-600);
   margin: 0;
 }
 
 .edit-btn {
   color: var(--color-primary);
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
   transition: var(--transition-base);
+  border: 2px solid transparent;
 }
 
 .edit-btn:hover {
   background: var(--color-blue-50);
   color: var(--color-primary-dark);
   transform: translateY(-2px);
+  border-color: var(--color-primary);
 }
 
 /* Avatar Card */
 .avatar-card {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding: 2.5rem;
   margin-bottom: 2rem;
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
   border: 1px solid var(--color-gray-200);
   transition: var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
 }
 
 .avatar-card:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
 }
 
@@ -739,16 +833,91 @@ const formatDateForDisplay = (date) => {
 
 .professional-avatar {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  font-size: 2.5rem;
-  font-weight: 500;
+  font-size: 3rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: var(--transition-base);
+  border: 4px solid white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
 }
 
 .professional-avatar:hover {
   transform: scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-initials {
+  font-size: 3rem;
+  font-weight: 600;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.professional-avatar:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.profile-info-section {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.profile-stats-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1.5rem 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  margin-top: 1.5rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-family: var(--font-family-display);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--color-gray-600);
+  font-weight: 500;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 30px;
+  background: var(--color-gray-300);
+}
+
+.completeness-section {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 1rem;
 }
 
 .q-linear-progress {
@@ -886,25 +1055,80 @@ const formatDateForDisplay = (date) => {
   color: var(--color-primary-dark);
 }
 
-/* Save Button */
+/* Save Section */
+.save-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.save-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  border: 2px solid var(--color-blue-50);
+  transition: var(--transition-base);
+}
+
+.save-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+}
+
+.save-info {
+  flex: 1;
+}
+
+.save-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancel-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
 .save-btn {
   background: var(--color-primary);
   color: #ffffff;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  font-weight: 500;
-  margin-top: 1.5rem;
+  font-weight: 600;
   transition: var(--transition-base);
 }
 
 .save-btn:hover {
   background: var(--color-primary-dark);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.mobile-only {
+  display: none;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .save-section {
+    display: none;
+  }
+  
+  .mobile-only {
+    display: block;
+    width: 100%;
+  }
+  
+  .save-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .cancel-btn,
+  .save-btn {
+    width: 100%;
+  }
+  
   .avatar-card {
     padding: 1.5rem;
     max-width: 100%;
@@ -922,13 +1146,24 @@ const formatDateForDisplay = (date) => {
     padding: 1rem;
   }
 
-  .header-card h4 {
+  .header-title {
     font-size: 1.5rem;
   }
 
   .q-input,
   .q-select {
     margin-bottom: 0.75rem;
+  }
+
+  .profile-stats-row {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .stat-divider {
+    width: 100%;
+    height: 1px;
   }
 }
 
@@ -938,9 +1173,13 @@ const formatDateForDisplay = (date) => {
   }
 
   .professional-avatar {
-    width: 80px;
-    height: 80px;
-    font-size: 2rem;
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+  }
+
+  .avatar-initials {
+    font-size: 2.5rem;
   }
 
   .q-btn {
@@ -953,8 +1192,16 @@ const formatDateForDisplay = (date) => {
     gap: 0.5rem;
   }
 
-  .save-btn {
-    width: 100%;
+  .header-title {
+    font-size: 1.25rem;
+  }
+  
+  .header-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .save-card {
+    padding: 1rem;
   }
 }
 </style>

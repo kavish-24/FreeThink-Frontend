@@ -1,8 +1,7 @@
 
 import axios from "axios";
 
-const OPENROUTER_API_KEY = "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";
-
+const OPENROUTER_API_KEY = "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";
 export const getSuggestions = async (prompt, field) => {
   try {
     let systemPrompt = '';
@@ -19,7 +18,7 @@ export const getSuggestions = async (prompt, field) => {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "mistralai/mistral-7b-instruct",
+        model: "qwen/qwen-2.5-72b-instruct",
         messages: [{ role: "user", content: systemPrompt }],
       },
       {

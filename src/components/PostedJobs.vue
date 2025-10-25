@@ -934,9 +934,13 @@ const showStatusMessage = (message, color = 'positive', icon = 'check_circle') =
   }, 5000);
 };
 
-const viewApplicants = () => {
-  router.push(`candidates`);
+const viewApplicants = (jobId) => {
+  router.push({
+    path: '/candidates',
+    query: { jobId }  // <-- pass jobId as query param
+  });
 };
+
 
 const viewJob = (jobId) => {
   router.push(`/job/${jobId}`);
