@@ -89,7 +89,8 @@
                   >
                     <q-item-section avatar>
                       <q-avatar size="48px" color="primary" text-color="white">
-                        <span class="avatar-text">{{ getConversationInitial(conversation) }}</span>
+                        <img v-if="conversation.profilePicture" :src="conversation.profilePicture" alt="Profile" />
+                        <span v-else class="avatar-text">{{ getConversationInitial(conversation) }}</span>
                       </q-avatar>
                     </q-item-section>
                     
@@ -98,7 +99,7 @@
                         {{ getConversationName(conversation) }}
                       </q-item-label>
                       <q-item-label caption lines="2" class="last-message">
-                        {{ conversation.lastMessage?.content || 'No messages yet' }}
+                        {{ conversation.lastMessage?.content || 'Start a conversation' }}
                       </q-item-label>
                       <q-item-label caption class="message-time">
                         {{ formatTimeAgo(conversation.lastMessage?.createdAt || conversation.createdAt) }}
@@ -134,7 +135,8 @@
               <div class="chat-header">
                 <div class="row items-center">
                   <q-avatar size="40px" color="primary" text-color="white" class="q-mr-md">
-                    <span class="avatar-text">{{ getConversationInitial(selectedConversation) }}</span>
+                    <img v-if="selectedConversation.profilePicture" :src="selectedConversation.profilePicture" alt="Profile" />
+                    <span v-else class="avatar-text">{{ getConversationInitial(selectedConversation) }}</span>
                   </q-avatar>
                   <div class="column">
                     <div class="chat-name">
@@ -150,14 +152,30 @@
               <!-- Messages -->
               <q-scroll-area ref="chatScrollArea" class="chat-messages">
                 <div v-for="message in messages" :key="message.id" class="message-item q-mb-md">
-                  <q-chat-message
-                    :name="message.senderId === currentUser?.id ? 'You' : getConversationName(selectedConversation)"
-                    :text="[message.content]"
-                    :sent="message.senderId === currentUser?.id"
-                    :stamp="formatTimeAgo(message.createdAt)"
-                    :bg-color="message.senderId === currentUser?.id ? 'primary' : 'grey-3'"
-                    :text-color="message.senderId === currentUser?.id ? 'white' : 'dark'"
-                  />
+                  <div class="message-wrapper" :class="{ 'my-message': message.senderId === currentUser?.id }">
+                    <q-chat-message
+                      :name="message.senderId === currentUser?.id ? 'You' : getConversationName(selectedConversation)"
+                      :text="[message.content]"
+                      :sent="message.senderId === currentUser?.id"
+                      :stamp="formatTimeAgo(message.createdAt)"
+                      :bg-color="message.senderId === currentUser?.id ? 'primary' : 'grey-3'"
+                      :text-color="message.senderId === currentUser?.id ? 'white' : 'dark'"
+                    />
+                    <!-- Delete button for own messages -->
+                    <q-btn
+                      v-if="message.senderId === currentUser?.id"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      icon="delete"
+                      color="negative"
+                      class="delete-message-btn"
+                      @click="deleteMessage(message.id)"
+                    >
+                      <q-tooltip>Delete message</q-tooltip>
+                    </q-btn>
+                  </div>
                 </div>
               </q-scroll-area>
 
@@ -336,6 +354,7 @@ export default {
       messageService.setupSocketListeners({
         onNewMessage: this.handleNewMessage,
         onMessageRead: this.handleMessageRead,
+        onMessageDeleted: this.handleMessageDeleted,
         onTyping: this.handleTyping,
         onStopTyping: this.handleStopTyping
       });
@@ -374,6 +393,18 @@ export default {
       const conversation = this.conversations.find(c => c.id === data.conversationId);
       if (conversation) {
         conversation.unreadCount = 0;
+      }
+    },
+
+    handleMessageDeleted(data) {
+      console.log('Message deleted via WebSocket:', data);
+      
+      // Remove message from current conversation if viewing it
+      if (this.selectedConversation && this.selectedConversation.id === data.conversationId) {
+        const index = this.messages.findIndex(m => m.id === data.messageId);
+        if (index !== -1) {
+          this.messages.splice(index, 1);
+        }
       }
     },
 
@@ -486,6 +517,41 @@ export default {
         });
       }
     },
+
+    async deleteMessage(messageId) {
+      this.$q.dialog({
+        title: 'Delete Message',
+        message: 'Are you sure you want to delete this message?',
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        try {
+          // Call delete API
+          const response = await messageService.deleteMessage(messageId);
+          
+          if (response.success) {
+            // Remove message from local array
+            const index = this.messages.findIndex(m => m.id === messageId);
+            if (index !== -1) {
+              this.messages.splice(index, 1);
+            }
+            
+            this.$q.notify({
+              type: 'positive',
+              message: 'Message deleted successfully'
+            });
+          } else {
+            throw new Error(response.error || 'Failed to delete message');
+          }
+        } catch (error) {
+          console.error('Failed to delete message:', error);
+          this.$q.notify({
+            type: 'negative',
+            message: error.message || 'Failed to delete message'
+          });
+        }
+      });
+    },
     
     scrollToBottom() {
       if (this.$refs.chatScrollArea) {
@@ -578,8 +644,8 @@ export default {
 <style scoped>.message-sidebar-dialog {
   --dialog-width: 1100px;
   z-index: 9999;
-  top: 20px !important;
-  transform: translateY(-20px) !important;
+  top: 10px !important;
+  transform: translateY(-40px) !important;
 }
 
 .message-sidebar-dialog .q-dialog__inner {
@@ -890,6 +956,7 @@ export default {
   flex-shrink: 0;
   position: relative;
   z-index: 10;
+  margin-bottom: 20px;
 }
 
 .no-conversation-selected {
@@ -949,14 +1016,30 @@ export default {
 /* Message Input Styles */
 .message-text-input {
   font-size: 15px;
+  margin-bottom: 8px;
 }
 
 .message-text-input :deep(.q-field__control) {
   border-radius: 28px;
-  padding: 10px 20px;
+  padding: 18px 50px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 2px solid #e8eaf6;
   transition: all 0.3s ease;
+  align-items: center;
+}
+
+.message-text-input :deep(.q-field__native) {
+  line-height: 1.6;
+  font-size: 15px;
+  padding: 0;
+}
+
+.message-text-input :deep(.q-field__control)::placeholder {
+  font-size: 15px;
+  color: #757575;
+  font-weight: 400;
+  opacity: 0.8;
+  line-height: 1.6;
 }
 
 .message-text-input :deep(.q-field__control):hover {
@@ -1160,27 +1243,52 @@ export default {
   animation: slideUp 0.3s ease-out;
 }
 
+/* Message Wrapper with Delete Button */
+.message-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.message-wrapper.my-message {
+  flex-direction: row-reverse;
+}
+
+.delete-message-btn {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  margin-top: 8px;
+}
+
+.message-wrapper:hover .delete-message-btn {
+  opacity: 1;
+}
+
 /* Chat Message Customization */
 .chat-messages :deep(.q-message-text) {
-  padding: 14px 18px;
-  border-radius: 18px;
+  padding: 18px 24px;
+  border-radius: 20px;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.5;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   max-width: 70%;
   word-wrap: break-word;
+  margin: 4px 0;
 }
 
 .chat-messages :deep(.q-message-sent .q-message-text) {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  margin-left: 20px;
 }
 
 .chat-messages :deep(.q-message-received .q-message-text) {
   background: white;
   color: #2c3e50;
   border: 2px solid #e8eaf6;
+  margin-right: 20px;
 }
 
 .chat-messages :deep(.q-message-name) {

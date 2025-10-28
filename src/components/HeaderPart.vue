@@ -3,7 +3,7 @@
     <div class="navbar-container">
       <!-- Logo Section -->
       <div class="logo-section">
-        <router-link to="/" class="logo-link">
+        <router-link :to="logoRoute" class="logo-link" @click="handleLogoClick">
           <div class="logo">
             <q-icon name="work" class="logo-icon" />
             <span class="logo-text">JobHub</span>
@@ -13,13 +13,18 @@
 
       <!-- Centered Desktop Navigation -->
       <nav class="desktop-nav-center hide-mobile">
-        <router-link to="/" class="nav-link" exact-active-class="nav-link-active">
+        <router-link 
+          v-if="!user" 
+          to="/" 
+          class="nav-link" 
+          exact-active-class="nav-link-active"
+        >
           <q-icon name="home" class="nav-icon" />
           <span>Home</span>
         </router-link>
-        <JobsDropDown v-if="!user || user.role !== 'job_seeker'" />
+        <JobsDropDown v-if="!user" />
         <router-link 
-          v-if="!user || user.role !== 'job_seeker'"
+          v-if="!user"
           to="/employers" 
           class="nav-link" 
           exact-active-class="nav-link-active"
@@ -202,6 +207,7 @@
 
         <q-list class="mobile-nav">
           <q-item 
+            v-if="!user"
             clickable
             v-ripple
             @click="navigateAndClose('/')"
@@ -214,7 +220,7 @@
           </q-item>
 
           <q-item 
-            v-if="!user || user.role !== 'job_seeker'"
+            v-if="!user"
             clickable
             v-ripple
             @click="navigateAndClose('/jobs')"
@@ -226,7 +232,7 @@
           </q-item>
 
           <q-item 
-            v-if="!user || user.role !== 'job_seeker'"
+            v-if="!user"
             clickable
             v-ripple
             @click="navigateAndClose('/employers')"
@@ -322,7 +328,8 @@
     </q-drawer>
 
     <!-- Profile Sidebar -->
-    <ProfileSidebar v-model="showProfileSidebar" />
+    <ProfileSidebar v-if="user && user.role === 'job_seeker'" v-model="showProfileSidebar" />
+    <CompanyProfileSidebar v-if="user && user.role === 'company'" v-model="showProfileSidebar" />
     
     <!-- Message Sidebar -->
     <MessageSidebar ref="messageSidebar" v-model="showMessageSidebar" @notification-read="loadUnreadNotificationCount" />
@@ -340,13 +347,14 @@
 import { useAuthStore } from 'src/stores/auth.store';
 import JobsDropDown from './JobsDropDown.vue';
 import ProfileSidebar from './ProfileSidebar.vue';
+import CompanyProfileSidebar from './CompanyProfileSidebar.vue';
 import MessageSidebar from './MessageSidebar.vue';
 import NotificationSidebar from './NotificationSidebar.vue';
 import notificationService from 'src/services/notification.service';
 
 export default {
   name: 'AppNavbar',
-  components: { JobsDropDown, ProfileSidebar, MessageSidebar, NotificationSidebar },
+  components: { JobsDropDown, ProfileSidebar, CompanyProfileSidebar, MessageSidebar, NotificationSidebar },
   data() {
     return {
       showDropdown: false,
@@ -412,9 +420,16 @@ export default {
       if (this.user && (this.user.role === 'job_seeker' || this.user.type === 'seeker')) {
         return '/settings';
       } else if (this.user && (this.user.role === 'company' || this.user.type === 'employer')) {
-        return '/employer/settings';
+        return '/employer-settings';
       }
       return '/settings';
+    },
+    logoRoute() {
+      console.log('Computing logoRoute, user:', this.user, 'role:', this.user?.role);
+      if (this.user && this.user.role === 'company') {
+        return '/employers';
+      }
+      return '/';
     },
   },
   watch: {
@@ -441,6 +456,9 @@ export default {
     },
   },
   methods: {
+    handleLogoClick() {
+      console.log('Logo clicked! User:', this.user, 'Role:', this.user?.role, 'Going to:', this.logoRoute);
+    },
     toggleDropdown() {
       this.showDropdown = !this.showDropdown;
     },

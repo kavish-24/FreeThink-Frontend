@@ -45,7 +45,8 @@
               active-class="selected-convo">
               <q-item-section avatar>
                 <q-avatar color="blue-grey-2" text-color="primary">
-                  {{ (convo.employerName || convo.participantName || 'Unknown')?.charAt(0)?.toUpperCase() || 'U' }}
+                  <img v-if="convo.profilePicture" :src="convo.profilePicture" alt="Profile" />
+                  <span v-else>{{ (convo.employerName || convo.participantName || 'Unknown')?.charAt(0)?.toUpperCase() || 'U' }}</span>
                 </q-avatar>
               </q-item-section>
               <q-item-section>
@@ -53,10 +54,10 @@
                 <q-item-label v-if="convo.jobTitle" class="text-caption text-grey-6" lines="1">
                   Re: {{ convo.jobTitle }}
                 </q-item-label>
-                <q-item-label caption lines="1">{{ convo.lastMessage || 'No messages yet' }}</q-item-label>
+                <q-item-label caption lines="1">{{ convo.lastMessage?.content || 'No messages yet' }}</q-item-label>
               </q-item-section>
               <q-item-section side top>
-                <q-item-label caption>{{ formatTimeAgo(convo.lastMessageTime) }}</q-item-label>
+                <q-item-label caption>{{ formatTimeAgo(convo.lastMessage?.createdAt || convo.lastMessageTime) }}</q-item-label>
                 <q-badge v-if="convo.unread" color="negative" rounded floating />
               </q-item-section>
             </q-item>
@@ -85,7 +86,8 @@
       <div class="chat-window column" v-if="selectedConversation">
         <div class="chat-header q-pa-md row items-center">
           <q-avatar color="primary" text-color="white" size="md" class="q-mr-md">
-            {{ (selectedConversation.employerName || selectedConversation.participantName || 'Unknown')?.charAt(0)?.toUpperCase() || 'U' }}
+            <img v-if="selectedConversation.profilePicture" :src="selectedConversation.profilePicture" alt="Profile" />
+            <span v-else>{{ (selectedConversation.employerName || selectedConversation.participantName || 'Unknown')?.charAt(0)?.toUpperCase() || 'U' }}</span>
           </q-avatar>
           <div>
             <div class="text-h6">{{ selectedConversation.employerName || selectedConversation.participantName || 'Unknown Employer' }}</div>

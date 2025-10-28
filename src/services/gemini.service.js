@@ -1,7 +1,10 @@
 
 import axios from "axios";
 
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+if (!OPENROUTER_API_KEY) {
+  console.error("OpenRouter API key is not set in environment variables.");
+}
 export const getSuggestions = async (prompt, field) => {
   try {
     let systemPrompt = '';

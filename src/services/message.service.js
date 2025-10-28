@@ -42,16 +42,18 @@ export const messageService = {
         candidateName: conv.participant?.name, // For employer view
         participantId: conv.participant?.id,
         participantEmail: conv.participant?.email,
+        profilePicture: conv.participant?.profilePicture,
         // Job information
         jobId: conv.job?.id,
         jobTitle: conv.job?.title,
         jobLocation: conv.job?.location,
         // Message information
-        lastMessage: conv.lastMessage?.content || 'No messages yet',
-        lastMessageTime: conv.lastMessage?.createdAt || conv.lastMessageAt,
-        lastMessageAt: conv.lastMessage?.createdAt || conv.lastMessageAt,
-        senderId: conv.lastMessage?.senderId,
-        messageType: conv.lastMessage?.messageType,
+        lastMessage: conv.lastMessage ? {
+          content: conv.lastMessage.content,
+          createdAt: conv.lastMessage.createdAt,
+          senderId: conv.lastMessage.senderId,
+          messageType: conv.lastMessage.messageType
+        } : null,
         // Status and counts
         unread: conv.unreadCount > 0,
         unreadCount: conv.unreadCount || 0,
@@ -99,12 +101,16 @@ export const messageService = {
         candidateName: response.data.conversation.participant?.name,
         participantId: response.data.conversation.participant?.id,
         participantEmail: response.data.conversation.participant?.email,
+        profilePicture: response.data.conversation.participant?.profilePicture,
         jobId: response.data.conversation.job?.id,
         jobTitle: response.data.conversation.job?.title,
         jobLocation: response.data.conversation.job?.location,
-        lastMessage: response.data.conversation.lastMessage?.content || initialMessage,
-        lastMessageTime: response.data.conversation.lastMessage?.createdAt || response.data.conversation.lastMessageAt,
-        lastMessageAt: response.data.conversation.lastMessage?.createdAt || response.data.conversation.lastMessageAt,
+        lastMessage: response.data.conversation.lastMessage ? {
+          content: response.data.conversation.lastMessage.content,
+          createdAt: response.data.conversation.lastMessage.createdAt,
+          senderId: response.data.conversation.lastMessage.senderId,
+          messageType: response.data.conversation.lastMessage.messageType
+        } : null,
         unread: response.data.conversation.unreadCount > 0,
         unreadCount: response.data.conversation.unreadCount || 0,
         status: response.data.conversation.status,
@@ -224,6 +230,19 @@ export const messageService = {
     }
   },
 
+  async deleteMessage(messageId) {
+    try {
+      await api.delete(`/messages/messages/${messageId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to delete message'
+      };
+    }
+  },
+
   // Get unread message count
   async getUnreadCount() {
     try {
@@ -258,6 +277,11 @@ export const messageService = {
     this.socket.on('message_read', (data) => {
       console.log('Received message read via WebSocket:', data);
       callbacks.onMessageRead?.(data);
+    });
+
+    this.socket.on('message_deleted', (data) => {
+      console.log('Received message deleted via WebSocket:', data);
+      callbacks.onMessageDeleted?.(data);
     });
 
     this.socket.on('typing', (data) => {

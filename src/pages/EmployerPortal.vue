@@ -182,7 +182,7 @@ const fetchNavStats = async () => {
       console.warn('No authentication token found');
       return;
     }
-    const response = await api.get('/jobs/stats', {
+    const response = await api.get('/applications/stats', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -354,7 +354,7 @@ const fetchTrends = async () => {
   try {
     const companyId = authHelpers.getCurrentUser()?.id;
     if (!companyId) return;
-    const response = await api.get(`/jobs/jobs/trends/${companyId}`);
+    const response = await api.get(`/jobs/trends/${companyId}`);
     // Always prepare the latest 7 calendar days (oldest -> today)
     const last7Dates = getLastNDates(7);
     const last7Keys = last7Dates.map(d => formatDateKeyLocal(d));
