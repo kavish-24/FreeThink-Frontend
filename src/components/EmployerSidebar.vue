@@ -57,8 +57,6 @@ const links = [
   { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs' },
   { label: 'Post New Job', icon: 'add_box', to: '/post-job' },
   { label: 'Candidates', icon: 'groups', to: '/candidates' },
-  { label: 'Messages', icon: 'mail', to: '/employer-messages' },
-  { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
   { label: 'Settings', icon: 'settings', to: '/employer-settings' }
 ];
 
@@ -78,7 +76,11 @@ const navigate = (link) => {
   color: #f0f4f8;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   height: 100%;
+  position: sticky;
+  top: 0;
+  left: 0;
 }
 
 .sidebar-section {

@@ -201,7 +201,7 @@
                   <q-td :props="props" class="actions-cell">
                     <div class="action-buttons">
                       <q-btn 
-                        v-if="['open','closed' ,'approved'].includes(props.row.status)" 
+                        v-if="['open','closed' ,'approved'].includes(props.row.status) && props.row.applicants > 0" 
                         flat 
                         round 
                         dense 
@@ -307,7 +307,7 @@
 
                   <q-card-actions class="job-card-actions">
                     <q-btn 
-                      v-if="['open','closed ', 'approved'].includes(job.status)" 
+                      v-if="['open','closed ', 'approved'].includes(job.status) && job.applicants > 0" 
                       flat 
                       dense 
                       icon="groups" 
@@ -591,6 +591,143 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- Job Details Dialog -->
+    <q-dialog v-model="showJobDialog" maximized transition-show="slide-up" transition-hide="slide-down">
+      <q-card class="job-details-card">
+        <q-bar class="bg-primary text-white">
+          <q-space />
+          <q-btn flat dense icon="close" v-close-popup />
+        </q-bar>
+
+        <q-card-section v-if="loadingJobDetails" class="flex flex-center" style="min-height: 400px;">
+          <div class="text-center">
+            <q-spinner-dots size="48px" color="primary" />
+            <p class="q-mt-md text-grey-7">Loading job details...</p>
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else-if="selectedJobDetails" class="job-details-content">
+          <!-- Company Header -->
+          <div class="company-header-section">
+            <div class="company-info-wrapper">
+              <div class="company-logo-large">
+                <img v-if="selectedJobDetails.company?.logo" :src="selectedJobDetails.company.logo" alt="Company Logo" />
+                <q-icon v-else name="business" size="48px" color="grey-5" />
+              </div>
+              <div class="company-text-info">
+                <h3 class="job-detail-title">{{ selectedJobDetails.title }}</h3>
+                <p class="company-detail-name">{{ selectedJobDetails.company?.companyName || 'Company' }}</p>
+                <div class="job-meta-info">
+                  <span class="meta-item">
+                    <q-icon name="place" size="16px" />
+                    {{ selectedJobDetails.location }}
+                  </span>
+                  <span class="meta-item">
+                    <q-icon name="work_history" size="16px" />
+                    {{ selectedJobDetails.experience_min || 0 }}+ years
+                  </span>
+                  <span class="meta-item">
+                    <q-icon name="schedule" size="16px" />
+                    {{ formatJobType(selectedJobDetails.type) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="salary-badge">
+              <q-icon name="payments" size="20px" class="q-mr-xs" />
+              {{ formatSalary(selectedJobDetails.salary_range) }}
+            </div>
+          </div>
+
+          <q-separator class="q-my-md" />
+
+          <!-- Job Description -->
+          <div class="detail-section">
+            <h4 class="section-heading">
+              <q-icon name="description" class="q-mr-sm" />
+              Job Description
+            </h4>
+            <p class="job-description-text">{{ selectedJobDetails.description }}</p>
+          </div>
+
+          <!-- Skills Required -->
+          <div class="detail-section" v-if="selectedJobDetails.skills && selectedJobDetails.skills.length">
+            <h4 class="section-heading">
+              <q-icon name="psychology" class="q-mr-sm" />
+              Skills Required
+            </h4>
+            <div class="skills-container">
+              <q-chip
+                v-for="skill in selectedJobDetails.skills"
+                :key="skill"
+                color="primary"
+                text-color="white"
+                icon="check_circle"
+              >
+                {{ skill }}
+              </q-chip>
+            </div>
+          </div>
+
+          <!-- Benefits -->
+          <div class="detail-section" v-if="selectedJobDetails.benefits">
+            <h4 class="section-heading">
+              <q-icon name="stars" class="q-mr-sm" />
+              Benefits
+            </h4>
+            <p class="benefits-text">{{ selectedJobDetails.benefits }}</p>
+          </div>
+
+          <!-- Company Information -->
+          <div class="detail-section" v-if="selectedJobDetails.company">
+            <h4 class="section-heading">
+              <q-icon name="business_center" class="q-mr-sm" />
+              About {{ selectedJobDetails.company.companyName }}
+            </h4>
+            <p class="company-description">{{ selectedJobDetails.company.description }}</p>
+            <div class="company-details-grid">
+              <div class="company-detail-item" v-if="selectedJobDetails.company.industry">
+                <strong>Industry:</strong> {{ selectedJobDetails.company.industry }}
+              </div>
+              <div class="company-detail-item" v-if="selectedJobDetails.company.website">
+                <strong>Website:</strong>
+                <a :href="selectedJobDetails.company.website" target="_blank" class="company-link">
+                  {{ selectedJobDetails.company.website }}
+                </a>
+              </div>
+              <div class="company-detail-item" v-if="selectedJobDetails.company.location">
+                <strong>Location:</strong> {{ selectedJobDetails.company.location }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Info -->
+          <div class="additional-info">
+            <div class="info-row">
+              <span class="info-label">Category:</span>
+              <span class="info-value">{{ selectedJobDetails.category || 'Not specified' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Education:</span>
+              <span class="info-value">{{ selectedJobDetails.education || 'Not specified' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Application Deadline:</span>
+              <span class="info-value">{{ formatDeadline(selectedJobDetails.deadline) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Posted:</span>
+              <span class="info-value">{{ formatPostedDate(selectedJobDetails.createdAt) }}</span>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Close" color="grey-7" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -640,6 +777,11 @@ const editForm = ref({
   education: '',
   experience: 0
 });
+
+// Job details dialog state
+const showJobDialog = ref(false);
+const selectedJobDetails = ref(null);
+const loadingJobDetails = ref(false);
 
 // Form options
 const jobTypeOptions = [
@@ -796,6 +938,23 @@ const createTag = (val, done) => {
   }
 };
 
+// Fetch applicant counts for all jobs
+const fetchApplicantCounts = async (jobIds) => {
+  if (!jobIds || jobIds.length === 0) return {};
+  
+  try {
+    const response = await api.post('/applications/counts', { jobIds });
+    
+    if (response.data.success) {
+      return response.data.counts;
+    }
+    return {};
+  } catch (error) {
+    console.error('Error fetching applicant counts:', error);
+    return {};
+  }
+};
+
 // All the existing methods remain the same...
 const fetchJobs = async () => {
   if (!companyId) {
@@ -809,7 +968,7 @@ const fetchJobs = async () => {
     const response = await api.get(`jobs/jobs/company/${companyId}`);
     
     if (response.data.success) {
-      jobs.value = response.data.jobs.map(job => ({
+      const jobsData = response.data.jobs.map(job => ({
         id: job.id,
         title: job.title,
         description: job.description,
@@ -826,8 +985,18 @@ const fetchJobs = async () => {
         category: job.category,
         skills: typeof job.skills === 'string' ? JSON.parse(job.skills || '[]') : (job.skills || []),
         tags: typeof job.tags === 'string' ? JSON.parse(job.tags || '[]') : (job.tags || []),
-        applicants: job.applicants || 0,
+        applicant: 0, // Will be updated below
         rejectionReason: job.rejectionReason || null
+      }));
+
+      // Fetch actual applicant counts
+      const jobIds = jobsData.map(job => job.id);
+      const applicantCounts = await fetchApplicantCounts(jobIds);
+      
+      // Update jobs with actual applicant counts
+      jobs.value = jobsData.map(job => ({
+        ...job,
+        applicants: applicantCounts[job.id] || 0
       }));
       
       showStatusMessage(`Loaded ${jobs.value.length} jobs successfully`, 'positive', 'check_circle');
@@ -863,8 +1032,29 @@ const viewApplicants = (jobId) => {
 };
 
 
-const viewJob = (jobId) => {
-  router.push(`/job/${jobId}`);
+const viewJob = async (jobId) => {
+  showJobDialog.value = true;
+  loadingJobDetails.value = true;
+  
+  try {
+    const response = await api.get(`/jobs/jobs/${jobId}`);
+    
+    if (response.data.success) {
+      selectedJobDetails.value = response.data.job;
+    } else {
+      throw new Error(response.data.error || 'Failed to fetch job details');
+    }
+  } catch (error) {
+    console.error('Error fetching job details:', error);
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to load job details',
+      icon: 'error'
+    });
+    showJobDialog.value = false;
+  } finally {
+    loadingJobDetails.value = false;
+  }
 };
 
 const editJob = async (job) => {
@@ -1060,6 +1250,27 @@ const getStatusClass = (status) => {
     'closed': 'closed'
   };
   return classMap[status] || 'draft';
+};
+
+// Helper functions for job details dialog
+const formatJobType = (type) => {
+  if (!type) return 'Not specified';
+  return type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ');
+};
+
+const formatSalary = (salary) => {
+  if (!salary) return 'Competitive';
+  return salary;
+};
+
+const formatDeadline = (deadline) => {
+  if (!deadline) return 'No deadline';
+  return date.formatDate(deadline, 'MMMM D, YYYY');
+};
+
+const formatPostedDate = (postedDate) => {
+  if (!postedDate) return 'Recently';
+  return date.formatDate(postedDate, 'MMMM D, YYYY');
 };
 
 onMounted(async () => {
@@ -1842,5 +2053,221 @@ onMounted(async () => {
 
 .dialog-content::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Job Details Dialog Styles */
+.job-details-card {
+  background: #f8fafc;
+}
+
+.job-details-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.company-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.company-info-wrapper {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+.company-logo-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.company-logo-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-text-info {
+  flex: 1;
+}
+
+.job-detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.company-detail-name {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0 0 12px 0;
+}
+
+.job-meta-info {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.salary-badge {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.detail-section {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.section-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+}
+
+.job-description-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.benefits-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.company-description {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0 0 16px 0;
+}
+
+.company-details-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.company-detail-item {
+  font-size: 14px;
+  color: #475569;
+}
+
+.company-detail-item strong {
+  color: #0f172a;
+  margin-right: 8px;
+}
+
+.company-link {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.company-link:hover {
+  text-decoration: underline;
+}
+
+.additional-info {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.info-value {
+  color: #0f172a;
+  font-size: 14px;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .company-header-section {
+    flex-direction: column;
+  }
+  
+  .salary-badge {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .job-detail-title {
+    font-size: 24px;
+  }
+  
+  .job-meta-info {
+    gap: 12px;
+  }
+  
+  .meta-item {
+    font-size: 13px;
+  }
 }
 </style>
