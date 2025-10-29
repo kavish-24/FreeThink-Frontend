@@ -1249,12 +1249,10 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  width: 100%;
 }
 
 .message-wrapper.my-message {
   flex-direction: row-reverse;
-  justify-content: flex-end;
 }
 
 .delete-message-btn {
@@ -1274,35 +1272,23 @@ export default {
   font-size: 15px;
   line-height: 1.5;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-  max-width: 65%;
+  max-width: 70%;
   word-wrap: break-word;
   margin: 4px 0;
-}
-
-.chat-messages :deep(.q-message-sent) {
-  justify-content: flex-end;
-  text-align: right;
 }
 
 .chat-messages :deep(.q-message-sent .q-message-text) {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  margin-left: auto;
-  text-align: left;
-}
-
-.chat-messages :deep(.q-message-received) {
-  justify-content: flex-start;
-  text-align: left;
+  margin-left: 20px;
 }
 
 .chat-messages :deep(.q-message-received .q-message-text) {
   background: white;
   color: #2c3e50;
   border: 2px solid #e8eaf6;
-  margin-right: auto;
-  text-align: left;
+  margin-right: 20px;
 }
 
 .chat-messages :deep(.q-message-name) {
