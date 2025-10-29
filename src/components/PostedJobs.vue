@@ -3,76 +3,7 @@
     <AppHeader class="sticky-header" />
     
     <div class="page-wrapper">
-      <!-- Mobile Menu Toggle -->
-      <q-btn
-        v-if="$q.screen.lt.md"
-        flat
-        round
-        icon="menu"
-        class="mobile-menu-btn"
-        @click="mobileMenuOpen = !mobileMenuOpen"
-      />
-
-      <!-- Sidebar with Mobile Overlay -->
-      <div 
-        v-if="mobileMenuOpen && $q.screen.lt.md" 
-        class="mobile-overlay" 
-        @click="mobileMenuOpen = false"
-      />
-      
-      <div class="sidebar" :class="{ 'mobile-open': mobileMenuOpen }">
-        <!-- Close button for mobile -->
-        <q-btn
-          v-if="$q.screen.lt.md"
-          flat
-          round
-          icon="close"
-          class="mobile-close-btn"
-          @click="mobileMenuOpen = false"
-        />
-        
-        <!-- Logo Section -->
-        <div class="sidebar-section logo-section">
-          <div class="logo-content">
-            <q-avatar size="40px" color="white" text-color="primary" class="logo-avatar">
-              <q-icon name="business_center" size="24px" />
-            </q-avatar>
-            <div class="logo-text">
-              <div class="brand-name">JobHub</div>
-              <div class="brand-subtitle">Employer Portal</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- User Info Section -->
-        <div class="sidebar-section user-section">
-          <div class="user-info">
-            <div class="user-name">{{ currentUser.name || 'Loading...' }}</div>
-            <div class="user-email">{{ currentUser.email || '' }}</div>
-          </div>
-        </div>
-
-        <!-- Navigation -->
-        <div class="sidebar-section nav-section">
-          <q-list class="nav-list">
-            <q-item 
-              v-for="link in links" 
-              :key="link.label" 
-              :active="selected === link.label"
-              active-class="active-link" 
-              clickable 
-              v-ripple 
-              @click="navigate(link)"
-              class="nav-item"
-            >
-              <q-item-section avatar class="nav-icon">
-                <q-icon :name="link.icon" />
-              </q-item-section>
-              <q-item-section class="nav-label">{{ link.label }}</q-item-section>
-            </q-item>
-          </q-list>
-        </div>
-      </div>
+      <EmployerSidebar :active-link="selected" @navigate="(label) => selected = label" />
 
       <!-- Main Content Area -->
       <div class="content-area">
@@ -190,7 +121,8 @@
                 row-key="id" 
                 flat
                 class="jobs-table"
-                v-model:pagination="pagination" 
+                :pagination="pagination"
+                @update:pagination="pagination = $event"
                 :rows-per-page-options="[5, 10, 20, 0]"
                 :loading="loading"
                 separator="none"
@@ -667,6 +599,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter} from 'vue-router';
 import { useQuasar, date } from 'quasar';
 import AppHeader from 'src/components/HeaderPart.vue';
+import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 import api from 'src/services/auth.service.js';
 import { authHelpers } from 'src/services/auth.service.js';
 
@@ -675,7 +608,6 @@ const router = useRouter();
 const $q = useQuasar();
 
 // State
-const employer = ref({});
 const selected = ref('Posted Jobs');
 const jobs = ref([]);
 const jobToDelete = ref(null);
@@ -683,7 +615,6 @@ const searchQuery = ref('');
 const statusFilter = ref('All');
 const loading = ref(false);
 const showStatusBanner = ref(false);
-const mobileMenuOpen = ref(false);
 const statusBanner = ref({
   message: '',
   color: 'positive',
@@ -766,16 +697,6 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10
 });
-
-const links = [
-  { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' },
-  { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs' },
-  { label: 'Post New Job', icon: 'add_box', to: '/post-job' },
-  { label: 'Candidates', icon: 'groups', to: '/candidates' },
-  { label: 'Messages', icon: 'mail', to: '/employer-messages' },
-  { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
-  { label: 'Settings', icon: 'settings', to: '/employer-settings' }
-];
 
 const columns = [
   { 
@@ -1141,23 +1062,7 @@ const getStatusClass = (status) => {
   return classMap[status] || 'draft';
 };
 
-const navigate = (link) => {
-  selected.value = link.label;
-  if (link.to) router.push(link.to);
-  if ($q.screen.lt.md) mobileMenuOpen.value = false;
-};
-
 onMounted(async () => {
-  const storedEmployer = localStorage.getItem('employerData');
-  if (storedEmployer) {
-    employer.value = JSON.parse(storedEmployer);
-  } else if (currentUser) {
-    employer.value = {
-      name: currentUser.name || 'Employer',
-      email: currentUser.email || ''
-    };
-  }
-  
   await fetchJobs();
 });
 </script>
@@ -1180,159 +1085,11 @@ onMounted(async () => {
   position: relative;
 }
 
-/* Mobile Menu */
-.mobile-menu-btn {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 2000;
-  background: white;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
-.mobile-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1500;
-}
-
-.mobile-close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  color: white;
-  z-index: 10;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 280px;
-  background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 1600;
-  transition: all 0.3s ease;
-}
-
-@media (max-width: 1023px) {
-  .sidebar {
-    position: fixed;
-    height: 100vh;
-    left: -280px;
-  }
-  
-  .sidebar.mobile-open {
-    left: 0;
-  }
-}
-
-.sidebar-section {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Logo Section */
-.logo-section {
-  padding: 24px;
-}
-
-.logo-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-avatar {
-  flex-shrink: 0;
-}
-
-.logo-text {
-  flex: 1;
-}
-
-.brand-name {
-  font-size: 20px;
-  font-weight: 700;
-  color: white;
-  margin: 0;
-}
-
-.brand-subtitle {
-  font-size: 12px;
-  color: #cbd5e1;
-  margin: 0;
-}
-
-/* User Section */
-.user-section {
-  padding: 16px 24px;
-}
-
-.user-info {
-  text-align: left;
-}
-
-.user-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 4px;
-}
-
-.user-email {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-/* Navigation */
-.nav-section {
-  flex: 1;
-  padding: 16px 0;
-}
-
-.nav-list {
-  padding: 0;
-}
-
-.nav-item {
-  margin: 4px 16px;
-  border-radius: 12px;
-  color: #cbd5e1;
-  transition: all 0.2s ease;
-}
-
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.active-link {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  font-weight: 600;
-}
-
-.nav-icon {
-  min-width: 40px;
-}
-
 /* Content Area */
 .content-area {
   flex: 1;
   overflow-y: auto;
   background-color: #f8fafc;
-}
-
-@media (max-width: 1023px) {
-  .content-area {
-    width: 100%;
-  }
 }
 
 .content-container {

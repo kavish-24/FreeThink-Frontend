@@ -445,8 +445,8 @@
                   rounded
                   color="primary"
                   icon="send"
-                  label="Send Invitation"
-                  @click="inviteJobseeker(selectedUser.id)"
+                  label="Send Message"
+                  @click="openMessageDialog"
                   size="lg"
                   class="invite-btn"
                 />
@@ -462,6 +462,52 @@
         </div>
       </div>
     </div>
+
+    <!-- Message Dialog -->
+    <q-dialog v-model="showMessageDialog" persistent>
+      <q-card style="min-width: 500px; max-width: 600px;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">Send Message to {{ selectedUser?.name }}</div>
+          <q-space />
+          <q-btn icon="close" flat round dense @click="closeMessageDialog" />
+        </q-card-section>
+
+        <q-card-section>
+          <q-input
+            v-model="messageForm.subject"
+            label="Subject *"
+            filled
+            dense
+            :rules="[val => !!val || 'Subject is required']"
+            class="q-mb-md"
+          />
+          
+          <q-input
+            v-model="messageForm.message"
+            label="Message *"
+            filled
+            type="textarea"
+            rows="8"
+            :rules="[val => !!val || 'Message is required', val => val.length >= 10 || 'Message must be at least 10 characters']"
+            counter
+            maxlength="1000"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancel" color="grey-7" @click="closeMessageDialog" />
+          <q-btn
+            unelevated
+            label="Send Message"
+            color="primary"
+            icon="send"
+            @click="sendMessage"
+            :loading="sendingMessage"
+            :disable="!messageForm.subject || !messageForm.message || messageForm.message.length < 10"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -480,6 +526,14 @@ const loading = ref(false);
 const profileLoading = ref(false);
 const selectedUser = ref(null);
 const showFilters = ref(false);
+const showMessageDialog = ref(false);
+const sendingMessage = ref(false);
+
+// Message form state
+const messageForm = ref({
+  subject: '',
+  message: ''
+});
 
 // Filter state
 const filters = ref({
@@ -686,12 +740,92 @@ const selectUser = async (user) => {
   }
 };
 
-const inviteJobseeker = async (userId) => {
+const openMessageDialog = () => {
+  if (!selectedUser.value) {
+    $q.notify({ type: 'warning', message: 'Please select a candidate first' });
+    return;
+  }
+  
+  // Pre-fill subject with candidate name
+  messageForm.value.subject = `Job Opportunity - Interest in your profile`;
+  messageForm.value.message = `Dear ${selectedUser.value.name},\n\nWe came across your profile and are impressed with your background and skills. We would like to discuss potential opportunities at our company.\n\nWould you be available for a brief conversation?\n\nBest regards`;
+  
+  showMessageDialog.value = true;
+};
+
+const closeMessageDialog = () => {
+  showMessageDialog.value = false;
+  messageForm.value.subject = '';
+  messageForm.value.message = '';
+};
+
+const sendMessage = async () => {
+  if (!selectedUser.value?.id) {
+    $q.notify({ type: 'negative', message: 'No candidate selected' });
+    return;
+  }
+
+  if (!messageForm.value.subject || !messageForm.value.message) {
+    $q.notify({ type: 'warning', message: 'Please fill in all required fields' });
+    return;
+  }
+
+  sendingMessage.value = true;
   try {
-    await api.post(`/invite/${userId}`);
-    $q.notify({ type: 'positive', message: `Invitation sent to jobseeker ID ${userId}` });
-  } catch {
-    $q.notify({ type: 'negative', message: 'Error sending invitation' });
+    // First, get all conversations to check if one exists with this job seeker
+    const conversationsResponse = await api.get('/messages/conversations');
+    
+    let conversationId = null;
+    
+    if (conversationsResponse.data.success) {
+      // Check if conversation already exists with this participant
+      const existingConversation = conversationsResponse.data.conversations.find(
+        conv => conv.participant?.id === selectedUser.value.id
+      );
+      
+      if (existingConversation) {
+        conversationId = existingConversation.id;
+      }
+    }
+    
+    // If no conversation exists, create one
+    if (!conversationId) {
+      const createConvResponse = await api.post('/messages/conversations', {
+        participantId: selectedUser.value.id,
+        jobId: null,
+        initialMessage: `${messageForm.value.subject}\n\n${messageForm.value.message}`
+      });
+      
+      if (createConvResponse.data.success) {
+        conversationId = createConvResponse.data.conversation.id;
+      }
+    } else {
+      // If conversation exists, send message to existing conversation
+      await api.post('/messages/messages', {
+        conversationId: conversationId,
+        content: `${messageForm.value.subject}\n\n${messageForm.value.message}`,
+        messageType: 'text'
+      });
+    }
+    
+    if (conversationId) {
+      $q.notify({ 
+        type: 'positive', 
+        message: `Message sent successfully to ${selectedUser.value.name}`,
+        icon: 'send'
+      });
+      
+      closeMessageDialog();
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
+    $q.notify({ 
+      type: 'negative', 
+      message: error.response?.data?.message || 'Error sending message. Please try again.',
+      icon: 'error'
+    });
+  } finally {
+    sendingMessage.value = false;
   }
 };
 

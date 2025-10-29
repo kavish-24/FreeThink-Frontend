@@ -2,40 +2,7 @@
   <div class="employer-portal">
     <AppHeader class="sticky-header" />
     <div class="page-wrapper row">
-      <div class="sidebar">
-        <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
-          <q-avatar icon="business_center" color="white" text-color="primary" />
-          <div>
-            <div class="text-h6 text-white">JobHub</div>
-            <div class="text-caption text-blue-grey-3">Employer Portal</div>
-          </div>
-        </div>
-        <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-          <div class="text-subtitle1 text-weight-medium text-white">{{ currentUser.name }}</div>
-          <div class="text-caption text-blue-grey-4">{{ currentUser.email }}</div>
-        </div>
-        <div class="sidebar-section q-pt-md q-pb-none">
-          <q-list class="nav-list">
-            <q-item v-for="link in links" :key="link.label" :active="selected === link.label"
-              active-class="active-link" clickable v-ripple @click="navigate(link)" class="nav-item">
-              <q-item-section avatar>
-                <q-icon :name="link.icon" />
-              </q-item-section>
-              <q-item-section>
-                <div class="row items-center">
-                  <span>{{ link.label }}</span>
-                  <q-badge v-if="link.badge && link.badge.value" color="red" floating transparent class="q-ml-sm">
-                    {{ link.badge.value }}
-                  </q-badge>
-                </div>
-              </q-item-section>
-              <q-tooltip v-if="link.highlight" anchor="center right" self="center left" :offset="[5, 10]">
-                Post a new job opening
-              </q-tooltip>
-            </q-item>
-          </q-list>
-        </div>
-      </div>
+      <EmployerSidebar :active-link="selected" @navigate="(label) => selected = label" />
 
       <div class="content-area column q-pa-md q-pa-lg-lg">
         <q-banner v-if="verificationStatus === 'pending'" class="bg-blue-1 text-blue-9 q-mb-lg" rounded>
@@ -158,6 +125,7 @@ import { useQuasar } from 'quasar';
 import VueApexCharts from 'vue3-apexcharts';
 import { api } from 'src/boot/axios';
 import AppHeader from 'src/components/HeaderPart.vue';
+import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 import { authHelpers } from 'src/services/auth.service';
 
 const apexchart = VueApexCharts;
@@ -300,34 +268,6 @@ onMounted(async () => {
   }
 });
 
-const links = computed(() => [
-  { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' },
-  { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs', badge: navStats.value.pending_jobs > 0 ? { value: navStats.value.pending_jobs } : null },
-  { label: 'Post New Job', icon: 'add_box', to: '/post-job', highlight: true },
-  { label: 'Candidates', icon: 'groups', to: '/candidates' },
-  { label: 'Messages', icon: 'mail', to: '/employer-messages' },
-  { label: 'Support & Queries', icon: 'support_agent', to: '/employer-queries' },
-  { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
-  { label: 'Settings', icon: 'settings', to: '/employer-settings' }
-]);
-
-const navigate = (link) => {
-  selected.value = link.label;
-  if (link.to) router.push(link.to);
-};
-
-// MODIFIED: Date is now dynamic and shows the current date.
-const todaysDate = new Date().toLocaleDateString('en-IN', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-});
-
-const formatLabel = (isoDate) => {
-  if (!isoDate) return '';
-  const d = new Date(isoDate);
-  const options = { month: 'short', day: '2-digit' };
-  return d.toLocaleDateString('en-US', options);
-};
-
 // Helper: return array of Date objects for the last n days (oldest -> today)
 const getLastNDates = (n) => {
   const dates = [];
@@ -348,6 +288,18 @@ const formatDateKeyLocal = (date) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+// Date is now dynamic and shows the current date
+const todaysDate = new Date().toLocaleDateString('en-IN', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+});
+
+const formatLabel = (isoDate) => {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  const options = { month: 'short', day: '2-digit' };
+  return d.toLocaleDateString('en-US', options);
 };
 
 const fetchTrends = async () => {
@@ -389,25 +341,9 @@ const fetchTrends = async () => {
 /* Unchanged styles are kept */
 .portal-layout { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 .sticky-header { position: sticky; top: 0; z-index: 1000; }
-.page-wrapper { flex-grow: 1; display:flex; min-height: 100vh; overflow: hidden; }
-.sidebar, .content-area { height: 100%; }
-.content-area { flex: 1; overflow-y: auto; }
-.page-wrapper { background-color: #F0F7FF; }
-.sidebar {
-  width: 260px;
-  background-color: #1565c0;
-  color: #f0f4f8;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  height: auto;       /* change */
-  min-height: 100%;   /* ensures full fill */
-}
+.page-wrapper { flex-grow: 1; display:flex; min-height: 100vh; overflow: hidden; background-color: #F0F7FF; }
+.content-area { flex: 1; overflow-y: auto; height: 100%; }
 
-.sidebar-section { border-bottom: 1px solid #243B55; }
-.nav-list .q-item { padding: 12px; border-radius: 8px; margin: 4px 12px; color: #BCCCDC; }
-.nav-list .q-item:hover { background-color: #243B55; color: #ffffff; }
-.active-link { background-color: #00529b !important; color: #ffffff !important; font-weight: 600; }
 .broadcast-banner { background-color: #1D3557 !important; border: 1px solid #457B9D; }
 .opacity-8 { opacity: 0.8; }
 .interview-card { background-color: #E0F7FA; border-color: #B2EBF2; }

@@ -1,29 +1,8 @@
 <template>
+<div class="portal-layout">
 <AppHeader class="sticky-header" />
   <div class="page-wrapper row no-wrap">
-    <div class="sidebar">
-      <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
-        <q-avatar icon="business_center" color="white" text-color="primary" />
-        <div>
-          <div class="text-h6 text-white">JobHub</div>
-          <div class="text-caption text-blue-grey-3">Employer Portal</div>
-        </div>
-      </div>
-      <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-        <div class="text-subtitle1 text-weight-medium text-white">{{ currentUser.name }}</div>
-        <div class="text-caption text-blue-grey-4">{{currentUser.email }}</div>
-      </div>
-      <div class="sidebar-section q-pt-md q-pb-none">
-        <q-list class="nav-list">
-          <q-item v-for="link in links" :key="link.label" :active="selected === link.label" active-class="active-link"
-            clickable v-ripple @click="navigate(link)">
-            <q-item-section avatar> <q-icon :name="link.icon" /> </q-item-section>
-            <q-item-section> {{ link.label }} </q-item-section>
-          </q-item>
-        </q-list>
-      </div>
-
-    </div>
+    <EmployerSidebar :active-link="selected" @navigate="(label) => selected = label" />
 
     <div class="content-area column q-pa-md q-pa-lg-lg">
       <div class="settings-container">
@@ -158,19 +137,17 @@
       </q-dialog>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import AppHeader from 'src/components/HeaderPart.vue';
-import { authHelpers } from 'src/services/auth.service';
-const router = useRouter();
+import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 const $q = useQuasar();
-const currentUser = authHelpers.getCurrentUser();
 // --- SCRIPT IS UNCHANGED, ONLY STYLES HAVE BEEN MODIFIED ---
-const employer = ref({ name: 'Innovate Inc.', email: 'hr@innovate.com' });
+const employer = ref({});
 const selected = ref('Settings');
 const tab = ref('profile');
 
@@ -230,9 +207,6 @@ const savePassword = () => { $q.notify({ color: 'positive', message: 'Password c
 
 const logoutDevice = (id) => { loginDevices.value = loginDevices.value.filter(d => d.id !== id); $q.notify('Device has been logged out.'); };
 
-const links = [ { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' }, { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs' }, { label: 'Post New Job', icon: 'add_box', to: '/post-job' }, { label: 'Candidates', icon: 'groups', to: '/candidates' }, { label: 'Messages', icon: 'mail', to: '/employer-messages' }, { label: 'Company Profile', icon: 'domain', to: '/company-profile' }, { label: 'Settings', icon: 'settings', to: '/employer-settings' }];
-const navigate = (link) => { selected.value = link.label; if (link.to) router.push(link.to); };
-
 watch(() => settings.displayName, (newName) => { if (newName) { employer.value.name = newName; }});
 </script>
 
@@ -265,14 +239,8 @@ watch(() => settings.displayName, (newName) => { if (newName) { employer.value.n
   flex: 1;
   overflow-y: auto;
 }
-/* Page Wrapper & Sidebar */
+/* Page Wrapper & Content Area */
 .page-wrapper { height: 100vh; background-color: #F0F7FF; }
-.sidebar { width: 260px; min-width: 260px; background-color: #1565c0; display: flex; flex-direction: column; color: #f0f4f8; }
-.sidebar-section { border-bottom: 1px solid #243B55; }
-.nav-list .q-item { color: #BCCCDC; padding: 12px; margin: 4px 12px; border-radius: 8px; }
-.active-link { background-color: #00529b !important; color: #ffffff !important; font-weight: 600; }
-
-/* Content Area */
 .content-area { flex: 1; overflow-y: auto; }
 
 /* UPDATED: Bluer Text Colors */

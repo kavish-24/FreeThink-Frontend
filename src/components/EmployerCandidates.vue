@@ -1,34 +1,11 @@
 <template>
-  <AppHeader class="sticky-header" />
-  <div class="page-wrapper row no-wrap">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
-        <q-avatar icon="business_center" color="white" text-color="primary" />
-        <div>
-          <div class="text-h6 text-white">JobHub</div>
-          <div class="text-caption text-blue-grey-3">Employer Portal</div>
-        </div>
-      </div>
-      <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-        <div class="text-subtitle1 text-weight-medium text-white">{{ employer.name }}</div>
-        <div class="text-caption text-blue-grey-4">{{ employer.email }}</div>
-      </div>
-      <div class="sidebar-section q-pt-md q-pb-none">
-        <q-list class="nav-list">
-          <q-item v-for="link in links" :key="link.label" :active="selected === link.label"
-            active-class="active-link" clickable v-ripple @click="navigate(link)">
-            <q-item-section avatar>
-              <q-icon :name="link.icon" />
-            </q-item-section>
-            <q-item-section>{{ link.label }}</q-item-section>
-          </q-item>
-        </q-list>
-      </div>
-    </div>
+  <div class="portal-layout">
+    <AppHeader class="sticky-header" />
+    <div class="page-wrapper row no-wrap">
+      <EmployerSidebar :active-link="selected" @navigate="(label) => selected = label" />
 
-    <!-- Content -->
-    <div class="content-area column q-pa-md">
+      <!-- Content -->
+      <div class="content-area column q-pa-md">
       <!-- Enhanced Header with Gradient -->
       <div class="content-header q-mb-lg">
         <div class="header-content row justify-between items-center">
@@ -650,6 +627,8 @@
       </q-dialog>
     </div>
   </div>
+  </div>
+  
 </template>
 
 <script setup>
@@ -657,18 +636,13 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import api from 'src/services/auth.service.js';
 import AppHeader from 'src/components/HeaderPart.vue';
+import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 import { useQuasar } from 'quasar';
 import { authHelpers } from 'src/services/auth.service.js';
 
 const $q = useQuasar();
 const router = useRouter();
 const route = useRoute();
-const currentUser = authHelpers.getCurrentUser();
-
-const employer = ref({
-  name: currentUser?.name || 'Unknown Company',
-  email: currentUser?.email || ''
-});
 
 const selected = ref('Candidates');
 
@@ -1157,37 +1131,6 @@ const rejectSelectedCandidates = async () => {
   }
 };
 
-// Sidebar Links
-const links = [
-  { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' },
-  { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs' },
-  { label: 'Post New Job', icon: 'add_box', to: '/post-job' },
-  { label: 'Candidates', icon: 'groups', to: '/candidates' },
-  { label: 'Messages', icon: 'mail', to: '/employer-messages' },
-  { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
-  { label: 'Settings', icon: 'settings', to: '/employer-settings' }
-];
-
-const navigate = (link) => {
-  if (!link.to) {
-    $q.notify({
-      type: 'warning',
-      message: 'Invalid navigation link'
-    });
-    return;
-  }
-  try {
-    selected.value = link.label;
-    router.push(link.to);
-  } catch (err) {
-    console.error('Navigation error:', err);
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to navigate'
-    });
-  }
-};
-
 // Format time ago for applied date
 const formatTimeAgo = (date) => {
   const now = new Date();
@@ -1229,32 +1172,6 @@ const formatTimeAgo = (date) => {
   flex: 1;
   overflow-y: auto;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}
-
-/* Sidebar Styles */
-.sidebar {
-  width: 260px;
-  background-color: #1565c0;
-  color: #f0f4f8;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-section { 
-  border-bottom: 1px solid #243B55; 
-}
-
-.nav-list .q-item { 
-  color: #BCCCDC; 
-  padding: 12px; 
-  margin: 4px 12px; 
-  border-radius: 8px; 
-}
-
-.active-link { 
-  background-color: #00529b !important; 
-  color: #ffffff !important; 
-  font-weight: 600; 
 }
 
 /* Enhanced Header */

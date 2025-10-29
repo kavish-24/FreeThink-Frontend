@@ -1,41 +1,10 @@
 <template>
-  <AppHeader class="sticky-header" />
-  <div class="page-wrapper row no-wrap">
-    <div class="sidebar">
-      <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
-        <q-avatar icon="business_center" color="white" text-color="primary" />
-        <div>
-          <div class="text-h6 text-white">JobHub</div>
-          <div class="text-caption text-blue-grey-3">Employer Portal</div>
-        </div>
-      </div>
-      <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-        <div class="text-subtitle1 text-weight-medium text-white">{{ currentUser.name }}</div>
-        <div class="text-caption text-blue-grey-4">{{ currentUser.email }}</div>
-      </div>
-      <div class="sidebar-section q-pt-md q-pb-none">
-        <q-list class="nav-list">
-          <q-item 
-            v-for="link in links" 
-            :key="link.label" 
-            :active="selected === link.label" 
-            active-class="active-link"
-            clickable 
-            v-ripple 
-            @click="navigate(link)"
-          >
-            <q-item-section avatar>
-              <q-icon :name="link.icon" />
-            </q-item-section>
-            <q-item-section>
-              {{ link.label }}
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </div>
-    </div>
+  <div class="portal-layout">
+    <AppHeader class="sticky-header" />
+    <div class="page-wrapper row no-wrap">
+      <EmployerSidebar :active-link="selected" @navigate="(label) => selected = label" />
 
-    <div class="content-area post-job-bg q-pa-md q-pa-lg-xl">
+      <div class="content-area post-job-bg q-pa-md q-pa-lg-xl">
       <div class="step-indicator-container q-mb-xl">
         <div class="text-center q-mb-md">
           <div class="text-overline text-primary">Step {{ step }} of 4</div>
@@ -565,6 +534,7 @@
       </q-card>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -575,7 +545,7 @@ import jobService from '../services/jobpost.service';
 import { getSuggestions } from '../services/gemini.service';
 import api from '../services/auth.service.js';
 import AppHeader from 'src/components/HeaderPart.vue';
-import { authHelpers } from 'src/services/auth.service';
+import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 // Initialize stores and utilities
 const router = useRouter();
 const $q = useQuasar();
@@ -595,17 +565,6 @@ const showTagsSuggestions = ref(false);
 const showSkillsSuggestions = ref(false);
 const suggestionsPreloaded = ref(false);
 
-// Initialize employer with default values
-const currentUser = authHelpers.getCurrentUser();
-
-const employer = ref({
-  name: currentUser?.name || 'Unknown Company',
-  email: currentUser?.email || '',
-  status: 'pending',
-  rejectionReason: ''
-});
-
-console.log('Employer data:', employer.value);
 // UI state
 const selected = ref('Post New Job');
 const verificationStatus = ref('');
@@ -635,17 +594,6 @@ const educationOptions = [
   { label: "Graduation (Bachelor's)", value: 'Bachelor' },
   { label: "Post Graduation (Master's)", value: 'Master' },
   { label: 'PhD / Doctorate', value: 'PHD' }
-];
-
-// Navigation links
-const links = [
-  { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' },
-  { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs' },
-  { label: 'Post New Job', icon: 'add_box', to: '/post-job' },
-  { label: 'Candidates', icon: 'groups', to: '/candidates' },
-  { label: 'Messages', icon: 'mail', to: '/employer-messages' },
-  { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
-  { label: 'Settings', icon: 'settings' }
 ];
 
 const stepSections = [
@@ -900,12 +848,6 @@ const addSuggestionToSkills = (suggestion) => {
   }
 };
 
-// Navigation functions
-const navigate = (link) => {
-  selected.value = link.label;
-  if (link.to) router.push(link.to);
-};
-
 const nextStep = () => {
   if (step.value < 4) step.value++;
 };
@@ -969,7 +911,6 @@ const fetchCompanyStatus = async () => {
         employerData.status = verificationStatus.value;
         employerData.rejectionReason = rejectionReason.value;
         localStorage.setItem('employerData', JSON.stringify(employerData));
-        employer.value = employerData;
       }
     }
   } catch (error) {
@@ -1137,9 +1078,9 @@ const resetForm = () => {
 onMounted(async () => {
   const stored = localStorage.getItem('employerData');
   if (stored) {
-    employer.value = JSON.parse(stored);
-    verificationStatus.value = employer.value.status || '';
-    rejectionReason.value = employer.value.rejectionReason || '';
+    const employerData = JSON.parse(stored);
+    verificationStatus.value = employerData.status || '';
+    rejectionReason.value = employerData.rejectionReason || '';
   } else {
     // fetch from API if not in localStorage
     await fetchCompanyStatus();
@@ -1274,52 +1215,15 @@ onMounted(async () => {
 
 .page-wrapper {
   flex-grow: 1;
+  display: flex;
   overflow: hidden;
   height: 100vh;
 }
 
-.sidebar,
-.content-area {
-  height: 100%;
-}
-
 .content-area {
   flex: 1;
+  height: 100%;
   overflow-y: auto;
-}
-
-.sidebar {
-  width: 260px;
-  background-color: #1565c0;
-  color: #f0f4f8;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-section {
-  border-bottom: 1px solid #243B55;
-}
-
-.logo-section {
-  border-bottom-color: transparent;
-}
-
-.nav-list .q-item {
-  color: #BCCCDC;
-  padding: 12px;
-  margin: 4px 12px;
-  border-radius: 8px;
-}
-
-.nav-list .q-item:hover {
-  background-color: #243B55;
-  color: #ffffff;
-}
-
-.active-link {
-  background-color: #00529b !important;
-  color: #ffffff !important;
-  font-weight: 600;
 }
 
 .post-job-bg {
@@ -1344,18 +1248,8 @@ onMounted(async () => {
 
 /* Responsive design improvements */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 200px;
-  }
-  
   .page-wrapper {
     flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100%;
-    height: auto;
-    min-height: auto;
   }
   
   .full-width-card {

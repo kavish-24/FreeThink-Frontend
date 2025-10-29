@@ -3,30 +3,7 @@
     <!-- Re-using the same portal structure for consistency -->
     <AppHeader class="sticky-header" />
     <div class="page-wrapper row no-wrap">
-      <div class="sidebar">
-        <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
-          <q-avatar icon="business_center" color="white" text-color="primary" />
-          <div>
-            <div class="text-h6 text-white">JobHub</div>
-            <div class="text-caption text-blue-grey-3">Employer Portal</div>
-          </div>
-        </div>
-        <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-          <div class="text-subtitle1 text-weight-medium text-white">{{ employer.name }}</div>
-          <div class="text-caption text-blue-grey-4">{{ employer.email }}</div>
-        </div>
-        <div class="sidebar-section q-pt-md q-pb-none">
-          <q-list class="nav-list">
-            <q-item v-for="link in links" :key="link.label" :active="selected === link.label"
-              active-class="active-link" clickable v-ripple @click="navigate(link)">
-              <q-item-section avatar>
-                <q-icon :name="link.icon" />
-              </q-item-section>
-              <q-item-section>{{ link.label }}</q-item-section>
-            </q-item>
-          </q-list>
-        </div>
-      </div>
+      <EmployerSidebar :active-link="selected" @navigate="(label) => selected = label" />
 
       <!-- Main Content Area for Queries -->
       <div class="content-area column q-pa-md">
@@ -135,14 +112,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import AppHeader from 'src/components/HeaderPart.vue'; // Assuming you have this component
+import AppHeader from 'src/components/HeaderPart.vue';
+import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 
 const $q = useQuasar();
-const router = useRouter();
-const employer = ref({ name: 'Innovate Inc.', email: 'hr@innovate.com' });
-const selected = ref('Support'); // Set the active sidebar link
+const selected = ref('Support');
 
 const showNewQueryDialog = ref(false);
 const newQuery = ref({
@@ -177,19 +152,6 @@ const queries = ref([
     reply: null,
   }
 ]);
-
-const links = [
-  { label: 'Dashboard', icon: 'dashboard', to: '/employer-portal' },
-  { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs' },
-  { label: 'Candidates', icon: 'groups', to: '/candidates' },
-  { label: 'Support', icon: 'support_agent', to: '/employer-queries' }, // Current page
-  { label: 'Settings', icon: 'settings', to: '/employer-settings' }
-];
-
-const navigate = (link) => {
-  selected.value = link.label;
-  if (link.to) router.push(link.to);
-};
 
 const openNewQueryDialog = () => {
   newQuery.value = { subject: '', message: '' };
@@ -240,7 +202,7 @@ const formatFullDate = (dateStr) => {
 </script>
 
 <style scoped>
-/* Using the same layout styles from EmployerCandidates.vue for consistency */
+/* Using the same layout styles for consistency */
 .portal-layout {
   display: flex;
   flex-direction: column;
@@ -252,22 +214,11 @@ const formatFullDate = (dateStr) => {
   flex-grow: 1;
   overflow: hidden;
 }
-.sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background-color: #1565c0;
-  color: #f0f4f8;
-  display: flex;
-  flex-direction: column;
-}
 .content-area {
   flex-grow: 1;
   overflow-y: auto;
   background-color: #F0F7FF;
 }
-.sidebar-section { border-bottom: 1px solid rgba(255,255,255,0.1); }
-.nav-list .q-item { color: #BCCCDC; padding-top: 12px; padding-bottom: 12px; margin: 4px 12px; border-radius: 8px; }
-.active-link { background-color: #00529b !important; color: #ffffff !important; font-weight: 600; }
 .content-title { color: #0D1B2A; }
 .subtitle-text { color: #5A7184; }
 

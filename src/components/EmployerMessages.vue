@@ -1,30 +1,8 @@
 <template>
-  <div>
+  <div class="portal-layout">
     <AppHeader class="sticky-header" />
     <div class="page-wrapper row no-wrap">
-    <div class="sidebar">
-      <div class="sidebar-section logo-section flex items-center q-gutter-sm q-pa-md">
-        <q-avatar icon="business_center" color="white" text-color="primary" />
-        <div>
-          <div class="text-h6 text-white">JobHub</div>
-          <div class="text-caption text-blue-grey-3">Employer Portal</div>
-        </div>
-      </div>
-      <div class="sidebar-section q-pt-sm q-pb-none q-px-md">
-        <div class="text-subtitle1 text-weight-medium text-white">{{ currentUser.name }}</div>
-        <div class="text-caption text-blue-grey-4">{{ currentUser.email }}</div>
-      </div>
-      <div class="sidebar-section q-pt-md q-pb-none">
-        <q-list class="nav-list">
-          <q-item v-for="link in links" :key="link.label" :active="selected === link.label" active-class="active-link"
-            clickable v-ripple @click="navigate(link)">
-            <q-item-section avatar><q-icon :name="link.icon" /></q-item-section>
-            <q-item-section>{{ link.label }}</q-item-section>
-          </q-item>
-        </q-list>
-      </div>
-
-    </div>
+    <EmployerSidebar :active-link="selected" @navigate="(label) => selected = label" />
 
     <div class="content-area row no-wrap full-height">
       <div class="conversation-list column">
@@ -155,16 +133,15 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import AppHeader from 'src/components/HeaderPart.vue';
+import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 import { authHelpers } from 'src/services/auth.service';
 import messageService from 'src/services/message.service';
 
-const router = useRouter();
 const $q = useQuasar();
 
-const employer = ref({ name: 'Innovate Inc.', email: 'hr@innovate.com' });
+const employer = ref({});
 const selected = ref('Messages');
 const selectedConversation = ref(null);
 const newMessage = ref('');
@@ -321,20 +298,6 @@ const scheduleBroadcast = async () => {
   }
 };
 
-const links = [
-    { label: 'Dashboard Overview', icon: 'dashboard', to: '/employer-portal' },
-    { label: 'Posted Jobs', icon: 'work', to: '/posted-jobs' },
-    { label: 'Post New Job', icon: 'add_box', to: '/post-job' },
-    { label: 'Candidates', icon: 'groups', to: '/candidates' },
-    { label: 'Messages', icon: 'mail', to: '/employer-messages' },
-    { label: 'Company Profile', icon: 'domain', to: '/company-profile' },
-    { label: 'Settings', icon: 'settings', to: '/employer-settings' }
-];
-const navigate = (link) => {
-  selected.value = link.label;
-  if (link.to) router.push(link.to);
-};
-
 const formatTimeAgo = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -379,14 +342,6 @@ const formatTimeAgo = (dateString) => {
   overflow-y: auto;
 }
 .page-wrapper { height: 100vh; background-color: #f4f8fa; }
-.sidebar { width: 260px; background-color: #1565c0; color: #f0f4f8; display: flex; flex-direction: column; }
-.sidebar-section { border-bottom: 1px solid #243B55; }
-.logo-section { border-bottom-color: transparent; }
-.nav-list .q-item { color: #BCCCDC; padding: 12px; margin: 4px 12px; border-radius: 8px; }
-.nav-list .q-item:hover { background-color: #243B55; color: #ffffff; }
-.active-link { background-color: #00529b !important; color: #ffffff !important; font-weight: 600; }
-.logout-btn { color: #FFB5B5; border-radius: 8px; margin: 16px; }
-.logout-btn:hover { background-color: #d32f2f; color: #ffffff; }
 
 .content-area { flex: 1; overflow-y: hidden; }
 .full-height { height: 100%; }
