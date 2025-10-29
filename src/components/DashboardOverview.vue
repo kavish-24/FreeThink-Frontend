@@ -99,12 +99,31 @@
         />
       </div>
       
-      <div class="recommendations-grid">
+      <div v-if="loadingRecommendations" class="loading-state">
+        <q-spinner-dots size="48px" color="primary" />
+        <p>Loading smart recommendations...</p>
+      </div>
+      
+      <div v-else-if="recommendedJobs.length === 0" class="empty-recommendations">
+        <div class="empty-icon">
+          <q-icon name="psychology" />
+        </div>
+        <h3>No Recommendations Yet</h3>
+        <p>Complete your profile to get personalized job recommendations</p>
+        <q-btn 
+          class="btn-unstop btn-primary"
+          label="Complete Profile"
+          @click="$emit('open-profile')"
+          no-caps
+        />
+      </div>
+      
+      <div v-else class="recommendations-grid">
         <div 
           v-for="job in recommendedJobs" 
           :key="job.id"
           class="job-card card-unstop card-interactive"
-          @click="$router.push(`/job/${job.id}`)"
+          @click="openJobDetails(job.id)"
         >
           <!-- Smart Match Score Badge -->
           <div class="smart-match-badge">
@@ -159,13 +178,157 @@
         </div>
       </div>
     </div>
+
+    <!-- Job Details Dialog -->
+    <q-dialog v-model="showJobDialog" maximized transition-show="slide-up" transition-hide="slide-down">
+      <q-card class="job-details-card">
+        <q-bar class="bg-primary text-white">
+          <q-space />
+          <q-btn flat dense icon="close" v-close-popup />
+        </q-bar>
+
+        <q-card-section v-if="loadingJobDetails" class="flex flex-center" style="min-height: 400px;">
+          <div class="text-center">
+            <q-spinner-dots size="48px" color="primary" />
+            <p class="q-mt-md text-grey-7">Loading job details...</p>
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else-if="selectedJobDetails" class="job-details-content">
+          <!-- Company Header -->
+          <div class="company-header-section">
+            <div class="company-info-wrapper">
+              <div class="company-logo-large">
+                <img v-if="selectedJobDetails.company?.logo" :src="selectedJobDetails.company.logo" alt="Company Logo" />
+                <q-icon v-else name="business" size="48px" color="grey-5" />
+              </div>
+              <div class="company-text-info">
+                <h3 class="job-detail-title">{{ selectedJobDetails.title }}</h3>
+                <p class="company-detail-name">{{ selectedJobDetails.company?.companyName || 'Company' }}</p>
+                <div class="job-meta-info">
+                  <span class="meta-item">
+                    <q-icon name="place" size="16px" />
+                    {{ selectedJobDetails.location }}
+                  </span>
+                  <span class="meta-item">
+                    <q-icon name="work_history" size="16px" />
+                    {{ selectedJobDetails.experience_min || 0 }}+ years
+                  </span>
+                  <span class="meta-item">
+                    <q-icon name="schedule" size="16px" />
+                    {{ formatJobType(selectedJobDetails.type) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="salary-badge">
+              <q-icon name="payments" size="20px" class="q-mr-xs" />
+              {{ formatSalary(selectedJobDetails.salary_range) }}
+            </div>
+          </div>
+
+          <q-separator class="q-my-md" />
+
+          <!-- Job Description -->
+          <div class="detail-section">
+            <h4 class="section-heading">
+              <q-icon name="description" class="q-mr-sm" />
+              Job Description
+            </h4>
+            <p class="job-description-text">{{ selectedJobDetails.description }}</p>
+          </div>
+
+          <!-- Skills Required -->
+          <div class="detail-section" v-if="selectedJobDetails.skills && selectedJobDetails.skills.length">
+            <h4 class="section-heading">
+              <q-icon name="psychology" class="q-mr-sm" />
+              Skills Required
+            </h4>
+            <div class="skills-container">
+              <q-chip
+                v-for="skill in selectedJobDetails.skills"
+                :key="skill"
+                color="primary"
+                text-color="white"
+                icon="check_circle"
+              >
+                {{ skill }}
+              </q-chip>
+            </div>
+          </div>
+
+          <!-- Benefits -->
+          <div class="detail-section" v-if="selectedJobDetails.benefits">
+            <h4 class="section-heading">
+              <q-icon name="stars" class="q-mr-sm" />
+              Benefits
+            </h4>
+            <p class="benefits-text">{{ selectedJobDetails.benefits }}</p>
+          </div>
+
+          <!-- Company Information -->
+          <div class="detail-section" v-if="selectedJobDetails.company">
+            <h4 class="section-heading">
+              <q-icon name="business_center" class="q-mr-sm" />
+              About {{ selectedJobDetails.company.companyName }}
+            </h4>
+            <p class="company-description">{{ selectedJobDetails.company.description }}</p>
+            <div class="company-details-grid">
+              <div class="company-detail-item" v-if="selectedJobDetails.company.industry">
+                <strong>Industry:</strong> {{ selectedJobDetails.company.industry }}
+              </div>
+              <div class="company-detail-item" v-if="selectedJobDetails.company.website">
+                <strong>Website:</strong>
+                <a :href="selectedJobDetails.company.website" target="_blank" class="company-link">
+                  {{ selectedJobDetails.company.website }}
+                </a>
+              </div>
+              <div class="company-detail-item" v-if="selectedJobDetails.company.location">
+                <strong>Location:</strong> {{ selectedJobDetails.company.location }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Info -->
+          <div class="additional-info">
+            <div class="info-row">
+              <span class="info-label">Category:</span>
+              <span class="info-value">{{ selectedJobDetails.category || 'Not specified' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Education:</span>
+              <span class="info-value">{{ selectedJobDetails.education || 'Not specified' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Application Deadline:</span>
+              <span class="info-value">{{ formatDeadline(selectedJobDetails.deadline) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Posted:</span>
+              <span class="info-value">{{ formatPostedDate(selectedJobDetails.posted_at) }}</span>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Close" color="grey-7" v-close-popup />
+          <q-btn unelevated label="Apply Now" color="primary" icon="send" @click="applyToJob" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { authHelpers } from '../services/auth.service'
+import api from '../services/auth.service'
+import suggestService from '../services/suggest.service'
 
 defineEmits(['open-profile'])
+
+const currentUser = authHelpers.getCurrentUser()
+const userId = currentUser?.id
 
 // Mock data - replace with real data from API
 const recentActivities = ref([
@@ -192,39 +355,57 @@ const recentActivities = ref([
   }
 ])
 
-const recommendedJobs = ref([
-  {
-    id: 1,
-    title: 'Senior Frontend Developer',
-    company: 'Tech Corp',
-    location: 'San Francisco, CA',
-    salary: '$120k - $150k',
-    skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
-    featured: true,
-    matchScore: 92,
-    matchedSkills: 4
-  },
-  {
-    id: 2,
-    title: 'Full Stack Engineer',
-    company: 'StartupXYZ',
-    location: 'Remote',
-    salary: '$100k - $130k',
-    skills: ['Vue.js', 'Python', 'AWS', 'Docker'],
-    matchScore: 85,
-    matchedSkills: 3
-  },
-  {
-    id: 3,
-    title: 'UI/UX Designer',
-    company: 'Design Studio',
-    location: 'New York, NY',
-    salary: '$90k - $110k',
-    skills: ['Figma', 'Sketch', 'Prototyping', 'User Research'],
-    matchScore: 78,
-    matchedSkills: 2
+const recommendedJobs = ref([])
+const loadingRecommendations = ref(false)
+const showJobDialog = ref(false)
+const selectedJobDetails = ref(null)
+const loadingJobDetails = ref(false)
+
+// Fetch recommendations from the service
+const fetchRecommendations = async () => {
+  if (!userId) return
+  
+  loadingRecommendations.value = true
+  try {
+    const result = await suggestService.getSuggestions(userId)
+    
+    if (result.success && Array.isArray(result.data)) {
+      // Map the API response to our component format
+      recommendedJobs.value = result.data.slice(0, 3).map(job => ({
+        id: job.jobId || job.id,
+        title: job.title || 'Untitled',
+        company: job.company_name || job.companyName || 'Unknown Company',
+        location: job.location || 'N/A',
+        salary: job.salary || job.salary_range || 'N/A',
+        skills: parseSkills(job.skills),
+        featured: false,
+        matchScore: Math.round((job.match || 0) * 100) , // Default to 75% if match is 0
+        matchedSkills: parseSkills(job.skills).length
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch recommendations:', error)
+  } finally {
+    loadingRecommendations.value = false
   }
-])
+}
+
+// Helper function to parse skills from various formats
+const parseSkills = (skills) => {
+  if (Array.isArray(skills)) return skills
+  if (!skills) return []
+  if (typeof skills !== 'string') return []
+  try {
+    const parsed = JSON.parse(skills)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return skills.split(',').map(s => s.trim()).filter(Boolean)
+  }
+}
+
+onMounted(() => {
+  fetchRecommendations()
+})
 
 function getActivityIcon(type) {
   switch (type) {
@@ -256,6 +437,70 @@ function getMatchScoreClass(score) {
   if (score >= 70) return 'match-good' 
   if (score >= 55) return 'match-fair'
   return 'match-low'
+}
+
+// Open job details dialog
+const openJobDetails = async (jobId) => {
+  if (!jobId) return
+  
+  showJobDialog.value = true
+  loadingJobDetails.value = true
+  selectedJobDetails.value = null
+  
+  try {
+    const response = await api.get(`/jobs/jobs/${jobId}`)
+    
+    if (response.data.success && response.data.job) {
+      selectedJobDetails.value = response.data.job
+    } else {
+      console.error('Failed to fetch job details')
+      showJobDialog.value = false
+    }
+  } catch (error) {
+    console.error('Error fetching job details:', error)
+    showJobDialog.value = false
+  } finally {
+    loadingJobDetails.value = false
+  }
+}
+
+// Helper functions for formatting
+const formatJobType = (type) => {
+  if (!type) return 'Not specified'
+  return type.split('_').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ')
+}
+
+const formatSalary = (salaryRange) => {
+  if (!salaryRange) return 'Not disclosed'
+  return salaryRange
+}
+
+const formatDeadline = (deadline) => {
+  if (!deadline) return 'Not specified'
+  const date = new Date(deadline)
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
+}
+
+const formatPostedDate = (postedAt) => {
+  if (!postedAt) return 'Unknown'
+  const date = new Date(postedAt)
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
+}
+
+const applyToJob = () => {
+  // TODO: Implement job application logic
+  console.log('Apply to job:', selectedJobDetails.value?.id)
+  // You could navigate to application page or open application dialog
 }
 </script>
 
@@ -490,6 +735,56 @@ function getMatchScoreClass(score) {
 }
 
 /* Recommendations */
+.loading-state {
+  text-align: center;
+  padding: var(--space-12);
+  background: var(--color-surface);
+  border-radius: var(--border-radius-xl);
+}
+
+.loading-state p {
+  margin-top: var(--space-4);
+  color: var(--color-gray-600);
+  font-size: var(--font-size-base);
+}
+
+.empty-recommendations {
+  text-align: center;
+  padding: var(--space-12);
+  background: var(--color-surface);
+  border-radius: var(--border-radius-xl);
+  border: 2px dashed var(--color-gray-300);
+}
+
+.empty-recommendations .empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-4) auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-recommendations .empty-icon .q-icon {
+  font-size: 2rem;
+  color: white;
+}
+
+.empty-recommendations h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.empty-recommendations p {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-500);
+  margin: 0 0 var(--space-6) 0;
+}
+
 .recommendations-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -643,6 +938,206 @@ function getMatchScoreClass(score) {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-2);
+  }
+}
+
+/* Job Details Dialog Styles */
+.job-details-card {
+  background: white;
+}
+
+.job-details-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.company-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.company-info-wrapper {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.company-logo-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.company-logo-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.company-text-info {
+  flex: 1;
+}
+
+.job-detail-title {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.company-detail-name {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.job-meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  font-size: 14px;
+}
+
+.salary-badge {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #1976d2, #2196f3);
+  color: white;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.detail-section {
+  margin-bottom: 28px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+}
+
+.job-description-text,
+.benefits-text,
+.company-description {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #444;
+  margin: 0;
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.company-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.company-detail-item {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.company-link {
+  color: #1976d2;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.company-link:hover {
+  text-decoration: underline;
+}
+
+.additional-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #555;
+}
+
+.info-value {
+  color: #333;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .company-header-section {
+    flex-direction: column;
+  }
+
+  .salary-badge {
+    align-self: flex-start;
+  }
+
+  .job-detail-title {
+    font-size: 22px;
+  }
+
+  .company-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .info-value {
+    text-align: left;
   }
 }
 </style>

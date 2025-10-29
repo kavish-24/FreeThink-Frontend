@@ -81,12 +81,13 @@
             </div>
             <div class="detail-item">
               <q-icon name="attach_money" class="detail-icon" />
-              <span class="detail-text">{{ app.job?.salary || 'Salary not specified' }}</span>
+              <span class="detail-text">{{ app.job?.salary_range || 'Salary not specified' }}</span>
             </div>
             <div class="detail-item">
               <q-icon name="schedule" class="detail-icon" />
               <span class="detail-text">Applied {{ formatDate(app.applied_at) }}</span>
             </div>
+           
           </div>
 
           <!-- Application Attachments -->
@@ -129,32 +130,253 @@
         </div>
       </div>
     </div>
+
+    <!-- Application Details Dialog -->
+    <q-dialog v-model="showDetailsDialog" maximized transition-show="slide-up" transition-hide="slide-down">
+      <q-card class="application-details-dialog">
+        <q-bar class="dialog-bar">
+          <q-icon name="description" />
+          <div class="dialog-title">Application Details</div>
+          <q-space />
+          <q-btn flat dense icon="close" v-close-popup />
+        </q-bar>
+
+        <q-card-section v-if="selectedApplication" class="dialog-content">
+          <!-- Header Section -->
+          <div class="dialog-header-section">
+            <div class="job-header-info">
+              <h2 class="dialog-job-title">{{ selectedApplication.job?.title }}</h2>
+              <div class="job-meta-row">
+                <div class="meta-chip">
+                  <q-icon name="business" size="16px" />
+                  <span>Company ID: {{ selectedApplication.job?.company_id }}</span>
+                </div>
+                <div class="meta-chip">
+                  <q-icon name="place" size="16px" />
+                  <span>{{ selectedApplication.job?.location }}</span>
+                </div>
+                <div class="meta-chip">
+                  <q-icon name="work" size="16px" />
+                  <span>{{ formatJobType(selectedApplication.job?.type) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="status-section">
+              <span class="badge-unstop" :class="getStatusBadgeClass(selectedApplication.status)">
+                {{ formatStatus(selectedApplication.status) }}
+              </span>
+            </div>
+          </div>
+
+          <q-separator class="section-separator" />
+
+          <!-- ATS Score Section -->
+          <div class="info-section" v-if="selectedApplication.ats_score || selectedApplication.ats_feedback">
+            <div class="section-header">
+              <q-icon name="analytics" class="section-icon" />
+              <h3 class="section-title">ATS Analysis</h3>
+            </div>
+            <div class="ats-content">
+              <div class="ats-score-card" v-if="selectedApplication.ats_score">
+                <div class="score-display">
+                  <div class="score-circle" :style="`background: conic-gradient(${getATSScoreColor(selectedApplication.ats_score)} ${selectedApplication.ats_score * 3.6}deg, #e5e7eb 0deg)`">
+                
+                  </div>
+                  <div class="score-info">
+                    <h4>Resume Match Score</h4>
+                    <p>Your resume scored {{ selectedApplication.ats_score }}% match with job requirements</p>
+                  </div>
+                </div>
+              </div>
+              <div class="ats-feedback-card" v-if="selectedApplication.ats_feedback">
+                <h4 class="feedback-title">
+                  <q-icon name="feedback" />
+                  Detailed Feedback
+                </h4>
+                <div class="feedback-content">{{ selectedApplication.ats_feedback }}</div>
+              </div>
+            </div>
+          </div>
+
+          <q-separator class="section-separator" />
+
+          <!-- Job Description -->
+          <div class="info-section">
+            <div class="section-header">
+              <q-icon name="description" class="section-icon" />
+              <h3 class="section-title">Job Description</h3>
+            </div>
+            <p class="job-description">{{ selectedApplication.job?.description }}</p>
+          </div>
+
+          <q-separator class="section-separator" />
+
+          <!-- Job Details Grid -->
+          <div class="info-section">
+            <div class="section-header">
+              <q-icon name="info" class="section-icon" />
+              <h3 class="section-title">Job Information</h3>
+            </div>
+            <div class="details-grid">
+              <div class="detail-card">
+                <div class="detail-label">Salary Range</div>
+                <div class="detail-value">₹{{ selectedApplication.job?.salary_range || 'Not disclosed' }}</div>
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Experience Required</div>
+               <div class="detail-value">
+  {{ selectedApplication.job?.experience_min ? selectedApplication.job.experience_min + '+ years' : 'Fresher' }}
+</div>
+
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Education</div>
+                <div class="detail-value">{{ selectedApplication.job?.education || 'Not specified' }}</div>
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Category</div>
+                <div class="detail-value">{{ selectedApplication.job?.category || 'Not specified' }}</div>
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Posted On</div>
+                <div class="detail-value">{{ formatDate(selectedApplication.job?.posted_at) }}</div>
+              </div>
+              <div class="detail-card">
+                <div class="detail-label">Deadline</div>
+                <div class="detail-value">{{ formatDate(selectedApplication.job?.deadline) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <q-separator class="section-separator" />
+
+          <!-- Skills Required -->
+          <div class="info-section" v-if="parseSkills(selectedApplication.job?.skills).length">
+            <div class="section-header">
+              <q-icon name="psychology" class="section-icon" />
+              <h3 class="section-title">Skills Required</h3>
+            </div>
+            <div class="skills-chips">
+              <q-chip
+                v-for="skill in parseSkills(selectedApplication.job?.skills)"
+                :key="skill"
+                color="primary"
+                text-color="white"
+                icon="check_circle"
+              >
+                {{ skill }}
+              </q-chip>
+            </div>
+          </div>
+
+          <q-separator class="section-separator" v-if="parseSkills(selectedApplication.job?.skills).length" />
+
+          <!-- Benefits -->
+          <div class="info-section" v-if="selectedApplication.job?.benefits">
+            <div class="section-header">
+              <q-icon name="stars" class="section-icon" />
+              <h3 class="section-title">Benefits</h3>
+            </div>
+            <p class="benefits-text">{{ selectedApplication.job?.benefits }}</p>
+          </div>
+
+          <q-separator class="section-separator" v-if="selectedApplication.job?.benefits" />
+
+          <!-- Tags -->
+          <div class="info-section" v-if="parseTags(selectedApplication.job?.tags).length">
+            <div class="section-header">
+              <q-icon name="label" class="section-icon" />
+              <h3 class="section-title">Tags</h3>
+            </div>
+            <div class="tags-container">
+              <q-chip
+                v-for="tag in parseTags(selectedApplication.job?.tags)"
+                :key="tag"
+                color="grey-3"
+                text-color="grey-8"
+                size="sm"
+              >
+                {{ tag }}
+              </q-chip>
+            </div>
+          </div>
+
+          <q-separator class="section-separator" v-if="parseTags(selectedApplication.job?.tags).length" />
+
+          <!-- Application Info -->
+          <div class="info-section">
+            <div class="section-header">
+              <q-icon name="assignment" class="section-icon" />
+              <h3 class="section-title">Your Application</h3>
+            </div>
+            <div class="application-info-grid">
+              <div class="info-card">
+                <q-icon name="event" size="24px" color="primary" />
+                <div class="info-card-content">
+                  <div class="info-card-label">Applied On</div>
+                  <div class="info-card-value">{{ formatDate(selectedApplication.applied_at) }}</div>
+                </div>
+              </div>
+              <div class="info-card" v-if="selectedApplication.cover_letter">
+                <q-icon name="description" size="24px" color="primary" />
+                <div class="info-card-content">
+                  <div class="info-card-label">Cover Letter</div>
+                  <div class="info-card-value">Included</div>
+                </div>
+              </div>
+              <div class="info-card clickable" v-if="selectedApplication.resume_link" @click="downloadResume(selectedApplication.resume_link)">
+                <q-icon name="attach_file" size="24px" color="primary" />
+                <div class="info-card-content">
+                  <div class="info-card-label">Resume</div>
+                  <div class="info-card-value">View/Download</div>
+                </div>
+                <q-icon name="open_in_new" size="16px" color="grey-6" />
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn flat label="Close" color="grey-7" v-close-popup />
+          <q-btn 
+            v-if="selectedApplication?.resume_link"
+            unelevated 
+            label="View Resume" 
+            color="primary" 
+            icon="open_in_new"
+            @click="downloadResume(selectedApplication.resume_link)" 
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { applicationService } from '../services/applicationService'
+import api from '../services/auth.service'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 const router = useRouter()
 const applications = ref([])
 const loading = ref(false)
+const selectedApplication = ref(null)
+const showDetailsDialog = ref(false)
 
 const emit = defineEmits(['applications-loaded'])
 
 const fetchApplications = async () => {
   loading.value = true
   try {
-    const response = await applicationService.getMyApplications()
-    if (response.success) {
-      applications.value = response.applications
+    const response = await api.get('/applications/my-applications')
+    if (response.data.success) {
+      applications.value = response.data.applications
       // Emit the applications count to parent component
-      emit('applications-loaded', response.applications.length)
+      emit('applications-loaded', response.data.applications.length)
     } else {
-      throw new Error(response.message || 'Failed to fetch applications')
+      throw new Error(response.data.message || 'Failed to fetch applications')
     }
   } catch (error) {
     console.error('Error fetching applications:', error)
@@ -165,6 +387,30 @@ const fetchApplications = async () => {
     })
   } finally {
     loading.value = false
+  }
+}
+
+const parseSkills = (skills) => {
+  if (Array.isArray(skills)) return skills
+  if (!skills) return []
+  if (typeof skills !== 'string') return []
+  try {
+    const parsed = JSON.parse(skills)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return skills.split(',').map(s => s.trim()).filter(Boolean)
+  }
+}
+
+const parseTags = (tags) => {
+  if (Array.isArray(tags)) return tags
+  if (!tags) return []
+  if (typeof tags !== 'string') return []
+  try {
+    const parsed = JSON.parse(tags)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return tags.split(',').map(s => s.trim()).filter(Boolean)
   }
 }
 
@@ -220,40 +466,29 @@ const formatDate = (dateString) => {
   }
 }
 
+const formatJobType = (type) => {
+  if (!type) return 'Not specified'
+  return type.split('_').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ')
+}
+
+const getATSScoreColor = (score) => {
+  if (!score) return 'grey'
+  if (score >= 80) return 'green'
+  if (score >= 60) return 'orange'
+  return 'red'
+}
+
 const viewApplication = (app) => {
-  $q.dialog({
-    title: 'Application Details',
-    message: `
-      <div class="application-details-modal">
-        <div class="modal-header">
-          <h3>${app.job?.title || 'Job Title'}</h3>
-          <span class="status-badge ${getStatusBadgeClass(app.status)}">${formatStatus(app.status)}</span>
-        </div>
-        <div class="modal-content">
-          <div class="detail-row">
-            <strong>Company:</strong> ${app.job?.company || 'N/A'}
-          </div>
-          <div class="detail-row">
-            <strong>Location:</strong> ${app.job?.location || 'N/A'}
-          </div>
-          <div class="detail-row">
-            <strong>Salary:</strong> ${app.job?.salary || 'Not specified'}
-          </div>
-          <div class="detail-row">
-            <strong>Applied on:</strong> ${formatDate(app.applied_at)}
-          </div>
-          ${app.cover_letter ? '<div class="detail-row"><strong>Cover Letter:</strong> Included</div>' : ''}
-          ${app.resume_link ? '<div class="detail-row"><strong>Resume:</strong> Attached</div>' : ''}
-        </div>
-      </div>
-    `,
-    html: true,
-    ok: {
-      label: 'Close',
-      color: 'primary',
-      flat: true
-    }
-  })
+  selectedApplication.value = app
+  showDetailsDialog.value = true
+}
+
+const downloadResume = (resumeLink) => {
+  if (resumeLink) {
+    window.open(resumeLink, '_blank')
+  }
 }
 
 onMounted(() => {
@@ -634,6 +869,323 @@ onMounted(() => {
   
   .status-badge {
     align-self: flex-start;
+  }
+}
+
+/* Application Details Dialog Styles */
+.application-details-dialog {
+  background: white;
+}
+
+.dialog-bar {
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+  color: white;
+  padding: 16px 20px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
+.dialog-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.dialog-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.job-header-info {
+  flex: 1;
+}
+
+.dialog-job-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+}
+
+.job-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #f3f4f6;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.status-section {
+  flex-shrink: 0;
+}
+
+.section-separator {
+  margin: 32px 0;
+}
+
+.info-section {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.section-icon {
+  font-size: 28px;
+  color: #0ea5e9;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* ATS Section */
+.ats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ats-score-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.score-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.score-inner {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.score-info h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.score-info p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ats-feedback-card {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 4px solid #0ea5e9;
+}
+
+.feedback-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+}
+
+.feedback-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+/* Job Description */
+.job-description {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #374151;
+  margin: 0;
+}
+
+/* Details Grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.detail-card {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.detail-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Skills and Tags */
+.skills-chips,
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.benefits-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #374151;
+  margin: 0;
+}
+
+/* Application Info Grid */
+.application-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.info-card.clickable {
+  cursor: pointer;
+}
+
+.info-card.clickable:hover {
+  background: #f3f4f6;
+  border-color: #0ea5e9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+}
+
+.info-card-content {
+  flex: 1;
+}
+
+.info-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.info-card-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.dialog-actions {
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Responsive Dialog */
+@media (max-width: 768px) {
+  .dialog-content {
+    padding: 24px 16px;
+  }
+
+  .dialog-job-title {
+    font-size: 24px;
+  }
+
+  .dialog-header-section {
+    flex-direction: column;
+  }
+
+  .score-display {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .application-info-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

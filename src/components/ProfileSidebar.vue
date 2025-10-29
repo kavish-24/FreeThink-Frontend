@@ -54,7 +54,7 @@
           <div class="profile-email">{{ profile.email }}</div>
           
           <!-- Profile Completeness -->
-          <div class="completeness-section">
+          <div class="completeness-section" v-if="profileCompleteness < 1">
             <div class="completeness-header">
               <span class="completeness-label">Profile Completeness</span>
               <span class="completeness-percentage">{{ Math.round(profileCompleteness * 100) }}%</span>
@@ -68,6 +68,9 @@
               class="completeness-bar"
             />
           </div>
+          
+          <!-- 100% Complete Badge -->
+         
         </div>
 
         <!-- Quick Actions -->
@@ -663,6 +666,24 @@ const openFullProfile = () => {
 
 .completeness-bar {
   border-radius: 4px;
+}
+
+.complete-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border-radius: 12px;
+  border: 2px solid #22c55e;
+}
+
+.complete-text {
+  font-size: 0.875rem;
+  color: #166534;
+  font-weight: 600;
 }
 
 /* Quick Actions */

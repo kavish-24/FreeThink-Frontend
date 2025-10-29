@@ -1,9 +1,15 @@
 <template>
   <div class="job-listing-page">
     <q-page class="q-pa-md job-page-wrapper">
-      <div class="job-page-content">
+      <div class="job-page-content" :class="{ 'search-mode': searchQuery || location }">
         <div class="col-12 col-lg-5 job-list-pane">
-          <div v-if="!searchQuery && authHelpers.getCurrentUser()" class="text-h6 text-primary text-weight-bold q-mb-md">
+          <div v-if="searchQuery || location" class="search-results-header">
+            <q-icon name="travel_explore" size="24px" color="primary" class="q-mr-sm" />
+            <span class="text-h6 text-primary text-weight-bold">
+              Search Results
+            </span>
+          </div>
+          <div v-if="!searchQuery && !location && authHelpers.getCurrentUser()" class="text-h6 text-primary text-weight-bold q-mb-md">
             🚀 Suggested for You
           </div>
 
@@ -621,11 +627,13 @@ async function selectJob(job) {
 .job-listing-page {
   font-family: 'Poppins', sans-serif;
   animation: breathing-background 15s ease-in-out infinite;
+  transition: background-color 0.6s ease;
 }
 
 .job-page-wrapper {
   min-height: calc(100vh - 50px); /* Adjust based on your header height */
   padding: 16px;
+  transition: padding 0.4s ease;
 }
 
 .job-page-content {
@@ -635,6 +643,42 @@ async function selectJob(job) {
   height: calc(100vh - 82px); /* Adjust based on header/padding */
   max-width: 1600px;
   margin: 0 auto;
+  opacity: 0;
+  transform: scale(0.95);
+  animation: contentFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.job-page-content.search-mode {
+  animation: zoomInContent 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  box-shadow: 0 10px 40px rgba(0, 80, 150, 0.1);
+  border-radius: 24px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 248, 255, 0.9) 100%);
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes zoomInContent {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(30px);
+  }
+  50% {
+    transform: scale(1.02) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .job-list-pane,
@@ -649,11 +693,41 @@ async function selectJob(job) {
   height: 100%;
   flex: 1;
   min-width: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.job-page-content.search-mode .job-list-pane,
+.job-page-content.search-mode .job-detail-pane {
+  box-shadow: 0 6px 30px rgba(0, 80, 150, 0.12);
+  border: 2px solid rgba(14, 165, 233, 0.1);
 }
 
 .job-detail-pane {
   position: sticky;
   top: 66px; /* Adjust based on header height */
+}
+
+/* Search Results Header */
+.search-results-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 2px solid rgba(14, 165, 233, 0.2);
+  animation: slideInFromTop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .job-list-scroll,

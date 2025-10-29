@@ -22,7 +22,7 @@
                 class="btn-unstop btn-primary"
                 icon="search"
                 label="Browse Jobs"
-                @click="$router.push('/jobs')"
+                @click="$router.push('/')"
                 no-caps
               />
               <q-btn 

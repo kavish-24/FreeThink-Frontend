@@ -1,66 +1,93 @@
 <template>
-  <q-page class="q-pa-lg breathing-background">
-    <div class="row q-gutter-md items-center q-mb-xl">
-      <q-input
-        standout
-        rounded
-        dense
-        v-model="searchTerm"
-        label="Search Jobseekers..."
-        debounce="300"
-        @update:model-value="onSearch"
-        clearable
-        class="col-grow bg-grey-2"
-        :aria-label="'Search for jobseekers by title or skills'"
-      >
-        <template #append>
-          <q-icon name="search" class="cursor-pointer" @click="onSearch" :aria-label="'Search button'" />
-        </template>
-      </q-input>
-
-      <q-btn
-        rounded
-        unelevated
-        color="green-7"
-        icon="auto_awesome"
-        label="Load Suggestions"
-        @click="loadCompanySuggestions"
-        class="text-weight-bold"
-        :aria-label="'Load suggested jobseekers'"
-      />
-
-      <q-btn
-        rounded
-        unelevated
-        :color="showFilters ? 'blue-7' : 'grey-7'"
-        :icon="showFilters ? 'filter_list' : 'filter_list_off'"
-        :label="showFilters ? 'Hide Filters' : 'Show Filters'"
-        @click="toggleFilters"
-        class="text-weight-bold"
-      />
+  <q-page class="suggestions-page">
+    <!-- Hero Header -->
+    <div class="page-hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1 class="hero-title">
+            <q-icon name="auto_awesome" class="title-icon" />
+            Discover Talent
+          </h1>
+          <p class="hero-subtitle">Find the perfect candidates for your team</p>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="search-container">
+          <q-input
+            v-model="searchTerm"
+            placeholder="Search by name, skills, or job title..."
+            debounce="300"
+            @update:model-value="onSearch"
+            class="modern-search"
+            filled
+            clearable
+          >
+            <template #prepend>
+              <q-icon name="search" class="search-icon" />
+            </template>
+          </q-input>
+        </div>
+      </div>
     </div>
 
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="action-content">
+        <div class="results-info">
+          <q-icon name="groups" size="24px" class="info-icon" />
+          <span class="results-text">
+            {{ filteredResults.length }} Candidate{{ filteredResults.length !== 1 ? 's' : '' }}
+          </span>
+        </div>
+        
+        <div class="action-buttons">
+          <q-btn
+            unelevated
+            rounded
+            color="primary"
+            icon="auto_awesome"
+            label="Smart Suggestions"
+            @click="loadCompanySuggestions"
+            class="action-btn suggestions-btn"
+          />
+          
+          <q-btn
+            unelevated
+            rounded
+            :color="showFilters ? 'secondary' : 'grey-6'"
+            :icon="showFilters ? 'filter_list' : 'filter_list_off'"
+            :label="showFilters ? 'Hide Filters' : 'Show Filters'"
+            @click="toggleFilters"
+            class="action-btn"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
     <q-slide-transition>
-      <div v-show="showFilters" class="q-mb-lg">
-        <q-card flat bordered class="q-pa-md bg-blue-1">
-          <div class="text-h6 text-weight-bold q-mb-md">
-            <q-icon name="tune" class="q-mr-xs" /> Filters
+      <div v-show="showFilters" class="filters-section">
+        <q-card class="filters-card">
+          <div class="filters-header">
+            <q-icon name="tune" size="24px" />
+            <span>Advanced Filters</span>
           </div>
           
-          <div class="row q-gutter-md">
-            <div class="col-12 col-md-4">
+          <div class="filters-grid">
+            <div class="filter-group">
+              <label class="filter-label">Skills</label>
               <q-select
                 v-model="filters.skills"
                 :options="availableSkills"
-                label="Skills"
                 multiple
                 use-chips
                 clearable
-                outlined
+                filled
                 dense
                 emit-value
                 map-options
                 @update:model-value="applyFilters"
+                placeholder="Select skills"
               >
                 <template #no-option>
                   <q-item>
@@ -72,33 +99,35 @@
               </q-select>
             </div>
 
-            <div class="col-12 col-md-3">
+            <div class="filter-group">
+              <label class="filter-label">Experience Level</label>
               <q-select
                 v-model="filters.experienceRange"
                 :options="experienceRangeOptions"
-                label="Experience Years"
-                outlined
+                filled
                 dense
                 clearable
                 emit-value
                 map-options
                 @update:model-value="applyFilters"
+                placeholder="Select experience"
               />
             </div>
 
-            <div class="col-12 col-md-3">
+            <div class="filter-group">
+              <label class="filter-label">Job Titles</label>
               <q-select
                 v-model="filters.jobTitles"
                 :options="availableJobTitles"
-                label="Job Titles"
                 multiple
                 use-chips
                 clearable
-                outlined
+                filled
                 dense
                 emit-value
                 map-options
                 @update:model-value="applyFilters"
+                placeholder="Select titles"
               >
                 <template #no-option>
                   <q-item>
@@ -110,44 +139,44 @@
               </q-select>
             </div>
 
-            <div class="col-12 col-md-2 flex items-end">
+            <div class="filter-group clear-filter">
               <q-btn
                 flat
                 rounded
-                color="red-6"
+                color="negative"
                 icon="clear_all"
                 label="Clear All"
                 @click="clearAllFilters"
-                size="sm"
-                class="full-width"
+                class="clear-btn"
               />
             </div>
           </div>
 
-          <div v-if="hasActiveFilters" class="q-mt-md">
-            <div class="text-subtitle2 text-weight-bold q-mb-xs">Active Filters:</div>
-            <div class="row q-gutter-xs">
+          <!-- Active Filters -->
+          <div v-if="hasActiveFilters" class="active-filters">
+            <div class="active-filters-label">Active Filters:</div>
+            <div class="filters-chips">
               <q-chip
                 v-for="skill in filters.skills"
                 :key="`skill-${skill}`"
                 removable
                 @remove="removeSkillFilter(skill)"
-                color="blue-2"
-                text-color="blue-8"
-                size="sm"
+                color="blue-1"
+                text-color="blue-9"
+                icon="verified"
               >
-                Skill: {{ skill }}
+                {{ skill }}
               </q-chip>
               
               <q-chip
                 v-if="filters.experienceRange"
                 removable
                 @remove="filters.experienceRange = null; applyFilters()"
-                color="green-2"
-                text-color="green-8"
-                size="sm"
+                color="green-1"
+                text-color="green-9"
+                icon="work_history"
               >
-                Experience: {{ getExperienceRangeLabel(filters.experienceRange) }}
+                {{ getExperienceRangeLabel(filters.experienceRange) }}
               </q-chip>
               
               <q-chip
@@ -155,11 +184,11 @@
                 :key="`title-${title}`"
                 removable
                 @remove="removeJobTitleFilter(title)"
-                color="purple-2"
-                text-color="purple-8"
-                size="sm"
+                color="purple-1"
+                text-color="purple-9"
+                icon="badge"
               >
-                Title: {{ title }}
+                {{ title }}
               </q-chip>
             </div>
           </div>
@@ -167,231 +196,269 @@
       </div>
     </q-slide-transition>
 
-    <q-separator spaced color="grey-3" />
-
-    <div class="row" style="min-height: calc(100vh - 150px)">
-      <div class="col-12 col-md-4 q-pr-lg" style="overflow-y: auto">
-        <div class="text-h6 text-weight-bold q-mb-md">
-          {{ searchTerm.trim() ? 'Search Results' : 'Suggested Jobseekers' }}
-          <q-badge v-if="filteredResults.length" color="blue-6" class="q-ml-sm">
-            {{ filteredResults.length }}
-          </q-badge>
-        </div>
-
-        <div v-if="loading" class="q-col-gutter-md">
-          <div v-for="n in 3" :key="n" class="q-mb-md">
-            <q-card flat bordered class="q-pa-sm">
-              <q-card-section class="row items-center">
-                <q-avatar size="56px" class="q-mr-md">
-                  <q-skeleton type="QAvatar" size="56px" />
-                </q-avatar>
-                <div>
-                  <q-skeleton type="text" width="150px" />
-                  <q-skeleton type="text" width="100px" />
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </div>
-
-        <div v-else>
-          <div v-if="filteredResults.length" class="q-col-gutter-md">
-            <div style="max-width: 600px; max-height: 800px; overflow: auto;">
-            <div
-              v-for="user in filteredResults"
-              :key="user.id"
-              class="q-mb-md"
-            >
-              <q-card
-                flat
-                bordered
-                class="hover-card cursor-pointer"
-                :class="{ 'bg-blue-1': selectedUser && selectedUser.id === user.id }"
-                @click="selectUser(user)"
-                role="button"
-                tabindex="0"
-                @keyup.enter="selectUser(user)"
-                :aria-label="`Select ${user.name || 'Unnamed'} profile`"
-              >
-                <q-card-section class="row items-center">
-                  <q-avatar
-                    size="56px"
-                    :color="user.photo ? 'transparent' : 'blue-6'"
-                    text-color="white"
-                    :icon="user.photo ? null : 'person'"
-                    class="q-mr-md"
-                  >
-                    <img v-if="user.photo" :src="user.photo" :alt="`Profile photo of ${user.name || 'Unnamed'}`" />
-                  </q-avatar>
-                  <div class="full-width">
-                    <div class="text-h6 text-weight-bold">{{ user.name || 'Unnamed' }}</div>
-                    <div class="text-caption text-grey-8">{{ user.jobSeekerProfile.title || 'Role not set' }}</div>
-                    <div class="text-caption text-grey-6">
-                      {{ user.jobSeekerProfile.skillsJson?.slice(0, 2).join(', ') || 'No skills' }}
-                    </div>
-                    <div class="text-caption text-blue-6">
-                      <q-icon name="work" size="12px" class="q-mr-xs" />
-                      {{  user.jobSeekerProfile.experienceYears || 0 }} years exp.
-                    </div>
+    <!-- Main Content -->
+    <div class="content-container">
+      <div class="content-grid">
+        <!-- Candidates List -->
+        <div class="candidates-list">
+          <div v-if="loading" class="loading-cards">
+            <div v-for="n in 3" :key="n" class="skeleton-card">
+              <q-card class="candidate-skeleton">
+                <q-card-section class="skeleton-content">
+                  <q-skeleton type="QAvatar" size="64px" />
+                  <div class="skeleton-text">
+                    <q-skeleton type="text" width="160px" height="20px" />
+                    <q-skeleton type="text" width="120px" height="16px" />
+                    <q-skeleton type="text" width="100px" height="14px" />
                   </div>
                 </q-card-section>
               </q-card>
             </div>
           </div>
-</div>
-          <div v-else class="flex flex-center column q-my-xl">
-            <q-icon name="groups" size="64px" color="grey-5" />
-            <div class="text-subtitle1 text-grey q-mt-sm">
-              {{ hasActiveFilters ? 'No jobseekers match your filters' : 'No jobseekers found' }}
-            </div>
-            <q-btn
-              v-if="hasActiveFilters"
-              flat
-              rounded
-              color="blue-6"
-              label="Clear Filters"
-              @click="clearAllFilters"
-              class="q-mt-sm"
-            />
-          </div>
-        </div>
-      </div>
 
-      <div class="col-12 col-md-8 q-pl-lg" style="overflow-y: auto">
-        <div v-if="profileLoading" class="q-pa-md">
-          <q-card flat bordered>
-            <q-card-section class="row items-center">
-              <q-skeleton type="QAvatar" size="72px" class="q-mr-md" />
-              <div>
-                <q-skeleton type="text" width="200px" class="q-mb-xs" />
-                <q-skeleton type="text" width="150px" />
-              </div>
-            </q-card-section>
-            <q-separator spaced />
-            <q-card-section>
-              <q-skeleton type="text" width="90%" class="q-mb-sm" />
-              <q-skeleton type="text" width="80%" class="q-mb-sm" />
-              <q-skeleton type="text" width="95%" />
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <div v-else-if="selectedUser" class="q-pa-md">
-          <div style="max-width: 1300px; max-height: 800px; overflow: auto;">
-          <q-card elevated class="q-pa-md bg-yellow-1">
-            <div class="row items-center q-mb-lg">
-              <q-avatar
-                size="80px"
-                :color="selectedUser.photo ? 'transparent' : 'blue-6'"
-                text-color="white"
-                :icon="selectedUser.photo ? null : 'person'"
-                class="q-mr-md shadow-2"
+          <div v-else>
+            <div v-if="filteredResults.length" class="candidates-scroll">
+              <div
+                v-for="user in filteredResults"
+                :key="user.id"
+                class="candidate-card-wrapper"
               >
-                <img
-                  v-if="selectedUser.photo"
-                  :src="selectedUser.photo"
-                  :alt="`Profile photo of ${selectedUser.name}`"
-                  style="object-fit: cover"
-                />
-              </q-avatar>
-              <div>
-                <div class="text-h5 text-weight-bold">{{ selectedUser.name }}</div>
-                <div class="text-subtitle2 text-grey-8">{{ selectedUser.email }}</div>
-                <div class="text-subtitle2 text-grey-8">{{ selectedUser.title }}</div>
-              </div>
-            </div>
-
-            <q-separator spaced color="grey-5" />
-            <div class="q-mb-lg">
-              <div class="text-subtitle1 text-weight-bold q-mb-xs">
-                <q-icon name="work" size="18px" class="q-mr-xs" color="blue-6" /> Experience
-              </div>
-              <div class="text-body2 text-grey-8">{{ selectedUser.experienceYears || 'Not specified' }} years</div>
-              </div>
-            <div class="q-mb-lg">
-              <div class="text-subtitle1 text-weight-bold q-mb-xs">
-                <q-icon name="description" size="18px" class="q-mr-xs" color="blue-6" /> Summary
-              </div>
-              <div class="text-body2 text-grey-8">{{ selectedUser.summary || 'No summary available' }}</div>
-            </div>
-
-            <div class="q-mb-lg">
-              <div class="text-subtitle1 text-weight-bold q-mb-xs">
-                <q-icon name="star" color="green-7" size="18px" class="q-mr-xs" /> Skills
-              </div>
-              <div>
-                <q-chip
-                  v-for="(skill, index) in selectedUser.skills"
-                  :key="index"
-                  color="green-1"
-                  text-color="green-8"
-                  class="q-mr-xs q-mb-xs"
-                  dense
+                <q-card
+                  class="candidate-card"
+                  :class="{ 'selected': selectedUser && selectedUser.id === user.id }"
+                  @click="selectUser(user)"
                 >
-                  {{ skill }}
-                </q-chip>
-                <span v-if="!selectedUser.skills?.length" class="text-grey-6">None listed</span>
+                  <q-card-section class="candidate-content">
+                    <q-avatar
+                      size="64px"
+                      :color="user.photo ? 'transparent' : 'primary'"
+                      text-color="white"
+                      class="candidate-avatar"
+                    >
+                      <img v-if="user.photo" :src="user.photo" :alt="user.name || 'User'" />
+                      <q-icon v-else name="person" size="32px" />
+                    </q-avatar>
+                    
+                    <div class="candidate-info">
+                      <h3 class="candidate-name">{{ user.name || 'Unnamed' }}</h3>
+                      <p class="candidate-title">{{ user.jobSeekerProfile.title || 'Role not set' }}</p>
+                      <div class="candidate-skills">
+                        <q-chip
+                          v-for="(skill, idx) in user.jobSeekerProfile.skillsJson?.slice(0, 3)"
+                          :key="idx"
+                          dense
+                          size="sm"
+                          color="blue-1"
+                          text-color="blue-9"
+                        >
+                          {{ skill }}
+                        </q-chip>
+                      </div>
+                      <div class="candidate-experience">
+                        <q-icon name="work" size="14px" />
+                        <span>{{ user.jobSeekerProfile.experienceYears || 0 }} years</span>
+                      </div>
+                    </div>
+
+                    <q-icon 
+                      name="chevron_right" 
+                      size="24px" 
+                      color="grey-5" 
+                      class="chevron-icon"
+                    />
+                  </q-card-section>
+                </q-card>
               </div>
             </div>
-
-            <q-separator spaced color="grey-4" style="width: 80%;" class="q-mx-auto"/>
-            <div class="q-mb-lg">
-              <div class="text-subtitle1 text-weight-bold q-mb-xs">
-                <q-icon name="work" color="blue-6" size="18px" class="q-mr-xs" /> Experience
-              </div>
-              <div v-if="selectedUser.experience?.length">
-                <div
-                  v-for="exp in selectedUser.experience"
-                  :key="exp.id"
-                  class="q-mb-md"
-                >
-                  <div class="text-weight-bold text-grey-9">{{ exp.title }} - {{ exp.company }}</div>
-                  <div class="text-caption text-grey-7">
-                    {{ formatDate(exp.start_date) }} - {{ formatDate(exp.end_date) }}
-                  </div>
-                  <div class="text-body2 text-grey-8">{{ exp.description }}</div>
-                </div>
-              </div>
-              <span v-else class="text-grey-6">None listed</span>
-            </div>
-
-            <q-separator spaced color="grey-4" style="width: 80%;" class="q-mx-auto" />
-            <div>
-              <div class="text-subtitle1 text-weight-bold q-mb-xs">
-                <q-icon name="school" color="blue-6" size="18px" class="q-mr-xs" /> Education
-              </div>
-              <div v-if="selectedUser.education?.length">
-                <div
-                  v-for="edu in selectedUser.education"
-                  :key="edu.id"
-                  class="q-mb-md"
-                >
-                  <div class="text-weight-bold text-grey-9">{{ edu.degree }} in {{ edu.field }}</div>
-                  <div class="text-grey-8">{{ edu.school }}</div>
-                  <div class="text-caption text-grey-7">
-                    {{ formatDate(edu.start_date) }} - {{ formatDate(edu.end_date) }}
-                  </div>
-                </div>
-              </div>
-              <span v-else class="text-grey-6">None listed</span>
-            </div>
-
-            <q-card-actions align="right" class="q-mt-md">
+            
+            <div v-else class="empty-state">
+              <q-icon name="groups" size="80px" color="grey-4" />
+              <h3 class="empty-title">No candidates found</h3>
+              <p class="empty-text">
+                {{ hasActiveFilters ? 'Try adjusting your filters' : 'Click "Smart Suggestions" to discover talent' }}
+              </p>
               <q-btn
+                v-if="hasActiveFilters"
                 unelevated
                 rounded
-                color="blue-6"
-                icon="send"
-                label="Send Invite"
-                @click="inviteJobseeker(selectedUser.id)"
+                color="primary"
+                label="Clear Filters"
+                @click="clearAllFilters"
+                class="empty-action"
               />
-            </q-card-actions>
-          </q-card>
+            </div>
+          </div>
         </div>
-        </div>
-        <div v-else class="flex flex-center column q-my-xl">
-          <q-icon name="person_outline" size="64px" color="grey-5" />
-          <div class="text-subtitle1 text-grey q-mt-sm">Select a jobseeker to view their profile</div>
+
+        <!-- Profile Details -->
+        <div class="profile-details">
+          <div v-if="profileLoading" class="profile-loading">
+            <q-card class="profile-skeleton">
+              <q-card-section class="skeleton-header">
+                <q-skeleton type="QAvatar" size="100px" />
+                <div class="skeleton-header-text">
+                  <q-skeleton type="text" width="200px" height="24px" />
+                  <q-skeleton type="text" width="180px" height="18px" />
+                  <q-skeleton type="text" width="160px" height="16px" />
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section>
+                <q-skeleton type="text" width="100%" height="16px" class="q-mb-sm" />
+                <q-skeleton type="text" width="90%" height="16px" class="q-mb-sm" />
+                <q-skeleton type="text" width="95%" height="16px" />
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div v-else-if="selectedUser" class="profile-scroll">
+            <q-card class="profile-card">
+              <!-- Profile Header -->
+              <div class="profile-header">
+                <div class="profile-header-bg"></div>
+                <div class="profile-header-content">
+                  <q-avatar
+                    size="100px"
+                    :color="selectedUser.photo ? 'transparent' : 'primary'"
+                    text-color="white"
+                    class="profile-avatar"
+                  >
+                    <img v-if="selectedUser.photo" :src="selectedUser.photo" :alt="selectedUser.name" />
+                    <q-icon v-else name="person" size="48px" />
+                  </q-avatar>
+                  
+                  <div class="profile-header-info">
+                    <h2 class="profile-name">{{ selectedUser.name }}</h2>
+                    <p class="profile-email">{{ selectedUser.email }}</p>
+                    <p class="profile-job-title">{{ selectedUser.title }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <q-card-section class="profile-body">
+                <!-- Experience Years -->
+                <div class="profile-section">
+                  <div class="section-header">
+                    <q-icon name="work" size="20px" color="primary" />
+                    <span class="section-title">Experience</span>
+                  </div>
+                  <div class="section-content">
+                    <span class="experience-value">{{ selectedUser.experienceYears || 'Not specified' }}</span>
+                    <span v-if="selectedUser.experienceYears" class="experience-label">years of experience</span>
+                  </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="profile-section">
+                  <div class="section-header">
+                    <q-icon name="description" size="20px" color="primary" />
+                    <span class="section-title">Professional Summary</span>
+                  </div>
+                  <p class="section-text">{{ selectedUser.summary || 'No summary available' }}</p>
+                </div>
+
+                <!-- Skills -->
+                <div class="profile-section">
+                  <div class="section-header">
+                    <q-icon name="star" size="20px" color="amber-7" />
+                    <span class="section-title">Skills</span>
+                  </div>
+                  <div class="skills-container">
+                    <q-chip
+                      v-for="(skill, index) in selectedUser.skills"
+                      :key="index"
+                      color="blue-1"
+                      text-color="blue-9"
+                      icon="verified"
+                      class="skill-chip"
+                    >
+                      {{ skill }}
+                    </q-chip>
+                    <span v-if="!selectedUser.skills?.length" class="empty-text">No skills listed</span>
+                  </div>
+                </div>
+
+                <q-separator class="section-separator" />
+
+                <!-- Work Experience -->
+                <div class="profile-section">
+                  <div class="section-header">
+                    <q-icon name="work_history" size="20px" color="primary" />
+                    <span class="section-title">Work Experience</span>
+                  </div>
+                  
+                  <div v-if="selectedUser.experience?.length" class="timeline">
+                    <div
+                      v-for="exp in selectedUser.experience"
+                      :key="exp.id"
+                      class="timeline-item"
+                    >
+                      <div class="timeline-dot"></div>
+                      <div class="timeline-content">
+                        <h4 class="timeline-title">{{ exp.title }}</h4>
+                        <p class="timeline-company">{{ exp.company }}</p>
+                        <p class="timeline-date">
+                          {{ formatDate(exp.start_date) }} - {{ formatDate(exp.end_date) }}
+                        </p>
+                        <p class="timeline-description">{{ exp.description }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <span v-else class="empty-text">No work experience listed</span>
+                </div>
+
+                <q-separator class="section-separator" />
+
+                <!-- Education -->
+                <div class="profile-section">
+                  <div class="section-header">
+                    <q-icon name="school" size="20px" color="primary" />
+                    <span class="section-title">Education</span>
+                  </div>
+                  
+                  <div v-if="selectedUser.education?.length" class="education-list">
+                    <div
+                      v-for="edu in selectedUser.education"
+                      :key="edu.id"
+                      class="education-item"
+                    >
+                      <div class="education-icon">
+                        <q-icon name="school" size="24px" color="primary" />
+                      </div>
+                      <div class="education-content">
+                        <h4 class="education-degree">{{ edu.degree }} in {{ edu.field }}</h4>
+                        <p class="education-school">{{ edu.school }}</p>
+                        <p class="education-date">
+                          {{ formatDate(edu.start_date) }} - {{ formatDate(edu.end_date) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <span v-else class="empty-text">No education listed</span>
+                </div>
+              </q-card-section>
+
+              <!-- Action Button -->
+              <q-card-section class="profile-actions">
+                <q-btn
+                  unelevated
+                  rounded
+                  color="primary"
+                  icon="send"
+                  label="Send Invitation"
+                  @click="inviteJobseeker(selectedUser.id)"
+                  size="lg"
+                  class="invite-btn"
+                />
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div v-else class="profile-placeholder">
+            <q-icon name="person_search" size="120px" color="grey-4" />
+            <h3 class="placeholder-title">Select a Candidate</h3>
+            <p class="placeholder-text">Choose a candidate from the list to view their detailed profile</p>
+          </div>
         </div>
       </div>
     </div>
@@ -638,32 +705,925 @@ onMounted(loadCompanySuggestions);
 </script>
 
 <style scoped>
-/* Add this keyframe animation */
-@keyframes breathingBackground {
-  0% {
-    background-color: #dfeffc; /* A very light blue */
+.suggestions-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+/* Page Hero */
+.page-hero {
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+  padding: 60px 40px 80px;
+  margin-bottom: -40px;
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.hero-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.hero-text {
+  margin-bottom: 32px;
+}
+
+.hero-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: slideDown 0.6s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  50% {
-    background-color: #d3e7fe; /* A slightly deeper light blue */
-  }
-  100% {
-    background-color: #bfe1ff; /* Return to the start color */
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.breathing-background {
-  animation: breathingBackground 10s ease-in-out infinite;
+.title-icon {
+  font-size: 52px;
 }
 
-.hover-card {
+.hero-subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+}
+
+/* Search Container */
+.search-container {
+  max-width: 800px;
+  animation: slideUp 0.7s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modern-search {
+  background: white;
+  border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modern-search :deep(.q-field__control) {
+  border-radius: 50px;
+  padding: 8px 24px;
+  height: 60px;
+}
+
+.modern-search :deep(.q-field__native) {
+  font-size: 16px;
+  padding-left: 12px;
+}
+
+.search-icon {
+  font-size: 28px;
+  color: #0ea5e9;
+}
+
+/* Action Bar */
+.action-bar {
+  padding: 24px 40px;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  animation: slideDown 0.8s ease;
+}
+
+.action-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.results-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-icon {
+  color: #0ea5e9;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  font-weight: 600;
+  padding: 12px 24px;
   transition: all 0.3s ease;
-  background-color: #9edfdf8b;
 }
-.hover-card:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 4px 12px rgba(81, 46, 46, 0.999);
+
+.suggestions-btn {
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
 }
-.q-chip {
-  margin: 2px;
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+}
+
+/* Filters Section */
+.filters-section {
+  padding: 0 40px 24px;
+  animation: slideDown 0.4s ease;
+}
+
+.filters-card {
+  max-width: 1400px;
+  margin: 0 auto;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  background: white;
+}
+
+.filters-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 24px;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group.clear-filter {
+  justify-content: flex-end;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.clear-btn {
+  width: 100%;
+  font-weight: 600;
+}
+
+/* Active Filters */
+.active-filters {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #e5e7eb;
+}
+
+.active-filters-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.filters-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Content Container */
+.content-container {
+  padding: 24px 40px 40px;
+}
+
+.content-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 32px;
+  min-height: 600px;
+}
+
+/* Candidates List */
+.candidates-list {
+  animation: slideRight 0.6s ease;
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.loading-cards,
+.candidates-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.candidates-scroll {
+  max-height: calc(100vh - 400px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.candidates-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.candidates-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.candidates-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.candidates-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Candidate Card */
+.candidate-card {
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.candidate-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.2);
+  border-color: #0ea5e9;
+}
+
+.candidate-card.selected {
+  border-color: #0ea5e9;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.25);
+}
+
+.candidate-content {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.candidate-avatar {
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-avatar img {
+  object-fit: cover;
+}
+
+.candidate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.candidate-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidate-title {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidate-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.candidate-experience {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #0ea5e9;
+  font-weight: 600;
+}
+
+.chevron-icon {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.candidate-card:hover .chevron-icon {
+  transform: translateX(4px);
+}
+
+/* Skeleton States */
+.candidate-skeleton,
+.profile-skeleton {
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.skeleton-content {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.skeleton-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-header {
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.skeleton-header-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #6b7280;
+  margin: 20px 0 8px;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #9ca3af;
+  margin: 0 0 24px;
+}
+
+.empty-action {
+  font-weight: 600;
+}
+
+/* Profile Details */
+.profile-details {
+  animation: slideLeft 0.6s ease;
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.profile-scroll {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.profile-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.profile-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.profile-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Profile Card */
+.profile-card {
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+/* Profile Header */
+.profile-header {
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.profile-header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+}
+
+.profile-header-content {
+  position: relative;
+  padding: 32px 32px 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.profile-avatar {
+  flex-shrink: 0;
+  border: 4px solid white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.profile-avatar img {
+  object-fit: cover;
+}
+
+.profile-header-info {
+  flex: 1;
+  padding-bottom: 8px;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 6px 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.profile-email {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 4px 0;
+}
+
+.profile-job-title {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Profile Body */
+.profile-body {
+  padding: 32px;
+}
+
+.profile-section {
+  margin-bottom: 32px;
+}
+
+.profile-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.section-content {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.experience-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0ea5e9;
+}
+
+.experience-label {
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.section-text {
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Skills */
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-chip {
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.skill-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.section-separator {
+  margin: 32px 0;
+  background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding-left: 32px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, #0ea5e9, #8b5cf6);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -28px;
+  top: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #0ea5e9;
+  box-shadow: 0 0 0 4px #f0f9ff;
+}
+
+.timeline-content {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.timeline-content:hover {
+  background: #f0f9ff;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+}
+
+.timeline-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.timeline-company {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0ea5e9;
+  margin: 0 0 6px 0;
+}
+
+.timeline-date {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+}
+
+.timeline-description {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Education */
+.education-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.education-item {
+  display: flex;
+  gap: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.education-item:hover {
+  background: #f0f9ff;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+}
+
+.education-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.education-content {
+  flex: 1;
+}
+
+.education-degree {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.education-school {
+  font-size: 15px;
+  color: #0ea5e9;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.education-date {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Profile Actions */
+.profile-actions {
+  padding: 24px 32px;
+  border-top: 2px solid #f1f5f9;
+  display: flex;
+  justify-content: center;
+}
+
+.invite-btn {
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+  font-weight: 700;
+  padding: 14px 32px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.invite-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(14, 165, 233, 0.4);
+}
+
+/* Profile Placeholder */
+.profile-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.placeholder-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #6b7280;
+  margin: 24px 0 12px;
+}
+
+.placeholder-text {
+  font-size: 16px;
+  color: #9ca3af;
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .content-grid {
+    grid-template-columns: 350px 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .page-hero {
+    padding: 40px 24px 60px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .title-icon {
+    font-size: 40px;
+  }
+
+  .action-bar,
+  .filters-section,
+  .content-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .candidates-list {
+    max-height: none;
+  }
+
+  .candidates-scroll {
+    max-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .title-icon {
+    font-size: 32px;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+  }
+
+  .modern-search :deep(.q-field__control) {
+    height: 50px;
+  }
+
+  .action-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-name {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-hero {
+    padding: 32px 16px 50px;
+  }
+
+  .hero-title {
+    font-size: 24px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-bar,
+  .filters-section,
+  .content-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .candidate-card {
+    border-radius: 12px;
+  }
+
+  .candidate-content {
+    padding: 16px;
+  }
+
+  .profile-card {
+    border-radius: 16px;
+  }
+
+  .profile-body {
+    padding: 24px 20px;
+  }
+
+  .profile-actions {
+    padding: 20px 16px;
+  }
 }
 </style>

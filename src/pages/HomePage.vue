@@ -3,13 +3,13 @@
     <AppHeader />
     
     <!-- Hero Section -->
-    <section class="hero-section">
+    <section class="hero-section" :class="{ 'compact': hasActiveSearch }">
       <div class="hero-background">
         <div class="hero-gradient"></div>
         <div class="hero-pattern"></div>
       </div>
       
-      <div class="container-unstop hero-content">
+      <div class="container-unstop hero-content" :class="{ 'compact': hasActiveSearch }">
         <div class="hero-text animate-slide-up">
           <h1 class="hero-title">
             Your Dream Job is Just a Click Away
@@ -60,7 +60,7 @@
               outline
               color="primary"
               class="filter-chip"
-              @click="searchInput = filter; performSearch()"
+              @click="searchInput = filter"
             >
               {{ filter }}
             </q-chip>
@@ -88,13 +88,13 @@
     </section>
 
     <!-- Job Listings or Login Prompt -->
-    <section v-if="isLoggedIn" class="jobs-section">
-      <JobListingPage :searchQuery="searchInput" />
+    <section v-if="isLoggedIn || searchInput || locationInput" class="jobs-section" :class="{ 'active-search': searchInput || locationInput }">
+      <JobListingPage :searchQuery="searchInput" :location="locationInput" />
     </section>
 
   
     <!-- Categories Section -->
-    <section v-if="!isEmployer" class="categories-section">
+    <section v-if="!isEmployer" class="categories-section" :class="{ 'hidden': hasActiveSearch }">
       <div class="container-unstop">
         <div class="section-header">
           <h2 class="section-title">
@@ -138,11 +138,11 @@
         </div>
       </div>
     </section>
-  <section v-if="isLoggedIn && !isEmployer">
+  <section v-if="isLoggedIn && !isEmployer && !hasActiveSearch">
       <SuggestedSkills />
     </section>
     <!-- How It Works Section -->
-    <section v-if="!isLoggedIn" class="how-it-works-section">
+    <section v-if="!isLoggedIn" class="how-it-works-section" :class="{ 'hidden': hasActiveSearch }">
       <div class="container-unstop">
         <div class="section-header">
           <h2 class="section-title">How It <span class="gradient-text">Works</span></h2>
@@ -196,7 +196,7 @@ import AppFooter from '../components/FooterPart.vue';
 import JobListingPage from './JobListing.vue';
 import SuggestedSkills from '../components/SuggestedSkills.vue';
 import { useRouter } from 'vue-router';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useAuthStore } from '../stores/auth.store';
 import { storeToRefs } from 'pinia';
 
@@ -216,6 +216,29 @@ export default {
     const { isAuthenticated } = storeToRefs(authStore);
     const isLoggedIn = computed(() => authStore.isAuthenticated);
     const isEmployer = computed(() => authStore.role === 'company');
+    const hasActiveSearch = computed(() => {
+      return !!(searchInput.value?.trim() || locationInput.value?.trim());
+    });
+
+    // Watch for search changes and scroll
+    watch(hasActiveSearch, (newValue) => {
+      if (newValue) {
+        // Small delay to allow animation to start
+        setTimeout(() => {
+          const searchBox = document.querySelector('.search-box-modern');
+          if (searchBox) {
+            const offset = 300; // Keep more content above visible
+            const elementPosition = searchBox.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 150);
+      }
+    });
 
     // Template refs for animation
     const heroStats = ref(null);
@@ -390,6 +413,7 @@ export default {
       performSearch,
       isLoggedIn,
       isEmployer,
+      hasActiveSearch,
       heroStats,
       statJobs,
       statCompanies,
@@ -417,6 +441,12 @@ export default {
   display: flex;
   align-items: center;
   overflow: hidden;
+  transition: min-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), padding 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-section.compact {
+  min-height: 40vh;
+  padding: var(--space-8) 0;
 }
 
 .hero-background {
@@ -466,6 +496,11 @@ export default {
   padding: var(--space-20) var(--space-6) var(--space-16) var(--space-6);
   max-width: 1200px;
   margin: 0 auto;
+  transition: padding 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-content.compact {
+  padding: var(--space-8) var(--space-6) var(--space-4) var(--space-6);
 }
 
 .hero-title {
@@ -475,6 +510,30 @@ export default {
   line-height: 1.1;
   margin: 0 0 var(--space-6) 0;
   color: var(--color-gray-900);
+  transition: font-size 0.6s cubic-bezier(0.4, 0, 0.2, 1), margin 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-content.compact .hero-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-xl);
+  color: var(--color-gray-600);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+  transition: opacity 0.4s ease, max-height 0.4s ease;
+  max-height: 200px;
+  opacity: 1;
+}
+
+.hero-content.compact .hero-subtitle {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 .handwritten {
@@ -486,6 +545,11 @@ export default {
   transform: none !important;
   display: inline !important;
   z-index: 10 !important;
+  transition: font-size 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-content.compact .handwritten {
+  font-size: 28px !important;
 }
 
 .hero-text {
@@ -494,17 +558,14 @@ export default {
   transform: translateY(0) !important;
 }
 
-.hero-subtitle {
-  font-size: var(--font-size-xl);
-  color: var(--color-gray-600);
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
 /* Search Container */
 .search-container {
   margin-bottom: var(--space-16);
+  transition: margin 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-content.compact .search-container {
+  margin-bottom: var(--space-4);
 }
 
 .search-box-modern {
@@ -517,6 +578,13 @@ export default {
   max-width: 800px;
   margin: 0 auto var(--space-6) auto;
   gap: var(--space-2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-content.compact .search-box-modern {
+  box-shadow: 0 8px 32px rgba(0, 80, 150, 0.15);
+  border: 2px solid var(--color-primary-300);
+  transform: scale(1.02);
 }
 
 .search-input-group {
@@ -566,6 +634,13 @@ export default {
   justify-content: center;
   gap: var(--space-3);
   flex-wrap: wrap;
+  transition: opacity 0.4s ease, max-height 0.4s ease;
+}
+
+.hero-content.compact .quick-filters {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
 }
 
 .filter-label {
@@ -592,6 +667,16 @@ export default {
   border: 1px solid var(--color-gray-200);
   max-width: 600px;
   margin: 0 auto;
+  transition: opacity 0.4s ease, max-height 0.4s ease, padding 0.4s ease;
+  max-height: 200px;
+  opacity: 1;
+}
+
+.hero-content.compact .hero-stats {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .stat-card {
@@ -619,10 +704,48 @@ export default {
   background: var(--color-gray-200);
 }
 
+/* Jobs Section */
+.jobs-section {
+  padding: 0;
+  background: transparent;
+  opacity: 0;
+  transform: scale(0.95);
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.jobs-section.active-search {
+  opacity: 1;
+  transform: scale(1);
+  max-height: none;
+  padding: var(--space-4) 0 var(--space-16) 0;
+  animation: zoomIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes zoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* Categories Section */
 .categories-section {
   padding: 80px 24px;
   background: #f9fafb;
+  transition: opacity 0.4s ease, max-height 0.4s ease;
+}
+
+.categories-section.hidden {
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .section-header {
@@ -764,6 +887,14 @@ export default {
   padding: var(--space-20) var(--space-6);
   background: var(--color-surface);
   position: relative;
+  overflow: hidden;
+  transition: opacity 0.4s ease, max-height 0.4s ease;
+}
+
+.how-it-works-section.hidden {
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
   overflow: hidden;
 }
 

@@ -1,195 +1,268 @@
 <template>
   <div class="settings-page">
     <AppHeader />
-    <q-card class="settings-card q-pa-xl q-mb-xl" flat bordered>
-      <div class="row items-center justify-between q-mb-lg">
-        <div class="row items-center q-gutter-md">
+    
+    <div class="settings-container">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="header-content">
           <q-btn
             flat
             round
             icon="arrow_back"
-            color="primary"
+            color="white"
             @click="$router.push('/')"
             class="back-btn"
-            aria-label="Go back to homepage"
           >
-            <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-              Back to Homepage
-            </q-tooltip>
+            <q-tooltip class="bg-grey-8">Back to Homepage</q-tooltip>
           </q-btn>
-          <q-icon name="settings" size="28px" color="primary" class="settings-icon" />
-          <div class="text-h5 text-weight-bold header-title">Settings</div>
+          <div class="header-text">
+            <h1 class="page-title">
+              <q-icon name="settings" class="title-icon" />
+              Settings
+            </h1>
+            <p class="page-subtitle">Manage your account preferences and settings</p>
+          </div>
         </div>
-        <q-btn
-          flat
-          label="Save Changes"
-          color="primary"
-          :disable="!hasChanges"
-          @click="saveSettings"
-          class="save-btn"
-          icon="save"
-          aria-label="Save settings changes"
-        >
-          <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-            Save Settings
-          </q-tooltip>
-        </q-btn>
       </div>
 
-      <q-separator class="q-my-lg separator" />
-
-      <!-- Profile Preferences -->
-      <q-expansion-item
-        expand-separator
-        header-class="settings-header"
-        default-opened
-        label="Profile Preferences"
-        caption="Manage your profile visibility and public info"
-        icon="person_outline"
-        aria-label="Profile preferences section"
-      >
-        <q-card flat class="section-card">
-          <q-card-section class="section-content">
-            <q-toggle 
-              v-model="profilePublic" 
-              label="Make profile public" 
-              @update:model-value="toggleStatus" 
-            />
-            <q-input
-              v-model="displayName"
-              label="Display Name"
-              outlined
-              dense
-              class="q-mt-lg input-field"
-              :rules="[val => !!val || 'Display name is required']"
-              aria-label="Enter display name"
-            />
-          </q-card-section>
-        </q-card>
-      </q-expansion-item>
-
-      <!-- Notification Settings -->
-      <q-expansion-item
-        expand-separator
-        header-class="settings-header"
-        label="Notification Settings"
-        caption="Control how you receive updates"
-        icon="notifications"
-        aria-label="Notification settings section"
-      >
-        <q-card flat class="section-card">
-          <q-card-section class="section-content">
-            <div class="row q-gutter-lg items-center">
-              <q-toggle
-                v-model="emailNotifications"
-                label="Email Notifications"
+      <div class="content-grid">
+        <!-- Profile Preferences Card -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-title">
+              <q-icon name="person_outline" class="header-icon" />
+              <span>Profile Preferences</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">Make Profile Public</div>
+                <div class="setting-description">Allow recruiters and companies to view your profile</div>
+              </div>
+              <q-toggle 
+                v-model="profilePublic" 
                 color="primary"
-                class="settings-toggle"
-                aria-label="Toggle email notifications"
-              />
-              <q-toggle
-                v-model="pushNotifications"
-                label="Push Notifications"
-                color="primary"
-                class="settings-toggle"
-                aria-label="Toggle push notifications"
+                size="lg"
+                @update:model-value="toggleStatus"
               />
             </div>
-          </q-card-section>
-        </q-card>
-      </q-expansion-item>
+            <q-separator class="my-separator" />
+            <div class="setting-item">
+              <div class="setting-info full-width">
+                <div class="setting-label">Display Name</div>
+                <q-input
+                  v-model="displayName"
+                  outlined
+                  dense
+                  placeholder="Enter your display name"
+                  class="modern-input"
+                  :rules="[val => !!val || 'Display name is required']"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="badge" />
+                  </template>
+                </q-input>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <!-- Account Management -->
-      <q-expansion-item
-        expand-separator
-        header-class="settings-header"
-        label="Account Management"
-        caption="Update credentials or manage your account"
-        icon="manage_accounts"
-        aria-label="Account management section"
-      >
-        <q-card flat class="section-card">
-          <q-card-section class="section-content">
-            <q-input
-              v-model="email"
-              label="Email Address"
-              outlined
-              dense
-              readonly
-              class="q-mb-lg input-field"
-              aria-label="User email address (read-only)"
-            />
-            <q-input
-              v-model="newPassword"
-              label="New Password"
-              type="password"
-              outlined
-              dense
-              class="q-mb-lg input-field"
-              :rules="[val => val.length >= 6 || 'Password must be at least 6 characters']"
-              aria-label="Enter new password"
-            />
-            <q-input
-              v-model="confirmPassword"
-              label="Confirm Password"
-              type="password"
-              outlined
-              dense
-              class="q-mb-lg input-field"
-              :rules="[val => val === newPassword.value || 'Passwords must match']"
-              aria-label="Confirm new password"
-            />
-            <q-btn
-              flat
-              label="Save Password"
-              color="primary"
-              icon="save"
-              :disable="!canSavePassword"
-              @click="savePassword"
-              class="q-mb-lg save-password-btn"
-              aria-label="Save new password"
-            >
-              <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-                Save Password
-              </q-tooltip>
-            </q-btn>
+        <!-- Notification Settings Card -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-title">
+              <q-icon name="notifications" class="header-icon" />
+              <span>Notification Settings</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">Email Notifications</div>
+                <div class="setting-description">Receive job alerts and updates via email</div>
+              </div>
+              <q-toggle 
+                v-model="emailNotifications" 
+                color="primary"
+                size="lg"
+              />
+            </div>
+            <q-separator class="my-separator" />
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">Push Notifications</div>
+                <div class="setting-description">Get instant updates on your device</div>
+              </div>
+              <q-toggle 
+                v-model="pushNotifications" 
+                color="primary"
+                size="lg"
+              />
+            </div>
+          </div>
+        </div>
 
-            <q-separator class="q-my-lg" />
+        <!-- Account Security Card -->
+        <div class="settings-card full-width">
+          <div class="card-header">
+            <div class="card-title">
+              <q-icon name="lock" class="header-icon" />
+              <span>Account Security</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="security-section">
+              <div class="setting-label">Email Address</div>
+              <q-input
+                v-model="email"
+                outlined
+                dense
+                readonly
+                class="modern-input"
+                disable
+              >
+                <template v-slot:prepend>
+                  <q-icon name="email" />
+                </template>
+              </q-input>
+            </div>
 
-            <q-btn
-              flat
-              label="Delete Account"
-              color="negative"
-              icon="delete_forever"
-              @click="confirmDelete"
-              class="delete-btn"
-              aria-label="Delete account"
-            >
-              <q-tooltip class="professional-tooltip" anchor="top middle" self="bottom middle" :offset="[10, 10]">
-                Delete Account
-              </q-tooltip>
-            </q-btn>
-          </q-card-section>
-        </q-card>
-      </q-expansion-item>
+            <q-separator class="my-separator" />
 
-      <!-- Confirmation Dialog -->
-      <q-dialog v-model="showDeleteConfirm" persistent>
-        <q-card class="delete-confirm-card">
-          <q-card-section class="row items-center">
-            <q-icon name="warning_amber" color="negative" size="36px" class="q-mr-md" />
-            <div class="text-h6 text-weight-medium">Confirm Account Deletion</div>
-          </q-card-section>
-          <q-card-section class="text-body2 text-grey-8">
-            This action cannot be undone. Are you sure you want to delete your account?
-          </q-card-section>
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" v-close-popup aria-label="Cancel account deletion" />
-            <q-btn flat label="Delete" color="negative" @click="deleteAccount" v-close-popup aria-label="Confirm account deletion" />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-    </q-card>
+            <div class="security-section">
+              <div class="setting-label">Change Password</div>
+              <div class="password-inputs">
+                <q-input
+                  v-model="newPassword"
+                  type="password"
+                  outlined
+                  dense
+                  placeholder="New password (min. 6 characters)"
+                  class="modern-input"
+                  :rules="[val => !val || val.length >= 6 || 'Password must be at least 6 characters']"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="lock_open" />
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="confirmPassword"
+                  type="password"
+                  outlined
+                  dense
+                  placeholder="Confirm new password"
+                  class="modern-input"
+                  :rules="[val => !val || val === newPassword || 'Passwords must match']"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="lock" />
+                  </template>
+                </q-input>
+              </div>
+              <q-btn
+                unelevated
+                label="Update Password"
+                color="primary"
+                icon="save"
+                :disable="!canSavePassword"
+                :loading="savingPassword"
+                @click="savePassword"
+                class="update-btn"
+                no-caps
+              />
+            </div>
+
+            <q-separator class="my-separator" />
+
+            <div class="security-section">
+              <div class="setting-label danger-label">Danger Zone</div>
+              <div class="danger-zone">
+                <div class="danger-info">
+                  <q-icon name="warning" size="24px" color="negative" />
+                  <div class="danger-text">
+                    <div class="danger-title">Delete Account</div>
+                    <div class="danger-description">Once you delete your account, there is no going back. Please be certain.</div>
+                  </div>
+                </div>
+                <q-btn
+                  outline
+                  label="Delete Account"
+                  color="negative"
+                  icon="delete_forever"
+                  @click="confirmDelete"
+                  class="danger-btn"
+                  no-caps
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Section -->
+        <div class="save-section" v-if="hasChanges">
+          <div class="save-card">
+            <div class="save-info">
+              <q-icon name="info" size="24px" color="primary" />
+              <span>You have unsaved changes</span>
+            </div>
+            <div class="save-actions">
+              <q-btn
+                flat
+                label="Discard"
+                color="grey-7"
+                @click="discardChanges"
+                no-caps
+              />
+              <q-btn
+                unelevated
+                label="Save All Changes"
+                color="primary"
+                icon="save"
+                @click="saveSettings"
+                :loading="saving"
+                no-caps
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <q-dialog v-model="showDeleteConfirm" persistent>
+      <q-card class="delete-dialog">
+        <q-card-section class="dialog-header">
+          <q-icon name="warning_amber" color="negative" size="48px" />
+        </q-card-section>
+        
+        <q-card-section class="dialog-content">
+          <h3 class="dialog-title">Delete Account?</h3>
+          <p class="dialog-text">
+            This action cannot be undone. All your data, including your profile, applications, and saved jobs will be permanently deleted.
+          </p>
+        </q-card-section>
+        
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn 
+            flat 
+            label="Cancel" 
+            color="grey-7" 
+            v-close-popup 
+            no-caps
+          />
+          <q-btn 
+            unelevated
+            label="Yes, Delete My Account" 
+            color="negative" 
+            @click="deleteAccount" 
+            v-close-popup 
+            no-caps
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -197,343 +270,595 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { passwordService } from '../services/password.service'
-import { jobSeekerProfileService } from 'src/services/profile.service';
+import { jobSeekerProfileService } from 'src/services/profile.service'
 import { authHelpers } from 'src/services/auth.service'
-import AppHeader from './HeaderPart.vue';
+import AppHeader from './HeaderPart.vue'
 
 const $q = useQuasar()
-const profilePublic = ref(false);
 const userId = authHelpers.getCurrentUser()?.id
 
 // State
+const profilePublic = ref(false)
+const displayName = ref('')
+const emailNotifications = ref(true)
+const pushNotifications = ref(true)
 const email = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 const savingPassword = ref(false)
+const saving = ref(false)
+const showDeleteConfirm = ref(false)
 
-// Validation
+// Original values for change detection
+const originalSettings = ref({})
+
+// Computed
+const hasChanges = computed(() => {
+  return (
+    profilePublic.value !== originalSettings.value.profilePublic ||
+    displayName.value !== originalSettings.value.displayName ||
+    emailNotifications.value !== originalSettings.value.emailNotifications ||
+    pushNotifications.value !== originalSettings.value.pushNotifications
+  )
+})
+
 const canSavePassword = computed(() => {
   return (
-    newPassword.value.length > 0 &&
-    confirmPassword.value.length > 0 &&
+    newPassword.value.length >= 6 &&
+    confirmPassword.value.length >= 6 &&
     newPassword.value === confirmPassword.value
   )
 })
 
-const toggleStatus = async () => {
-  const newStatus = profilePublic.value ? 'active' : 'inactive';
-  const res = await jobSeekerProfileService.updateStatus(userId, newStatus);
-
-  if (res.success) {
-    $q.notify({ type: 'positive', message: `Status updated to ${newStatus}` });
-  } else {
-    $q.notify({ type: 'negative', message: 'Failed to update status' });
-    profilePublic.value = !profilePublic.value; // revert if failed
-  }
-};
-
-// Load email from profile API
+// Load profile data
 onMounted(async () => {
-  const res = await jobSeekerProfileService.getProfile(userId);
-
-  if (res.success) {
-    email.value = res.data.email;
-    profilePublic.value = res.data.status === 'active';
-  } else {
-    $q.notify({ type: 'negative', message: 'Failed to load profile info' });
+  try {
+    const res = await jobSeekerProfileService.getProfile(userId)
+    
+    if (res.success) {
+      email.value = res.data.email
+      profilePublic.value = res.data.status === 'active'
+      displayName.value = res.data.firstName + ' ' + res.data.lastName || ''
+      
+      // Store original values
+      originalSettings.value = {
+        profilePublic: profilePublic.value,
+        displayName: displayName.value,
+        emailNotifications: emailNotifications.value,
+        pushNotifications: pushNotifications.value
+      }
+    } else {
+      $q.notify({ type: 'negative', message: 'Failed to load profile info' })
+    }
+  } catch (error) {
+    console.error('Error loading profile:', error)
+    $q.notify({ type: 'negative', message: 'Failed to load settings' })
   }
-});
+})
+
+// Toggle profile status
+const toggleStatus = async () => {
+  const newStatus = profilePublic.value ? 'active' : 'inactive'
+  
+  try {
+    const res = await jobSeekerProfileService.updateStatus(userId, newStatus)
+    
+    if (res.success) {
+      $q.notify({ 
+        type: 'positive', 
+        message: `Profile is now ${profilePublic.value ? 'public' : 'private'}` 
+      })
+    } else {
+      throw new Error('Failed to update status')
+    }
+  } catch (err) {
+    $q.notify({ 
+      type: 'negative', 
+      message: err.response?.data?.message || 'Failed to update profile status' 
+    })
+    profilePublic.value = !profilePublic.value // revert
+  }
+}
+
+// Save all settings
+const saveSettings = async () => {
+  saving.value = true
+  
+  try {
+    // Update profile status if changed
+    if (profilePublic.value !== originalSettings.value.profilePublic) {
+      await toggleStatus()
+    }
+    
+    // Here you can add more save logic for notifications, etc.
+    
+    $q.notify({ 
+      type: 'positive', 
+      message: 'Settings saved successfully',
+      icon: 'check_circle'
+    })
+    
+    // Update original settings
+    originalSettings.value = {
+      profilePublic: profilePublic.value,
+      displayName: displayName.value,
+      emailNotifications: emailNotifications.value,
+      pushNotifications: pushNotifications.value
+    }
+  } catch (error) {
+    console.error('Error saving settings:', error)
+    $q.notify({ type: 'negative', message: 'Failed to save settings' })
+  } finally {
+    saving.value = false
+  }
+}
+
+// Discard changes
+const discardChanges = () => {
+  profilePublic.value = originalSettings.value.profilePublic
+  displayName.value = originalSettings.value.displayName
+  emailNotifications.value = originalSettings.value.emailNotifications
+  pushNotifications.value = originalSettings.value.pushNotifications
+  
+  $q.notify({ 
+    type: 'info', 
+    message: 'Changes discarded',
+    icon: 'undo'
+  })
+}
 
 // Save password
 const savePassword = async () => {
+  if (!canSavePassword.value) return
+  
   try {
     savingPassword.value = true
-    await passwordService.updatePassword(
+    
+    const result = await passwordService.updatePassword(
       email.value,
       newPassword.value,
       confirmPassword.value
     )
-    $q.notify({ type: 'positive', message: 'Password updated successfully' })
-    newPassword.value = ''
-    confirmPassword.value = ''
+    
+    if (result.success) {
+      $q.notify({ 
+        type: 'positive', 
+        message: 'Password updated successfully',
+        icon: 'check_circle'
+      })
+      newPassword.value = ''
+      confirmPassword.value = ''
+    } else {
+      throw new Error(result.message || 'Failed to update password')
+    }
   } catch (err) {
+    console.error('Error updating password:', err)
     $q.notify({
       type: 'negative',
-      message: err.response?.data?.message || 'Failed to update password'
+      message: err.response?.data?.message || err.message || 'Failed to update password',
+      icon: 'error'
     })
   } finally {
     savingPassword.value = false
   }
 }
+
+// Confirm delete
+const confirmDelete = () => {
+  showDeleteConfirm.value = true
+}
+
+// Delete account
+const deleteAccount = () => {
+  $q.notify({
+    type: 'warning',
+    message: 'Account deletion functionality will be implemented soon',
+    icon: 'info'
+  })
+  // TODO: Implement account deletion API call
+}
 </script>
 
 <style scoped>
-.settings-card {
-  border-radius: 20px;
-  background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-  max-width: 1000px;
-  margin: 48px auto;
+.settings-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  padding-bottom: 40px;
+}
+
+.settings-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Page Header */
+.page-header {
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+  border-radius: 24px;
   padding: 40px;
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 40px rgba(14, 165, 233, 0.3);
+  animation: fadeInDown 0.6s ease;
 }
 
-.settings-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.header-title {
-  font-size: 26px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #1e40af, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.settings-icon {
-  transition: transform 0.3s ease;
-}
-
-.settings-icon:hover {
-  transform: rotate(30deg);
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
 .back-btn {
-  padding: 8px;
-  border-radius: 10px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
 }
 
-.back-btn:hover {
-  background: #eff6ff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+.header-text {
+  flex: 1;
 }
 
-.separator {
-  background: linear-gradient(to right, #e2e8f0, #3b82f6, #e2e8f0);
-  height: 2px;
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
 }
 
-.settings-header {
-  font-size: 18px;
+.title-icon {
+  font-size: 40px;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Content Grid */
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 24px;
+  animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.settings-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: slideUp 0.6s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.settings-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-size: 20px;
   font-weight: 600;
-  color: #1e293b;
-  padding: 16px 24px;
-  border-radius: 12px;
-  transition: background-color 0.3s ease;
 }
 
-.settings-header:hover {
-  background: #eff6ff;
+.header-icon {
+  font-size: 24px;
 }
 
-.section-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
+.card-body {
+  padding: 24px;
 }
 
-.section-card:hover {
-  transform: translateY(-2px);
+/* Setting Items */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
 }
 
-.section-content {
-  padding: 24px 32px;
+.setting-info {
+  flex: 1;
 }
 
-.settings-toggle {
-  font-size: 15px;
-  color: #1e293b;
-  transition: transform 0.3s ease;
+.setting-info.full-width {
+  width: 100%;
 }
 
-.settings-toggle:hover {
-  transform: translateX(4px);
+.setting-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
 }
 
-.input-field {
+.setting-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.my-separator {
+  margin: 20px 0;
+}
+
+/* Modern Input */
+.modern-input {
+  margin-top: 8px;
+}
+
+/* Security Section */
+.security-section {
   margin-bottom: 24px;
 }
 
-.input-field .q-field__control {
-  border-radius: 10px;
-  background: #f8fafc;
-  transition: border-color 0.3s ease;
+.security-section:last-child {
+  margin-bottom: 0;
 }
 
-.input-field:hover .q-field__control {
-  border-color: #3b82f6;
+.password-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
 }
 
-.save-btn {
-  padding: 10px 24px;
-  border-radius: 12px;
+.update-btn {
+  margin-top: 8px;
   font-weight: 600;
-  background: linear-gradient(135deg, #154899, #1e40af);
-  color: #ffffff;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.save-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+/* Danger Zone */
+.danger-label {
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.save-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.save-password-btn {
-  padding: 8px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.save-password-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.delete-btn {
-  padding: 8px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.delete-btn:hover {
+.danger-zone {
   background: #fef2f2;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  border: 2px solid #fecaca;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
 }
 
-.delete-confirm-card {
-  width: 480px;
+.danger-info {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.danger-text {
+  flex: 1;
+}
+
+.danger-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #991b1b;
+  margin-bottom: 4px;
+}
+
+.danger-description {
+  font-size: 14px;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
+
+.danger-btn {
+  font-weight: 600;
+  border-width: 2px;
+}
+
+/* Save Section */
+.save-section {
+  grid-column: 1 / -1;
+  position: sticky;
+  bottom: 20px;
+  z-index: 100;
+  animation: slideInUp 0.4s ease;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.save-card {
+  background: white;
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  background: #ffffff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: 2px solid #0ea5e9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
 }
 
-.professional-tooltip {
-  background: #1e293b;
-  color: #ffffff;
-  font-size: 13px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+.save-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-/* Responsive Design */
+.save-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Delete Dialog */
+.delete-dialog {
+  width: 500px;
+  max-width: 90vw;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.dialog-header {
+  text-align: center;
+  padding: 32px 24px 16px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.dialog-content {
+  padding: 24px;
+  text-align: center;
+}
+
+.dialog-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.dialog-text {
+  font-size: 15px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .settings-card {
-    max-width: 100%;
-    padding: 28px;
-    border-radius: 14px;
-    margin: 32px auto;
+  .settings-container {
+    padding: 16px;
   }
 
-  .section-content {
-    padding: 16px 20px;
+  .page-header {
+    padding: 24px;
+    border-radius: 16px;
   }
 
-  .header-title {
-    font-size: 22px;
+  .page-title {
+    font-size: 28px;
   }
 
-  .settings-header {
-    font-size: 16px;
-    padding: 12px 20px;
+  .title-icon {
+    font-size: 32px;
   }
 
-  .delete-confirm-card {
-    width: 90%;
+  .page-subtitle {
+    font-size: 14px;
   }
 
-  .input-field {
-    margin-bottom: 16px;
-  }
-
-  .back-btn {
-    padding: 6px;
-  }
-}
-
-@media (max-width: 480px) {
-  .settings-card {
-    padding: 20px;
-  }
-
-  .section-content .row {
+  .header-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
 
-  .header-title {
-    font-size: 20px;
+  .card-body {
+    padding: 16px;
   }
 
-  .settings-toggle {
-    font-size: 14px;
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .save-btn, .save-password-btn, .delete-btn, .back-btn {
+  .password-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .save-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .save-actions {
+    flex-direction: column;
+  }
+
+  .save-actions .q-btn {
     width: 100%;
-    text-align: center;
+  }
+
+  .danger-info {
+    flex-direction: column;
   }
 }
 
-/* Accessibility */
-.settings-header:focus-visible,
-.settings-toggle:focus-visible,
-.save-btn:focus-visible,
-.save-password-btn:focus-visible,
-.delete-btn:focus-visible,
-.back-btn:focus-visible {
-  outline: 3px solid #3b82f6;
-  outline-offset: 3px;
-}
-
-@media (prefers-contrast: high) {
-  .settings-card {
-    border: 2px solid #1e3a8a;
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 24px;
   }
 
-  .header-title {
-    -webkit-text-fill-color: #1e40af;
-    background: none;
+  .card-title {
+    font-size: 18px;
   }
 
-  .settings-header {
-    color: #1e3a8a;
-    font-weight: 700;
-  }
-
-  .save-btn, .save-password-btn, .delete-btn, .back-btn {
-    border: 2px solid #1e40af;
-  }
-
-  .separator {
-    background: #1e40af;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .settings-card,
-  .section-card,
-  .settings-icon,
-  .settings-toggle,
-  .save-btn,
-  .save-password-btn,
-  .delete-btn,
-  .back-btn {
-    transition: none;
+  .dialog-title {
+    font-size: 20px;
   }
 }
 </style>
