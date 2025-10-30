@@ -1,4 +1,5 @@
 <template>
+  <div class="job-header-root">
   <q-card
     class="q-pa-md q-mb-md transition-all cursor-pointer job-card"
     :class="{ 'shadow-4': isHovered }"
@@ -162,7 +163,7 @@
     </q-card-actions>
   </q-card>
 </q-dialog>
-
+  </div>
 </template>
 
 <script setup>
@@ -208,7 +209,7 @@ const createddate = computed(() => {
 })
 
 const checkIfApplied = async () => {
-  if (!userId || !job.value?.id) return
+  if (!userId || !job.value?.id) return 
   
   try {
     checkingApplication.value = true
@@ -228,6 +229,12 @@ const checkIfApplied = async () => {
 }
 
 const handleApplyClick = () => {
+  if (!userId || !job.value?.id) { $q.notify({
+      type: 'warning',
+      message: 'You must be logged in to apply for a job'
+    })
+    return 
+  }
   if (hasApplied.value) {
     $q.notify({
       type: 'warning',
