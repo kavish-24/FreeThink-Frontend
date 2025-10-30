@@ -209,7 +209,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const response = await axios.get('http://localhost:3000/api/auth/me', {
+        const response = await api.get('auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         this.user = response.data.user;
