@@ -3,10 +3,10 @@ import api from './auth.service.js';
 
 export default {
   getSuggestions(companyId) {
-    return api.get(`${API_URL}/suggestions/${companyId}`);
+    return api.get(`/jobseeker/suggestions/${companyId}`);
   },
   searchJobseekers(position) {
-    return api.get(`${API_URL}/search`, {
+    return api.get(`/jobseeker/search`, {
       params: { position }
     });
   }

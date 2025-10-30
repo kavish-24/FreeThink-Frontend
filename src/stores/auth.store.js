@@ -155,7 +155,7 @@
 
 import { defineStore } from 'pinia';
 import { auth, jobSeekerAuth, authHelpers } from 'src/services/auth.service';
-import axios from 'axios';
+import api from 'src/services/auth.service';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -209,7 +209,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const response = await api.get('auth/me', {
+        const response = await api.get('/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         this.user = response.data.user;
