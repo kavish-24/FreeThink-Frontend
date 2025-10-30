@@ -1,6 +1,6 @@
 
 import axios from "axios";
-
+const APP_URL = import.meta.env.APP_URL;
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 if (!OPENROUTER_API_KEY) {
   console.error("OpenRouter API key is not set in environment variables.");
@@ -27,7 +27,7 @@ export const getSuggestions = async (prompt, field) => {
       {
         headers: {
           Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "http://localhost:9000",
+          "HTTP-Referer": APP_URL,
           "X-Title": "JobHub",
           "Content-Type": "application/json",
         },
