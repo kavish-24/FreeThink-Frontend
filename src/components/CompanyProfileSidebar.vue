@@ -85,14 +85,7 @@
             class="action-btn"
             @click="toggleEditMode"
           />
-          <q-btn
-            flat
-            icon="visibility"
-            label="Full View"
-            color="primary"
-            class="action-btn"
-            @click="openFullProfile"
-          />
+        
         </div>
 
         <!-- Profile Information -->
@@ -430,7 +423,7 @@
 import { ref, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { authHelpers } from 'src/services/auth.service'
-import { useRouter } from 'vue-router'
+
 import api from '../services/auth.service'
 
 const props = defineProps({
@@ -443,7 +436,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const $q = useQuasar()
-const router = useRouter()
+
 const userId = authHelpers.getCurrentUser()?.id
 
 const isOpen = computed({
@@ -703,10 +696,7 @@ const getFullUrl = (url, type) => {
   return prefixes[type] + url
 }
 
-const openFullProfile = () => {
-  isOpen.value = false
-  router.push('/company-profile')
-}
+
 </script>
 
 <style scoped>

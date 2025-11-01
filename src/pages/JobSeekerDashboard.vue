@@ -175,9 +175,9 @@ const unreadMessageCount = ref(0);
 const dashboardTabs = computed(() => [
   { key: 'overview', label: 'Overview', icon: 'dashboard' },
   { key: 'applications', label: `Applications (${applicationCount.value})`, icon: 'work' },
-  { key: 'bookmarks', label: `Saved Jobs (${bookmarkedJobs.value.length})`, icon: 'bookmark' },
-  { key: 'messages', label: `Messages ${unreadMessageCount.value > 0 ? `(${unreadMessageCount.value})` : ''}`, icon: 'chat' }
+  { key: 'bookmarks', label: `Saved Jobs (${bookmarkedJobs.value.length})`, icon: 'bookmark' }
 ]);
+  
 
 const goToResume = () => router.push('/resume-builder');
 

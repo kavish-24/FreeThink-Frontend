@@ -39,7 +39,7 @@
   </div>
       </div>
       </section>
-    <JobseekerSuggestions />
+    <JobseekerSuggestions v-if="authStore.isAuthenticated && authStore.role === 'company'" />
 <section class="why-choose glass-section">
   <h2 class="stand-up-effect">
     <span>W</span><span>h</span><span>y</span><span>&nbsp;</span><span>C</span><span>h</span><span>o</span><span>o</span><span>s</span><span>e</span><span>&nbsp;</span><span>J</span><span>o</span><span>b</span><span>H</span><span>u</span><span>b</span><span>&nbsp;</span><span>f</span><span>o</span><span>r</span><span>&nbsp;</span><span>H</span><span>i</span><span>r</span><span>i</span><span>n</span><span>g</span><span>?</span>
@@ -231,6 +231,10 @@ export default {
     AppHeader,
     AppFooter,
     JobseekerSuggestions
+  },
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
   },
   data() {
     return {

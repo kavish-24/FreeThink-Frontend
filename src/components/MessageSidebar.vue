@@ -371,18 +371,22 @@ export default {
       if (!this.selectedConversation || this.selectedConversation.id !== message.conversationId) {
         this.loadConversations();
       } else {
-        // Add message to current conversation
-        this.messages.push({
-          id: message.id,
-          content: message.content,
-          senderId: message.senderId,
-          createdAt: message.createdAt,
-          messageType: message.messageType || 'text'
-        });
-        
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
+        // Check if message already exists to prevent duplicates
+        const existingMessage = this.messages.find(m => m.id === message.id);
+        if (!existingMessage) {
+          // Add message to current conversation
+          this.messages.push({
+            id: message.id,
+            content: message.content,
+            senderId: message.senderId,
+            createdAt: message.createdAt,
+            messageType: message.messageType || 'text'
+          });
+          
+          this.$nextTick(() => {
+            this.scrollToBottom();
+          });
+        }
       }
     },
 
@@ -498,13 +502,10 @@ export default {
         );
         
         if (response.success) {
-          this.messages.push({
-            id: response.message.id,
-            content: messageContent,
-            senderId: this.currentUser.id,
-            createdAt: new Date().toISOString()
-          });
+          // Don't add the message locally here - let WebSocket handle it
+          // This prevents duplicate messages
           
+          // The message will be added via handleNewMessage when WebSocket receives it
           this.$nextTick(() => {
             this.scrollToBottom();
           });
