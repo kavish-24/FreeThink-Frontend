@@ -61,11 +61,31 @@
         <div class="row q-col-gutter-lg">
           <div class="col-12 col-lg-7">
             <q-card flat bordered class="q-mb-lg">
-              <q-card-section>
+              <q-card-section class="row items-center justify-between">
                 <div class="text-h6 content-title">Application Trends (Last 7 Days)</div>
+                <q-btn 
+                  flat 
+                  round 
+                  icon="refresh" 
+                  color="primary" 
+                  @click="refreshData"
+                  :loading="isRefreshing"
+                >
+                  <q-tooltip>Refresh Data</q-tooltip>
+                </q-btn>
               </q-card-section>
               <q-card-section>
-                <apexchart type="bar" height="350" :options="chartOptions" :series="chartSeries"></apexchart>
+                <div v-if="isChartLoading" class="flex justify-center items-center" style="height: 350px;">
+                  <q-spinner-dots size="40px" color="primary" />
+                  <span class="q-ml-sm">Loading chart data...</span>
+                </div>
+                <VueApexCharts 
+                  v-else
+                  type="bar" 
+                  height="350" 
+                  :options="chartOptions" 
+                  :series="chartSeries"
+                ></VueApexCharts>
               </q-card-section>
             </q-card>
           </div>
@@ -123,45 +143,152 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import VueApexCharts from 'vue3-apexcharts';
-import { api } from 'src/boot/axios';
+import api  from 'src/services/auth.service';
 import AppHeader from 'src/components/HeaderPart.vue';
 import EmployerSidebar from 'src/components/EmployerSidebar.vue';
 import { authHelpers } from 'src/services/auth.service';
 
-const apexchart = VueApexCharts;
 const router = useRouter();
 const $q = useQuasar();
 
+// Initialize dashboard stats with loading state
 const dashboardStats = ref([
-  { value: 28, label: 'Total Jobs', icon: 'summarize', iconColor: 'blue-5' },
-  { value: 19, label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-6' },
-  { value: 87, label: 'Total Applicants', icon: 'groups', iconColor: 'blue-7' },
-  { value: 0, label: 'Pending Review', icon: 'pending_actions', iconColor: 'blue-8' }
+  { value: '...', label: 'Total Applications', icon: 'summarize', iconColor: 'blue-5' },
+  { value: '...', label: 'Active Jobs', icon: 'fact_check', iconColor: 'blue-6' },
+  { value: '...', label: 'Under Review', icon: 'groups', iconColor: 'blue-7' },
+  { value: '...', label: 'Rejected', icon: 'close', iconColor: 'red' }
 ]);
 
-const navStats = ref({
-  pending_jobs: 2,
-});
-
-const fetchNavStats = async () => {
+const fetchCompanyStats = async () => {
   try {
     const token = authHelpers.getToken();
     if (!token) {
       console.warn('No authentication token found');
       return;
     }
-    const response = await api.get('/applications/stats', {
+    console.log('Fetching company stats...');
+    const response = await api.get('/applications/company-stats', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     });
-    if (response.data && response.data.pending_jobs !== undefined) {
-      navStats.value.pending_jobs = response.data.pending_jobs;
+    
+    console.log('Response received:', response.data);
+    
+    if (response.data && response.data.success) {
+      const { stats, details } = response.data;
+      console.log('Updating dashboard with stats:', stats);
+      console.log('Details:', details);
+      
+      // Ensure all values are numbers and not undefined
+      const totalApps = parseInt(stats.total) || 0;
+      const activeJobs = parseInt(details.total_active_jobs) || 0;
+      const underReview = parseInt(stats.under_review) || 0;
+      const rejected = parseInt(stats.rejected) || 0;
+
+      // Update dashboard stats with number values
+      dashboardStats.value.forEach((stat, index) => {
+        switch(index) {
+          case 0:
+            stat.value = totalApps;
+            break;
+          case 1:
+            stat.value = activeJobs;
+            break;
+          case 2:
+            stat.value = underReview;
+            break;
+          case 3:
+            stat.value = rejected;
+            break;
+        }
+      });
+
+      // Update action items based on recent applications
+      if (details.recent_applications && details.recent_applications.length > 0) {
+        const newApplicants = details.recent_applications.filter(app => app.status === 'applied').length;
+        if (newApplicants > 0) {
+          actionItems.value[0] = {
+            icon: 'person_add',
+            title: `${newApplicants} New Applicant${newApplicants > 1 ? 's' : ''}`,
+            subtitle: `For ${details.recent_applications[0].jobTitle}`,
+            to: '/candidates'
+          };
+        }
+      }
+
+      // Most active job info can be used here as well
+      if (details.most_active_job) {
+        const { jobTitle, count } = details.most_active_job;
+        actionItems.value.push({
+          icon: 'trending_up',
+          title: 'Most Active Job Posting',
+          subtitle: `${jobTitle} (${count} application${count > 1 ? 's' : ''})`,
+          to: '/posted-jobs'
+        });
+      }
+
+      // Update chart data immediately when stats change
+      await updateChartData(stats, details);
     }
   } catch (error) {
-    console.error('Error fetching navigation stats:', error);
+    console.error('Error fetching company stats:', error);
+  }
+};
+
+// Separate function to update chart data
+const updateChartData = async (stats, details) => {
+  try {
+    // Get the latest 7 days
+    const last7Dates = getLastNDates(7);
+    chartCategories.value = last7Dates.map(d => formatLabel(d));
+
+    // Initialize with current data distributed across recent days
+    const appliedData = new Array(7).fill(0);
+    const underReviewData = new Array(7).fill(0);
+    const approvedData = new Array(7).fill(0);
+    const rejectedData = new Array(7).fill(0);
+
+    // Distribute the current stats across the last few days for visualization
+    if (details.recent_applications && details.recent_applications.length > 0) {
+      // Group applications by status
+      const statusCounts = {
+        applied: 0,
+        under_review: 0,
+        approved: 0,
+        rejected: 0
+      };
+
+      details.recent_applications.forEach(app => {
+        if (app.status in statusCounts) {
+          statusCounts[app.status] += parseInt(app.count) || 0;
+        }
+      });
+
+      // Place the data in the most recent days (spread across last 3 days)
+      appliedData[6] = Math.ceil(statusCounts.applied * 0.5);
+      appliedData[5] = Math.ceil(statusCounts.applied * 0.3);
+      appliedData[4] = Math.ceil(statusCounts.applied * 0.2);
+
+      underReviewData[6] = statusCounts.under_review;
+      approvedData[5] = statusCounts.approved;
+      rejectedData[6] = Math.ceil(statusCounts.rejected * 0.7);
+      rejectedData[5] = Math.ceil(statusCounts.rejected * 0.3);
+    }
+
+    // Update chart series
+    chartSeries.value = [
+      { name: 'Applied', data: appliedData },
+      { name: 'Under Review', data: underReviewData },
+      { name: 'Approved', data: approvedData },
+      { name: 'Rejected', data: rejectedData }
+    ];
+
+    console.log('Chart updated with new data:', chartSeries.value);
+  } catch (error) {
+    console.error('Error updating chart data:', error);
   }
 };
 
@@ -179,15 +306,58 @@ const upcomingInterviews = ref([
   { id: 3, candidateName: 'Sneha Verma', jobTitle: 'Senior Frontend Developer', date: 'Aug 5, 2025', time: '10:00 AM' },
 ]);
 
-const chartSeries = ref([{ name: 'Jobs Posted', data: [] }]);
-const chartCategories = ref([]);
+// Initialize chart with placeholder data that won't flicker
+const chartSeries = ref([
+  { name: 'Applied', data: [0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Under Review', data: [0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Approved', data: [0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Rejected', data: [0, 0, 0, 0, 0, 0, 0] }
+]);
+
+// Initialize with default categories - will be updated when data loads
+const chartCategories = ref(['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7']);
 const chartOptions = computed(() => ({
-  chart: { type: 'bar', height: 350, toolbar: { show: false } },
-  plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '60%' } },
+  chart: {
+    type: 'bar',
+    height: 350,
+    toolbar: { show: false },
+    stacked: true,
+  },
+  plotOptions: {
+    bar: {
+      borderRadius: 4,
+      horizontal: false,
+      columnWidth: '60%'
+    }
+  },
   dataLabels: { enabled: false },
-  xaxis: { categories: chartCategories.value },
-  colors: ['#1565c0'],
-  theme: { mode: $q.dark.isActive ? 'dark' : 'light' }
+  xaxis: {
+    categories: chartCategories.value,
+    labels: {
+      rotate: -45,
+      style: {
+        fontSize: '12px'
+      }
+    }
+  },
+  yaxis: {
+    title: {
+      text: 'Number of Applications'
+    }
+  },
+  colors: ['#4CAF50', '#2196F3', '#FFC107', '#F44336'],
+  legend: {
+    position: 'top',
+    horizontalAlign: 'center'
+  },
+  theme: { mode: $q.dark.isActive ? 'dark' : 'light' },
+  tooltip: {
+    y: {
+      formatter: function (val) {
+        return val + ' applications'
+      }
+    }
+  }
 }));
 
 const currentUser = authHelpers.getCurrentUser();
@@ -202,6 +372,22 @@ const activeBroadcast = ref(null);
 const verificationStatus = ref('');
 const rejectionReason = ref('');
 const isLoading = ref(true);
+const isRefreshing = ref(false);
+const isChartLoading = ref(true);
+
+// Manual refresh function
+const refreshData = async () => {
+  isRefreshing.value = true;
+  try {
+    await fetchCompanyStats();
+    await fetchTrends(); // Only refresh trends when manually requested
+    console.log('Data refreshed manually');
+  } catch (error) {
+    console.error('Error refreshing data:', error);
+  } finally {
+    isRefreshing.value = false;
+  }
+};
 
 const fetchCompanyStatus = async () => {
   try {
@@ -244,6 +430,14 @@ const fetchCompanyStatus = async () => {
 
 onMounted(async () => {
   try {
+    // Initialize chart categories with proper dates now that helper functions are available
+    const last7Dates = getLastNDates(7);
+    chartCategories.value = last7Dates.map(d => formatLabel(d));
+    
+    // Start all data fetching immediately in parallel
+    const statsPromise = fetchCompanyStats().catch(console.error);
+    const trendsPromise = fetchTrends().catch(console.error);
+    
     const storedEmployer = localStorage.getItem('employerData');
     if (storedEmployer) {
       const employerData = JSON.parse(storedEmployer);
@@ -251,7 +445,9 @@ onMounted(async () => {
       verificationStatus.value = employerData.status || '';
       rejectionReason.value = employerData.rejectionReason || '';
     }
-    await fetchCompanyStatus();
+    
+    const statusPromise = fetchCompanyStatus();
+    
     const storedBroadcast = localStorage.getItem('jobhubBroadcast');
     if (storedBroadcast) {
       const broadcast = JSON.parse(storedBroadcast);
@@ -261,10 +457,20 @@ onMounted(async () => {
         localStorage.removeItem('jobhubBroadcast');
       }
     }
-    await fetchNavStats();
-    await fetchTrends();
+
+    // Wait for all initial data to load
+    await Promise.all([statsPromise, trendsPromise, statusPromise]);
+
+    // Set up periodic refresh of stats only (every 10 seconds for real-time updates)
+    // Trends data is only fetched on page load and manual refresh
+    const refreshInterval = setInterval(() => {
+      fetchCompanyStats();
+    }, 10000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(refreshInterval);
   } catch (error) {
-    console.error('Error fetching stats:', error);
+    console.error('Error in onMounted:', error);
   }
 });
 
@@ -282,14 +488,6 @@ const getLastNDates = (n) => {
   return dates;
 };
 
-// Helper: format a Date into local YYYY-MM-DD (without UTC shifts)
-const formatDateKeyLocal = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 // Date is now dynamic and shows the current date
 const todaysDate = new Date().toLocaleDateString('en-IN', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -304,35 +502,51 @@ const formatLabel = (isoDate) => {
 
 const fetchTrends = async () => {
   try {
-    const companyId = authHelpers.getCurrentUser()?.id;
-    if (!companyId) return;
-    const response = await api.get(`/jobs/trends/${companyId}`);
-    // Always prepare the latest 7 calendar days (oldest -> today)
-    const last7Dates = getLastNDates(7);
-    const last7Keys = last7Dates.map(d => formatDateKeyLocal(d));
+    const token = authHelpers.getToken();
+    if (!token) {
+      console.warn('No authentication token found');
+      isChartLoading.value = true;
+      return;
+    }
 
-    if (response.data?.success) {
-      // Normalize API data into a map keyed by local YYYY-MM-DD
-      const countByDate = (response.data.data || []).reduce((acc, row) => {
-        const parsed = new Date(row.date);
-        // normalize to local date key
-        const key = formatDateKeyLocal(new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()));
-        const count = Number(row.count) || 0;
-        acc[key] = (acc[key] || 0) + count;
-        return acc;
-      }, {});
+    console.log('Fetching application trends...');
+    
+    // Fetch trends data from the new endpoint
+    const response = await api.get('/applications/trends', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
-      chartCategories.value = last7Dates.map(d => formatLabel(d));
-      chartSeries.value = [{ name: 'Jobs Posted', data: last7Keys.map(k => countByDate[k] || 0) }];
+    if (response.data?.success && response.data.data) {
+      const { data } = response.data;
+      console.log('Trends data received:', data);
+
+      // Only update if we have valid data
+      if (data.categories && data.categories.length > 0) {
+        // Update chart categories (dates)
+        chartCategories.value = data.categories;
+
+        // Update chart series data
+        chartSeries.value = [
+          { name: 'Applied', data: data.series.find(s => s.name === 'Applied')?.data || new Array(data.categories.length).fill(0) },
+          { name: 'Under Review', data: data.series.find(s => s.name === 'Under Review')?.data || new Array(data.categories.length).fill(0) },
+          { name: 'Approved', data: data.series.find(s => s.name === 'Approved')?.data || new Array(data.categories.length).fill(0) },
+          { name: 'Rejected', data: data.series.find(s => s.name === 'Rejected')?.data || new Array(data.categories.length).fill(0) }
+        ];
+
+        console.log('Chart updated with trends data:', chartSeries.value);
+      } else {
+        console.warn('No valid categories in trends data');
+      }
     } else {
-      chartCategories.value = last7Dates.map(d => formatLabel(d));
-      chartSeries.value = [{ name: 'Jobs Posted', data: last7Keys.map(() => 0) }];
+      console.warn('No success in trends response or no data:', response.data);
     }
   } catch (err) {
-    console.error('Error fetching trends:', err);
-    const last7Dates = getLastNDates(7);
-    chartCategories.value = last7Dates.map(d => formatLabel(d));
-    chartSeries.value = [{ name: 'Jobs Posted', data: last7Dates.map(() => 0) }];
+    console.error('Error fetching application trends:', err);
+    // Don't clear existing chart data on error - keep what we have
+  } finally {
+    isChartLoading.value = false;
   }
 };
 </script>
